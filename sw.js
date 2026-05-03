@@ -1,5 +1,5 @@
-// VV Birthday Bash 2026 — Service Worker
-const CACHE = ‘vv-bash-v1’;
+// VV Birthday Bash 2026 — Service Worker v3
+const CACHE = ‘vv-bash-v3’;
 const PRECACHE = [’./’, ‘./index.html’, ‘./manifest.json’, ‘./icons/icon-192.png’];
 
 self.addEventListener(‘install’, e => {
@@ -21,13 +21,10 @@ e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 return;
 }
 e.respondWith(
-caches.match(e.request).then(cached => {
-const network = fetch(e.request).then(res => {
+fetch(e.request).then(res => {
 if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
 return res;
-});
-return cached || network;
-})
+}).catch(() => caches.match(e.request))
 );
 });
 
