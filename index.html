@@ -193,9 +193,27 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .ios-step:last-child{border-bottom:none;}
 .ios-step-num{width:26px;height:26px;background:#f2f2f7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#1a1208;flex-shrink:0;}
 .ios-share-pill{display:inline-flex;align-items:center;gap:3px;background:#007aff;color:#fff;border-radius:5px;padding:2px 7px;font-size:.78rem;font-weight:700;vertical-align:middle;margin:0 2px;}
-@media print{#ios-banner,#android-banner,header,.form-card,.print-btn,#page-form,.modal-actions,.modal-close,#firebase-bar,#update-banner{display:none!important;}
-#modal-overlay{position:static!important;background:none!important;padding:0!important;display:block!important;}
-.modal-box{border-radius:0!important;padding:0!important;}body{background:#fff;}}
+@media print{
+#ios-banner,#android-banner,header,.nav-tabs,.form-card,.print-btn,#page-form,.modal-actions,.modal-close,#firebase-bar,#update-banner,.push-card,.show-past-btn,#returning-banner,#returning-lookup-card{display:none!important;}
+#modal-overlay{position:static!important;background:none!important;padding:0!important;display:block!important;overflow:visible!important;}
+.modal-box{border-radius:0!important;padding:0 1rem!important;max-width:100%!important;box-shadow:none!important;}
+.show-past-btn+div{display:block!important;}
+@page{margin:1.8cm 1.5cm;}
+body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
+.traveler-banner{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#1a1208!important;color:#fff!important;border-radius:8px!important;padding:.8rem 1rem!important;margin-bottom:1rem!important;page-break-inside:avoid;}
+.flight-pill{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:rgba(201,146,58,.25)!important;color:#8a6020!important;border:1px solid #c9923a!important;}
+.tag-pill{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.day-block{page-break-inside:avoid;margin-bottom:.8rem;}
+.day-header{page-break-after:avoid;}
+.events{page-break-inside:avoid;}
+.event{page-break-inside:avoid;border:1px solid #ddd!important;box-shadow:none!important;padding:.5rem .7rem!important;margin-bottom:3px!important;}
+.event.personal{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fffbf2!important;border-color:#c9923a!important;}
+.event.past{opacity:.55!important;}
+.day-chip{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#c9923a!important;color:#fff!important;}
+.day-chip.nice{background:#1a5276!important;}
+.badge{-webkit-print-color-adjust:exact;print-color-adjust:exact;border:1px solid #ccc!important;font-size:7pt!important;}
+.personal-label{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#c9923a!important;color:#fff!important;}
+.event-title{font-size:10pt!important;}.event-note{font-size:9pt!important;}.event-time{font-size:8pt!important;}.day-date{font-size:9pt!important;}}
 </style>
 </head>
 <body>
@@ -490,8 +508,19 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div id="modal-itinerary"></div>
     <div class="modal-actions">
-      <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="print-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+      <button class="print-btn" onclick="showCalendarOptions()">📅 Add to Calendar</button>
+      <button class="print-btn" onclick="triggerInstallFromModal()">📲 Install App</button>
       <button class="print-btn" onclick="closeModal()">← Edit Details</button>
+    </div>
+    <div id="install-hint" style="display:none;margin-top:.7rem;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:.6rem 1rem;font-size:.82rem;color:#854d0e;line-height:1.5"></div>
+    <div id="cal-options" style="display:none;margin-top:.8rem;background:#f9f5ed;border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;">
+      <div style="font-size:.82rem;font-weight:600;margin-bottom:.7rem;color:var(--ink)">Choose your calendar app:</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="downloadICS()">🍎 Apple / Outlook (.ics)</button>
+        <button class="btn btn-secondary btn-sm" onclick="openGoogleCalendar()">📆 Google Calendar</button>
+      </div>
+      <div id="gcal-links" style="display:none;margin-top:.8rem;font-size:.8rem;max-height:200px;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -734,11 +763,12 @@ async function submitAndGenerate(){
   showNotice(ni,saved?'✅ Details saved! Your itinerary is below.':'ℹ️ Your itinerary is below.',saved?'success':'info');
   document.getElementById('personal-link-card').style.display='block';
   lastGeneratedGuest=g;document.getElementById('update-banner').style.display='none';
-  try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  _itineraryGuest=g;document.getElementById('cal-options').style.display='none';
+  try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
   catch(e){console.error('buildItinerary error:',e);showNotice(ni,'⚠️ Itinerary error — please try again.','warn');}
   scheduleActivityReminders(g);
 }
-async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElementById('modal-itinerary').innerHTML=await buildItinerary(lastGeneratedGuest);document.getElementById('update-banner').style.display='none';document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElementById('modal-itinerary').innerHTML=await buildItinerary(lastGeneratedGuest);document.getElementById('update-banner').style.display='none';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
 async function buildItinerary(g){
   const TRIP_BASE=new Date('2026-06-19T12:00:00'),acts=LIVE_ACTIVITIES,isVOnly=g.tripSection==='valbonne',isBOnly=g.tripSection==='bruges';
   const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'—').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'—').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'—').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
@@ -769,7 +799,9 @@ async function buildItinerary(g){
   let pastDaysHtml='',pastDayCount=0;
   for(let d=startDay;d<lastDay;d++){
     const dd=new Date(TRIP_BASE);dd.setDate(TRIP_BASE.getDate()+d);
-    const label=isVOnly?(valonlyLabels[d-3]||'Day '+(d-2)):(DAY_LABELS[d]||'Day '+(d+1));
+    const label=isVOnly?(valonlyLabels[d-3]||'Day '+(d-2)):d===3?(()=>{
+      if(isBOnly){const dest=g.brugesDepTo||'Home';return g.brugesDepMode==='train'?`Day 4 \u2013 Train to ${dest}`:`Day 4 \u2013 Flight to ${dest}`;}
+      const dest=g.depFlight&&g.depFlight!=='\u2014'?'Nice':'C\u00f4te d\'Azur';return `Day 4 \u2013 Travel to ${dest}`;})():(DAY_LABELS[d]||'Day '+(d+1));
     const dateStr=dd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
     const isNice=d>=3,isToday=tripOngoing&&d===todayTripDay,isPast=tripOngoing&&d<todayTripDay;
     const chipClass=`day-chip${isNice?' nice':''}${isToday?' today':''}${isPast?' past':''}`;
@@ -806,6 +838,10 @@ async function buildItinerary(g){
           }
           // note already contains checkoutNote via {checkoutNote} fill — append hotel reminder
           evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
+        }
+        // CHECK_DEP icon: ✈️ for flight, 🚂 for train (bruges-only guests)
+        if(ev.time==='CHECK_DEP' && (ev.tags||[]).includes('bruges-only')){
+          evIcon = g.brugesDepMode==='train' ? '🚂' : '✈️';
         }
         const bc='badge-'+evType,bl=evType[0].toUpperCase()+evType.slice(1);
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
@@ -845,12 +881,12 @@ async function requestPush(){const btn=document.getElementById('push-optin-btn')
 async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
 function saveOneSignalConfig(){ONESIGNAL_APP_ID=document.getElementById('os-app-id').value.trim();ONESIGNAL_API_KEY=document.getElementById('os-api-key').value.trim();localStorage.setItem('os_config',JSON.stringify({appId:ONESIGNAL_APP_ID,apiKey:ONESIGNAL_API_KEY}));alert('Saved.');}
 function saveRapidAPIKey(){const key=document.getElementById('rapidapi-key').value.trim();RAPIDAPI_KEY=key;localStorage.setItem('rapidapi_key',key);const status=document.getElementById('rapidapi-status');if(key){status.textContent='✅ Auto-lookup enabled — guests\' flight times will fill in automatically.';status.style.color='#065f46';}else{status.textContent='Key cleared.';status.style.color='';}}
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;if(!localStorage.getItem('android_banner_ok')&&!isIOS())setTimeout(()=>{document.getElementById('android-banner').style.display='block';},2500);});
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;if(!sessionStorage.getItem('android_banner_ok')&&!isIOS())setTimeout(()=>{document.getElementById('android-banner').style.display='block';},2500);});
 async function installApp(){if(deferredInstallPrompt){try{await deferredInstallPrompt.prompt();const{outcome}=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(outcome==='accepted')dismissAndroidBanner(true);else showManualInstallInstructions();}catch(e){showManualInstallInstructions();}}else showManualInstallInstructions();}
 function showManualInstallInstructions(){document.getElementById('android-auto').style.display='none';const ua=navigator.userAgent,step=document.getElementById('android-step2');if(/SamsungBrowser/i.test(ua))step.innerHTML='Tap the <strong>☰ menu</strong> → <strong>"Add page to"</strong> → <strong>"Home Screen"</strong>';else if(/Firefox/i.test(ua))step.innerHTML='Tap the <strong>⋮ menu</strong> → <strong>"Install"</strong>';else if(/Edg\//i.test(ua))step.innerHTML='Tap the <strong>⋯ menu</strong> → <strong>"Add to phone"</strong>';else if(/OPR\//i.test(ua))step.innerHTML='Tap the <strong>⋮ menu</strong> → <strong>"Home Screen"</strong>';else step.innerHTML='Tap the <strong>⋮ menu</strong> (three dots) → <strong>"Add to Home Screen"</strong>';document.getElementById('android-manual').style.display='block';}
-function dismissAndroidBanner(permanent){document.getElementById('android-banner').style.display='none';if(permanent)localStorage.setItem('android_banner_ok','1');}
+function dismissAndroidBanner(permanent){document.getElementById('android-banner').style.display='none';if(permanent)sessionStorage.setItem('android_banner_ok','1');}
 function isIOS(){return/iphone|ipad|ipod/i.test(navigator.userAgent);}
-function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=localStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
+function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=sessionStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission==='default')document.getElementById('push-optin-card').style.display='flex';});
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();}
@@ -925,22 +961,30 @@ async function viewReturningItinerary(){
   const g=loadGuestLocally();if(!g)return;
   prefillForm(g);
   document.getElementById('returning-banner').style.display='none';
-  try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
-  catch(e){console.error('buildItinerary error:',e);document.getElementById('modal-itinerary').innerHTML='<div style="padding:2rem;color:#c0392b">⚠️ Couldn\'t load itinerary. Please tap "Update details" and re-submit.</div>';document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  _itineraryGuest=g;document.getElementById('cal-options').style.display='none';
+  try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  catch(e){console.error('buildItinerary error:',e);document.getElementById('modal-itinerary').innerHTML='<div style="padding:2rem;color:#c0392b">⚠️ Couldn\'t load itinerary. Please tap "Update details" and re-submit.</div>';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
   scheduleActivityReminders(g);
 }
 function dismissReturning(){document.getElementById('returning-banner').style.display='none';const g=loadGuestLocally();if(g)prefillForm(g);}
 function checkOnLoad(){
   checkIOSInstall();checkAndroidInstall();
-  if(window.location.hash.startsWith('#guest=')){const g=decodeGuest(window.location.hash.slice(7));if(g&&g.name){saveGuestLocally(g);prefillForm(g);buildItinerary(g).then(html=>{document.getElementById('modal-itinerary').innerHTML=html;document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';});return;}}
+  if(window.location.hash.startsWith('#guest=')){const g=decodeGuest(window.location.hash.slice(7));if(g&&g.name){saveGuestLocally(g);prefillForm(g);buildItinerary(g).then(html=>{document.getElementById('modal-itinerary').innerHTML=html;onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';});return;}}
   const g=loadGuestLocally();
-  if(g&&g.name){document.getElementById('rb-name').textContent=g.name;document.getElementById('returning-banner').style.display='flex';scheduleActivityReminders(g);}
-  else{document.getElementById('returning-lookup-card').style.display='block';}
+  if(g&&g.name){
+    document.getElementById('rb-name').textContent=g.name;
+    document.getElementById('returning-banner').style.display='flex';
+    scheduleActivityReminders(g);
+    // Show push optin for returning users who haven't granted yet
+    if('Notification' in window && Notification.permission==='default'){
+      setTimeout(()=>document.getElementById('push-optin-card').style.display='flex', 1500);
+    }
+  }else{document.getElementById('returning-lookup-card').style.display='block';}
 }
 async function refreshGuestFlightData(g){if(!RAPIDAPI_KEY)return g;if(g.arrMode==='train'||!g.arrFlight||g.arrFlight==='—')return g;try{const num=g.arrFlight.replace(/\s+/g,''),date=g.arrDate||'2026-06-19';const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});if(!resp.ok)return g;const data=await resp.json();if(!data?.length)return g;const flight=data[0],parseTime=t=>{if(!t)return null;const m=t.match(/[\sT](\d{2}:\d{2})/);return m?m[1]:null;};const arrName=flight.arrival?.airport?.name||flight.arrival?.airport?.iata||'';const arrTime=parseTime(flight.arrival?.scheduledTime?.local)||parseTime(flight.arrival?.scheduledTime?.utc);const depName=flight.departure?.airport?.name||flight.departure?.airport?.iata||'';return{...g,arrTo:arrName||g.arrTo,arrFrom:depName||g.arrFrom,arrTime:arrTime||g.arrTime};}catch(e){return g;}}
 async function refreshAllGuests(){const statusEl=document.getElementById('refresh-all-status');if(!RAPIDAPI_KEY){statusEl.textContent='⚠️ No RapidAPI key saved — please enter it above first.';return;}if(!firebaseReady){statusEl.textContent='⚠️ Not connected to Firebase.';return;}statusEl.textContent='🔄 Loading guests…';const allGuests=await fbGet('guests');if(!allGuests){statusEl.textContent='❌ No guests found.';return;}const entries=Object.entries(allGuests);let updated=0,skipped=0;statusEl.textContent=`🔄 Processing 0 / ${entries.length}…`;for(let i=0;i<entries.length;i++){const[key,g]=entries[i];statusEl.textContent=`🔄 Processing ${i+1} / ${entries.length} — ${g.name||'unknown'}…`;const refreshed=await refreshGuestFlightData({key,...g});const changed=refreshed.arrTo!==g.arrTo||refreshed.arrFrom!==g.arrFrom||refreshed.arrTime!==g.arrTime;if(changed){await fbSave('guests/'+key,refreshed);updated++;}else{skipped++;}await new Promise(r=>setTimeout(r,400));}statusEl.innerHTML=`✅ Done! <strong>${updated}</strong> updated, ${skipped} already current.`;}
-function checkIOSInstall(){const isIOSDevice=/iphone|ipad|ipod/i.test(navigator.userAgent),isInstalled=window.navigator.standalone===true,dismissed=localStorage.getItem('ios_banner_ok');if(isIOSDevice&&!isInstalled&&!dismissed)setTimeout(()=>{document.getElementById('ios-banner').style.display='block';},2500);}
-function dismissIOSBanner(permanent){document.getElementById('ios-banner').style.display='none';if(permanent)localStorage.setItem('ios_banner_ok','1');}
+function checkIOSInstall(){const isIOSDevice=/iphone|ipad|ipod/i.test(navigator.userAgent),isInstalled=window.navigator.standalone===true,dismissed=sessionStorage.getItem('ios_banner_ok');if(isIOSDevice&&!isInstalled&&!dismissed)setTimeout(()=>{document.getElementById('ios-banner').style.display='block';},2500);}
+function dismissIOSBanner(permanent){document.getElementById('ios-banner').style.display='none';if(permanent)sessionStorage.setItem('ios_banner_ok','1');}
 // ════════════════════════
 // ACTIVITY REMINDERS — 30-min local notifications
 // Fires for all of today's relevant activities; rescheduled on every load + activity update
@@ -1032,6 +1076,7 @@ let _guestsMap = {};
 async function viewGuestItinerary(key) {
   const g = _guestsMap[key];
   if (!g) { alert('Guest data not loaded — please refresh the dashboard.'); return; }
+  _itineraryGuest=g;document.getElementById('cal-options').style.display='none';
   const banner = `<div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:.5rem 1rem;font-size:.82rem;margin-bottom:1.2rem;color:#854d0e">
     &#128194; Organiser preview &mdash; <strong>${esc(g.name)}</strong>'s itinerary
   </div>`;
@@ -1044,6 +1089,204 @@ async function viewGuestItinerary(key) {
     document.getElementById('modal-itinerary').innerHTML = banner + `<p style="color:#c0392b">&#9888; Could not build itinerary: ${e.message}</p>`;
     document.getElementById('modal-overlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
+  }
+}
+
+// ════════════════════════
+// CALENDAR EXPORT — .ics for Apple/Outlook, Google Calendar links
+// ════════════════════════
+let _itineraryGuest = null; // set whenever an itinerary modal opens
+
+function showCalendarOptions() {
+  const panel = document.getElementById('cal-options');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('gcal-links').style.display = 'none';
+}
+
+function _calGuest() { return _itineraryGuest || lastGeneratedGuest || loadGuestLocally(); }
+
+function _buildCalEvents(g) {
+  if (!g) return [];
+  const TRIP_BASE = new Date('2026-06-19T00:00:00');
+  const isVOnly = g.tripSection === 'valbonne';
+  const isBOnly = g.tripSection === 'bruges';
+  const CUSTOMS = 60, NICE_DRIVE = 45;
+  const isTrain = g.arrMode === 'train';
+  const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
+  const arrAirport = g.arrTo || g.arrFrom || '';
+  const arrTransfer = isTrain ? stationToHotelMins(trainStation) : airportDriveMins(arrAirport) + CUSTOMS;
+  const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
+  const niceArrival = g.niceArrTime ? addMins(g.niceArrTime, NICE_DRIVE + CUSTOMS) : null;
+
+  const fillT = s => String(s||'')
+    .replace(/{depFlight}/g, g.depFlight||'')
+    .replace(/{depTime}/g, fmt12(g.depTime))
+    .replace(/{niceArrTime}/g, g.niceArrTime ? fmt12(g.niceArrTime) : '')
+    .replace(/{rentalCo}/g, g.rentalCo||'')
+    .replace(/{rentalPickup}/g, g.rentalPickup||'')
+    .replace(/{checkoutNote}/g, checkoutNote(g))
+    .replace(/{brugesDepRef}/g, g.brugesDepRef||'')
+    .replace(/{brugesDepTime}/g, fmt12(g.brugesDepTime))
+    .replace(/{brugesDepTo}/g, g.brugesDepTo||'');
+
+  const filtered = LIVE_ACTIVITIES.filter(a => {
+    const t = a.tags||[];
+    if(!t.length) return true;
+    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&a.time==='CHECK_DEP')return false;return true;}
+    if(t.includes('valbonne')&&g.tripSection==='bruges') return false;
+    if(t.includes('rental')&&!g.hasRental) return false;
+    if(t.includes('no-rental')&&g.hasRental) return false;
+    return true;
+  });
+
+  const pad = n => String(n).padStart(2,'0');
+  const toDate = (day, hhmm) => {
+    const d = new Date(TRIP_BASE);
+    d.setDate(d.getDate() + day);
+    const [h,m] = hhmm.split(':').map(Number);
+    return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(h)}${pad(m)}00`;
+  };
+  const addH = (hhmm, hours) => {
+    const [h,m] = hhmm.split(':').map(Number);
+    const t = h*60+m + hours*60;
+    return `${pad(Math.floor(t/60)%24)}:${pad(t%60)}`;
+  };
+
+  const events = [];
+  filtered.forEach((a, idx) => {
+    let startHHMM = a.time;
+    // Resolve special tokens
+    if(startHHMM==='CHECK_ARR') startHHMM = brugesArrival || '14:00';
+    else if(startHHMM==='CHECK_OUT') startHHMM = calcCheckoutTime(g) || '11:00';
+    else if(startHHMM==='NICE_ARR') startHHMM = niceArrival || '16:00';
+    else if(startHHMM==='CHECK_DEP') startHHMM = g.tripSection==='bruges' ? (g.brugesDepTime||'10:00') : (g.depTime||'10:00');
+    else if(startHHMM==='EVENING') startHHMM = '19:00';
+    else if(startHHMM==='FREE' || !startHHMM) return; // skip free/empty
+    if(!startHHMM.match(/^\d{2}:\d{2}$/)) return;
+
+    const dur = a.type==='food' ? 2 : a.type==='hotel' ? 0.5 : a.type==='flight' ? 1.5 : 1;
+    const endHHMM = addH(startHHMM, dur);
+    const day = a.day;
+
+    events.push({
+      uid: `vvbb-${day}-${idx}-${g.name.replace(/\s/g,'')}`,
+      summary: fillT(a.title),
+      description: fillT(a.note||''),
+      location: a.address || '',
+      dtstart: toDate(day, startHHMM),
+      dtend: toDate(day, endHHMM),
+      day, startHHMM
+    });
+  });
+
+  // Return transport activities
+  const tNoteArr = g.arrTransport||(g.transportOrg?.arr)||'';
+  const tNoteDep = g.depTransport||(g.transportOrg?.dep)||'';
+  const tNoteNice = g.niceArrTransport||(g.transportOrg?.nice)||'';
+  if(g.tripSection!=='valbonne' && g.arrTime) {
+    if(tNoteArr) events.push({uid:`vvbb-0-arr-xfer`,summary:'Transfer to hotel',description:tNoteArr,location:'',dtstart:toDate(0,g.arrTime),dtend:toDate(0,addH(g.arrTime,0.5)),day:0,startHHMM:g.arrTime});
+  }
+  if(g.tripSection!=='bruges' && g.retFlight && g.retFlight!=='—' && g.retTime && g.retDate) {
+    const rd = Math.floor((new Date(g.retDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000);
+    const tNoteRet = g.retTransport||(g.transportOrg?.ret)||'';
+    if(tNoteRet) events.push({uid:`vvbb-ret-xfer`,summary:'Transfer to Nice Airport',description:tNoteRet,location:'',dtstart:toDate(rd,addH(g.retTime,-1.5)),dtend:toDate(rd,g.retTime),day:rd,startHHMM:g.retTime});
+    events.push({uid:`vvbb-ret-flight`,summary:`Fly home – ${g.retFlight}${g.retTo?' to '+g.retTo:''}`,description:'',location:'Nice Côte d\'Azur Airport (NCE)',dtstart:toDate(rd,g.retTime),dtend:toDate(rd,addH(g.retTime,2.5)),day:rd,startHHMM:g.retTime});
+  }
+
+  events.sort((a,b) => a.dtstart.localeCompare(b.dtstart));
+  return events;
+}
+
+function downloadICS() {
+  const g = _calGuest();
+  if(!g){alert('Load your itinerary first.');return;}
+  const events = _buildCalEvents(g);
+  if(!events.length){alert('No calendar events to export.');return;}
+
+  const esc2 = s => String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+  const lines = [
+    'BEGIN:VCALENDAR','VERSION:2.0',
+    'PRODID:-//VV Birthday Bash 2026//EN',
+    'CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'X-WR-CALNAME:VV Birthday Bash 2026',
+    'X-WR-TIMEZONE:Europe/Brussels',
+    'X-WR-CALDESC:Personalised itinerary for '+esc2(g.name),
+  ];
+  events.forEach(ev => {
+    lines.push('BEGIN:VEVENT',
+      `UID:${ev.uid}@vv-birthday-bash`,
+      `DTSTART;TZID=Europe/Brussels:${ev.dtstart}`,
+      `DTEND;TZID=Europe/Brussels:${ev.dtend}`,
+      `SUMMARY:${esc2(ev.summary)}`,
+      ev.description ? `DESCRIPTION:${esc2(ev.description)}` : '',
+      ev.location ? `LOCATION:${esc2(ev.location)}` : '',
+      'END:VEVENT'
+    );
+  });
+  lines.push('END:VCALENDAR');
+
+  const ics = lines.filter(Boolean).join('\r\n');
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vv-birthday-bash-${(g.name||'itinerary').replace(/\s+/g,'-').toLowerCase()}.ics`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function openGoogleCalendar() {
+  const g = _calGuest();
+  if(!g){alert('Load your itinerary first.');return;}
+  const events = _buildCalEvents(g);
+  if(!events.length){alert('No events to add.');return;}
+
+  const fmtGcal = dt => dt; // already in YYYYMMDDTHHmmSS format
+  const links = events.map(ev => {
+    const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent(ev.summary)
+      + '&dates=' + fmtGcal(ev.dtstart) + '/' + fmtGcal(ev.dtend)
+      + (ev.description ? '&details=' + encodeURIComponent(ev.description) : '')
+      + (ev.location ? '&location=' + encodeURIComponent(ev.location) : '');
+    return `<a href="${url}" target="_blank" rel="noopener" style="display:block;padding:.3rem .5rem;margin-bottom:3px;background:#f0f4ff;border-radius:5px;color:#1a1208;text-decoration:none;font-size:.8rem">`
+      + `➕ ${ev.summary}</a>`;
+  }).join('');
+
+  const panel = document.getElementById('gcal-links');
+  panel.innerHTML = '<div style="font-size:.75rem;opacity:.6;margin-bottom:.5rem">Tap each event to add it to Google Calendar:</div>' + links;
+  panel.style.display = 'block';
+}
+
+function triggerInstallFromModal(){
+  const hint = document.getElementById('install-hint');
+  const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(isInstalled){ hint.innerHTML='&#10004; App is already installed on this device.'; hint.style.display='block'; return; }
+  if(isIOS()){
+    sessionStorage.removeItem('ios_banner_ok'); // reset so banner shows
+    hint.style.display='none';
+    document.getElementById('ios-banner').style.display='block';
+  } else if(deferredInstallPrompt){
+    installApp();
+  } else {
+    // Show manual instructions inline
+    const ua=navigator.userAgent;
+    let steps='';
+    if(/SamsungBrowser/i.test(ua)) steps='Tap the <strong>☰ menu</strong> → <strong>Add page to</strong> → <strong>Home Screen</strong>';
+    else if(/Edg\//i.test(ua)) steps='Tap the <strong>⋯ menu</strong> → <strong>Add to phone</strong>';
+    else if(/Firefox/i.test(ua)) steps='Tap the <strong>⋮ menu</strong> → <strong>Install</strong>';
+    else steps='Tap the <strong>⋮ menu</strong> (three dots) → <strong>Add to Home Screen</strong>';
+    hint.innerHTML='&#128247; To install: '+steps+' → Confirm <strong>Add</strong>';
+    hint.style.display='block';
+  }
+}
+
+// Show push optin and install hint when itinerary modal opens
+function onItineraryModalOpen(){
+  document.getElementById('install-hint').style.display='none';
+  document.getElementById('cal-options').style.display='none';
+  // Re-show push optin if not yet granted
+  if('Notification' in window && Notification.permission==='default'){
+    document.getElementById('push-optin-card').style.display='flex';
   }
 }
 
