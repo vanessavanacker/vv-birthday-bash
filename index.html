@@ -330,6 +330,44 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     </div>
   </div>
 
+  <!-- BRUGES DEPARTURE — shown for Bruges-only guests -->
+  <div id="bruges-dep-section" style="display:none">
+    <div class="section-label"><span class="dot"></span>Departing Bruges</div>
+    <div class="form-card">
+      <h3>🧳 Leaving Bruges – Jun 22</h3>
+      <div class="mode-selector">
+        <button class="mode-btn active" onclick="setMode('bdep','flight',this)">✈️ Flight</button>
+        <button class="mode-btn" onclick="setMode('bdep','train',this)">🚂 Train</button>
+      </div>
+      <!-- FLIGHT -->
+      <div class="mode-section active" id="bdep-flight">
+        <div class="form-grid">
+          <div class="field">
+            <label>Flight Number</label>
+            <input type="text" id="bdepFlight" placeholder="e.g. BA 257" oninput="scheduleFlightLookup('bdep')">
+            <div class="lookup-result" id="bdep-lookup-result"></div>
+          </div>
+          <div class="field"><label>Flying To</label><input type="text" id="bdepTo" placeholder="e.g. London Heathrow"></div>
+          <div class="field"><label>Departure Date</label><input type="date" id="bdepDate" value="2026-06-22"></div>
+          <div class="field"><label>Departs At</label><input type="time" id="bdepTime"></div>
+        </div>
+      </div>
+      <!-- TRAIN -->
+      <div class="mode-section" id="bdep-train">
+        <div class="form-grid">
+          <div class="field">
+            <label>Train Number (optional)</label>
+            <input type="text" id="bdepTrainNum" placeholder="e.g. Eurostar 9115" oninput="scheduleFlightLookup('bdeptrain')">
+            <div class="lookup-result" id="bdeptrain-lookup-result"></div>
+          </div>
+          <div class="field"><label>Travelling To</label><input type="text" id="bdepTrainTo" placeholder="e.g. London St Pancras"></div>
+          <div class="field"><label>Departure Date</label><input type="date" id="bdepTrainDate" value="2026-06-22"></div>
+          <div class="field"><label>Departs At</label><input type="time" id="bdepTrainTime"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- VALBONNE / NICE SECTION — hidden for Bruges-only -->
   <div id="valbonne-section">
     <div class="section-label"><span class="dot"></span><span id="nice-section-label">Flying to Nice</span></div>
@@ -635,7 +673,7 @@ const DEFAULT_ACTIVITIES = [
   {day:3,time:'NICE_ARR',title:'Pick up rental – {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'🚗',tags:['rental']},
   {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'🚐',tags:['valbonne','no-rental']},
   {day:3,time:'EVENING',title:'Settle in – House in Valbonne',note:"Get settled and relax. ☀️ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'🏡',tags:['valbonne']},
-  {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:"Safe travels home! Flight {depFlight} at {depTime}.",type:'flight',icon:'✈️',tags:['bruges-only']},
+  {day:3,time:'CHECK_DEP',title:'Depart – {brugesDepRef}',note:'Safe travels home! Departing at {brugesDepTime} to {brugesDepTo}.',type:'transport',icon:'🧳',tags:['bruges-only']},
   {day:4,time:'FREE',title:'Free Day – Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'🌴',tags:['valbonne']},
   {day:5,time:'FREE',title:'Free Day',note:'Beach, pool, or explore at your own pace.',type:'free',icon:'🏖️',tags:['valbonne']},
   {day:5,time:'18:30',title:'Drive to Cannes',note:'~25 min. Parking near Palais des Festivals.',type:'transport',icon:'🚗',tags:['rental']},
@@ -669,6 +707,7 @@ function setTripSection(section, btn) {
   document.querySelectorAll('.trip-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('bruges-arrival-section').style.display = section === 'valbonne' ? 'none' : '';
+  document.getElementById('bruges-dep-section').style.display     = section === 'bruges'   ? ''     : 'none';
   document.getElementById('valbonne-section').style.display       = section === 'bruges'   ? 'none' : '';
   const isVOnly = section === 'valbonne';
   document.getElementById('nice-card-title').textContent    = isVOnly ? '✈️ Flying to Nice – Jun 22' : '✈️ Bruges → Nice – Jun 22';
@@ -715,7 +754,9 @@ const LOOKUP_MAP = {
   arr:   { flightId:'arrFlight',   dateId:'arrDate',      depTimeId:null,       arrTimeId:'arrTime',      fromId:'arrFrom',      toId:null,    mode:'flight' },
   dep:   { flightId:'depFlight',   dateId:'depDate',      depTimeId:'depTime',  arrTimeId:'niceArrTime',  fromId:null,           toId:null,    mode:'flight' },
   ret:   { flightId:'retFlight',   dateId:'retDate',      depTimeId:'retTime',  arrTimeId:null,           fromId:null,           toId:'retTo', mode:'flight' },
-  train: { flightId:'arrTrainNum', dateId:'arrDateTrain', depTimeId:null,       arrTimeId:'arrTimeTrain', fromId:'arrTrainFrom', toId:null,    mode:'train'  },
+  train:    { flightId:'arrTrainNum', dateId:'arrDateTrain', depTimeId:null,       arrTimeId:'arrTimeTrain', fromId:'arrTrainFrom', toId:null,       mode:'train'  },
+  bdep:     { flightId:'bdepFlight',  dateId:'bdepDate',     depTimeId:'bdepTime', arrTimeId:null,           fromId:null,           toId:'bdepTo',   mode:'flight' },
+  bdeptrain:{ flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,       fromId:null,           toId:'bdepTrainTo',mode:'train'},
 };
 
 // ════════════════════════
@@ -816,10 +857,10 @@ function clearLookup(key) { const el=document.getElementById(key+'-lookup-result
 // ARRIVAL MODE
 // ════════════════════════
 function setMode(prefix, mode, btn) {
-  document.querySelectorAll(`#${prefix}-flight,#${prefix}-train,#${prefix}-car`).forEach(el => { el.classList.remove('active'); });
-  document.getElementById(`${prefix}-${mode}`).classList.add('active');
-  btn.closest('.mode-selector').querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll(`#${prefix}-flight,#${prefix}-train`).forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(`${prefix}-${mode}`);
+  if (target) target.classList.add('active');
+  if (btn) { btn.closest('.mode-selector').querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
   if (prefix === 'arr') currentArrMode = mode;
 }
 
@@ -918,6 +959,24 @@ async function submitAndGenerate() {
     arrDate = document.getElementById('depDate').value || '2026-06-22';
   }
 
+  // Collect Bruges departure (for Bruges-only guests)
+  let brugesDepMode='flight', brugesDepRef='—', brugesDepTime='', brugesDepTo='', brugesDepDate='';
+  if (currentTripSection === 'bruges') {
+    const bdepActive = document.querySelector('#bdep-train.active');
+    brugesDepMode = bdepActive ? 'train' : 'flight';
+    if (brugesDepMode === 'train') {
+      brugesDepRef  = document.getElementById('bdepTrainNum').value.trim()||'Train';
+      brugesDepTo   = document.getElementById('bdepTrainTo').value.trim();
+      brugesDepDate = document.getElementById('bdepTrainDate').value;
+      brugesDepTime = document.getElementById('bdepTrainTime').value;
+    } else {
+      brugesDepRef  = document.getElementById('bdepFlight').value.trim()||'—';
+      brugesDepTo   = document.getElementById('bdepTo').value.trim();
+      brugesDepDate = document.getElementById('bdepDate').value;
+      brugesDepTime = document.getElementById('bdepTime').value;
+    }
+  }
+
   const g = {
     name:          document.getElementById('name').value.trim(),
     email:         document.getElementById('email').value.trim(),
@@ -925,6 +984,7 @@ async function submitAndGenerate() {
     goingValbonne: currentTripSection !== 'bruges',
     arrMode:       currentTripSection === 'valbonne' ? 'none' : currentArrMode,
     arrFlight, arrDate, arrTime, arrFrom,
+    brugesDepMode, brugesDepRef, brugesDepTime, brugesDepTo, brugesDepDate,
     hasRental:     document.getElementById('hasRental').checked,
     depFlight:     document.getElementById('depFlight').value.trim()||'—',
     depFrom:       document.getElementById('depFrom').value.trim(),
@@ -982,7 +1042,10 @@ async function buildItinerary(g) {
     .replace(/{rentalPickup}/g, g.rentalPickup||'Nice Airport')
     .replace(/{rentalReturn}/g, g.rentalReturn ? fmtDate(g.rentalReturn) : '28 Jun')
     .replace(/{retFlight}/g, g.retFlight||'—')
-    .replace(/{retTime}/g, fmt12(g.retTime));
+    .replace(/{retTime}/g, fmt12(g.retTime))
+    .replace(/{brugesDepRef}/g,  g.brugesDepRef||'—')
+    .replace(/{brugesDepTime}/g, fmt12(g.brugesDepTime))
+    .replace(/{brugesDepTo}/g,   g.brugesDepTo||'home');
 
   const filtered = acts.filter(a => {
     const t = a.tags||[];
@@ -1057,7 +1120,7 @@ async function buildItinerary(g) {
     } else {
       events.forEach(ev => {
         const tl = ev.time==='CHECK_ARR'?(g.arrTime?fmt12(g.arrTime):'On arrival')
-                 :ev.time==='CHECK_DEP'?(g.depTime?fmt12(g.depTime):'TBC')
+                 :ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC'))
                  :ev.time==='CHECK_OUT'?'11:00 AM'
                  :ev.time==='NICE_ARR'?(g.niceArrTime?fmt12(g.niceArrTime):'On arrival')
                  :ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
@@ -1325,6 +1388,7 @@ function prefillForm(g) {
     b.classList.toggle('active', sections[i] === currentTripSection);
   });
   document.getElementById('bruges-arrival-section').style.display = currentTripSection === 'valbonne' ? 'none' : '';
+  document.getElementById('bruges-dep-section').style.display     = currentTripSection === 'bruges'   ? ''     : 'none';
   document.getElementById('valbonne-section').style.display       = currentTripSection === 'bruges'   ? 'none' : '';
   const isVOnly = currentTripSection === 'valbonne';
   document.getElementById('nice-card-title').textContent    = isVOnly ? '✈️ Flying to Nice – Jun 22' : '✈️ Bruges → Nice – Jun 22';
