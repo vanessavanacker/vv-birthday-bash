@@ -18,7 +18,7 @@
 :root{--ink:#1a1208;--sand:#f5ede0;--gold:#c9923a;--rust:#b85c38;--sage:#5a7a60;--sky:#4a7fa5;--card:#fffdf8;--border:rgba(201,146,58,.25);--nice:#1a5276;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;background:linear-gradient(160deg,#f0e8d5 0%,#f5ede0 45%,#ede4cf 100%);color:var(--ink);min-height:100vh;}
-header{background:linear-gradient(160deg,rgba(13,30,46,.82) 0%,rgba(26,58,74,.75) 20%,rgba(30,61,53,.72) 42%,rgba(45,48,24,.78) 60%,rgba(26,18,8,.88) 100%),url('https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1400&q=80&auto=format&fit=crop') center 60%/cover no-repeat;color:var(--sand);padding:2.6rem 2rem 0;text-align:center;position:relative;overflow:hidden;}
+header{background:linear-gradient(160deg,rgba(13,30,46,.82) 0%,rgba(26,58,74,.75) 20%,rgba(30,61,53,.72) 42%,rgba(45,48,24,.78) 60%,rgba(26,18,8,.88) 100%),url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Lake_of_Love_in_Bruges.JPG/1400px-Lake_of_Love_in_Bruges.JPG') center 50%/cover no-repeat;color:var(--sand);padding:2.6rem 2rem 0;text-align:center;position:relative;overflow:hidden;}
 header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 60%,rgba(201,146,58,.12) 0%,transparent 55%),radial-gradient(ellipse at 75% 30%,rgba(74,127,165,.1) 0%,transparent 50%);}
 header h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,3.2rem);font-weight:900;letter-spacing:-.02em;position:relative;}
 header h1 span{color:var(--gold);}
@@ -195,40 +195,9 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 @media print{#ios-banner,#android-banner,header,.form-card,.print-btn,#page-form,.modal-actions,.modal-close,#firebase-bar,#update-banner{display:none!important;}
 #modal-overlay{position:static!important;background:none!important;padding:0!important;display:block!important;}
 .modal-box{border-radius:0!important;padding:0!important;}body{background:#fff;}}
-
-/* ── Canal side panels (desktop only) ── */
-.canal-side{position:fixed;top:0;bottom:0;width:190px;overflow:hidden;z-index:0;display:none;flex-direction:column;gap:3px;pointer-events:none;}
-.canal-left{left:0;}
-.canal-right{right:0;}
-@media(min-width:1320px){.canal-side{display:flex;}}
-.canal-side img{width:100%;flex:1;object-fit:cover;filter:brightness(.72) saturate(1.1);}
-.canal-side::before{content:'';position:absolute;top:0;left:0;right:0;height:100px;background:linear-gradient(to bottom,#0d1e2e 0%,transparent 100%);z-index:2;pointer-events:none;}
-.canal-side::after{content:'';position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(to top,#1a1208 0%,transparent 100%);z-index:2;pointer-events:none;}
-.canal-left::before,.canal-left::after{background-image:linear-gradient(to right,rgba(0,0,0,.35),transparent),var(--vv,none);}
-.canal-left .canal-edge{position:absolute;top:0;right:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,rgba(245,237,224,.6));z-index:3;pointer-events:none;}
-.canal-right .canal-edge{position:absolute;top:0;left:0;bottom:0;width:28px;background:linear-gradient(to left,transparent,rgba(245,237,224,.6));z-index:3;pointer-events:none;}
 </style>
 </head>
 <body>
-<!-- Canal side panels — visible on screens > 1320px wide -->
-<div class="canal-side canal-left" aria-hidden="true">
-  <!-- Rozenhoedkaai — the most iconic Bruges canal view -->
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Brugge-CanalRozenhoedkaai.JPG/400px-Brugge-CanalRozenhoedkaai.JPG" alt="">
-  <!-- Dijver canal with the Belfry tower -->
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Bruges%2C_the_Dijver_canal%2C_view_to_the_Belfry.JPG/400px-Bruges%2C_the_Dijver_canal%2C_view_to_the_Belfry.JPG" alt="">
-  <!-- Canal scene, Bruges city centre -->
-  <img src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=380&h=400&q=82&auto=format&fit=crop&crop=center" alt="">
-  <div class="canal-edge"></div>
-</div>
-<div class="canal-side canal-right" aria-hidden="true">
-  <!-- Bruges canal and medieval houses -->
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Canal_scene_in_Bruges_Belgium_2007.JPG/400px-Canal_scene_in_Bruges_Belgium_2007.JPG" alt="">
-  <!-- Canal with colourful buildings reflected in water -->
-  <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=380&h=500&q=82&auto=format&fit=crop&crop=center" alt="">
-  <!-- Rozenhoedkaai from a different angle -->
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Brugge-CanalRozenhoedkaai.JPG/400px-Brugge-CanalRozenhoedkaai.JPG" alt="" style="object-position:right center">
-  <div class="canal-edge"></div>
-</div>
 <div id="android-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:#fff;border-radius:20px 20px 0 0;padding:1.2rem 1.5rem 2.4rem;box-shadow:0 -6px 40px rgba(0,0,0,.18);animation:slideUp .35s ease;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:.8rem;">
