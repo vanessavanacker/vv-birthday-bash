@@ -112,7 +112,11 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .tag-valbonne{background:#dbeafe;color:#1e3a8a;}
 .tag-rental{background:#d1fae5;color:#065f46;}
 .tag-bruges{background:#fef3c7;color:#92400e;}
-.day-block{margin-bottom:1.4rem;}
+.day-chip.today{background:#c9923a;color:#fff;}
+.day-chip.past{opacity:.4;}
+.event.past{opacity:.38;}
+.show-past-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:.4rem .9rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--rust);cursor:pointer;margin-bottom:1rem;width:100%;}
+.show-past-btn:active{opacity:.7;}
 .day-header{display:flex;align-items:center;gap:.65rem;margin-bottom:.7rem;flex-wrap:wrap;}
 .day-chip{background:var(--gold);color:#fff;font-family:'Playfair Display',serif;font-weight:900;font-size:.78rem;padding:.26rem .72rem;border-radius:6px;white-space:nowrap;}
 .day-chip.nice{background:var(--nice);}
@@ -562,6 +566,12 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
         </div>
         <button class="btn btn-secondary" style="margin-top:.6rem;width:auto;font-size:.8rem" onclick="saveRapidAPIKey()">Save & Enable Auto-Lookup</button>
         <div id="rapidapi-status" style="font-size:.78rem;margin-top:.5rem;opacity:.6"></div>
+      </div>
+      <div class="push-org-card">
+        <h4>🔄 Refresh All Guest Data</h4>
+        <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Re-runs flight lookups for all guests to fill in any missing arrival airports and recalculate transport times. Requires Auto Flight Lookup key above to be saved.</p>
+        <button class="btn btn-secondary" style="width:auto;font-size:.8rem" onclick="refreshAllGuests()">🔄 Refresh All Guests Now</button>
+        <div id="refresh-all-status" style="font-size:.8rem;margin-top:.8rem;line-height:1.6"></div>
       </div>
         <div class="form-grid" style="margin-top:.6rem">
           <div class="field"><label>App ID</label><input type="text" id="os-app-id" placeholder="From OneSignal dashboard"></div>
@@ -1214,63 +1224,97 @@ async function buildItinerary(g) {
   // Valbonne-only day labels (renumber from Day 1)
   const valonlyLabels = ['Arrival Day · Valbonne','Day 2 – Valbonne','Day 3 – Valbonne','Day 4 – Valbonne (Zuma)','Day 5 – Valbonne','Day 6 – Valbonne (Medusa)','Last Night · Valbonne'];
 
+  // Work out where we are in the trip right now
+  const now        = new Date();
+  const nowMins    = now.getHours() * 60 + now.getMinutes();
+  const todayTripDay = Math.floor((now - new Date('2026-06-19T00:00:00')) / 86400000);
+  const tripOngoing  = todayTripDay >= startDay && todayTripDay < lastDay;
+
+  let pastDaysHtml = '';
+  let pastDayCount = 0;
+
   for (let d = startDay; d < lastDay; d++) {
     const dd = new Date(TRIP_BASE); dd.setDate(TRIP_BASE.getDate()+d);
-    const label   = isVOnly ? (valonlyLabels[d-3]||'Day '+(d-2)) : (DAY_LABELS[d]||'Day '+(d+1));
-    const dateStr = dd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-    const isNice  = d >= 3;
-    html += `<div class="day-block"><div class="day-header"><span class="day-chip${isNice?' nice':''}">${esc(label)}</span><span class="day-date">${esc(dateStr)}</span></div><div class="events">`;
-    const events = byDay[d]||[];
-    if (!events.length) {
-      html += `<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>`;
+    const label    = isVOnly ? (valonlyLabels[d-3]||'Day '+(d-2)) : (DAY_LABELS[d]||'Day '+(d+1));
+    const dateStr  = dd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+    const isNice   = d >= 3;
+    const isToday  = tripOngoing && d === todayTripDay;
+    const isPast   = tripOngoing && d < todayTripDay;
+
+    const chipClass = `day-chip${isNice?' nice':''}${isToday?' today':''}${isPast?' past':''}`;
+    const todayBadge = isToday ? `<span style="background:#c9923a;color:#fff;font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em">Today</span>` : '';
+
+    const dayHtml = `<div class="day-block"><div class="day-header"><span class="${chipClass}">${esc(label)}</span><span class="day-date">${esc(dateStr)}</span>${todayBadge}</div><div class="events">` +
+      (() => {
+        const events = byDay[d]||[];
+        if (!events.length) return `<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>`;
+        return events.map(ev => {
+          // Auto-calculate hotel/house arrival = flight landing + drive time + luggage/customs
+          const CUSTOMS_MINS = 60;
+          const NICE_DRIVE_MINS = 45;
+          const isTrain = g.arrMode === 'train';
+          const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
+          const arrAirport = g.arrTo || g.arrFrom || '';
+          const arrTransfer = isTrain ? stationToHotelMins(trainStation) : airportDriveMins(arrAirport) + CUSTOMS_MINS;
+          const niceTransfer = NICE_DRIVE_MINS + CUSTOMS_MINS;
+          const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
+          const niceArrival   = g.niceArrTime ? addMins(g.niceArrTime, niceTransfer) : null;
+
+          const tl = ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival')
+                   :ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC'))
+                   :ev.time==='CHECK_OUT'?'11:00 AM'
+                   :ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival')
+                   :ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
+
+          // Is this activity in the past?
+          const evMins = (() => {
+            if (!isToday) return null;
+            const t = ev.time;
+            if (t==='FREE') return 0;
+            if (t==='CHECK_ARR') return brugesArrival ? parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]) : 0;
+            if (t==='CHECK_OUT') return 11*60;
+            if (t==='EVENING') return 19*60;
+            if (t==='CHECK_DEP' || t==='NICE_ARR') return 23*60;
+            const m = t && t.match(/^(\d{2}):(\d{2})$/);
+            return m ? parseInt(m[1])*60+parseInt(m[2]) : null;
+          })();
+          const actPast = isToday && evMins !== null && evMins < nowMins - 30;
+
+          const arrivalNote = (ev.time==='CHECK_ARR' && g.arrTime)
+            ? (isTrain
+                ? ` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`
+                : ` · Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`)
+            : (ev.time==='NICE_ARR' && g.niceArrTime)
+            ? ` · Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`
+            : '';
+          const bc='badge-'+(ev.type||'activity');
+          const bl=(ev.type||'activity')[0].toUpperCase()+(ev.type||'activity').slice(1);
+          const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
+          const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
+          const personalBadge=ev.personal?`<span class="personal-label">Your Pickup</span>`:'';
+          return `<div class="event${ev.personal?' personal':''}${actPast?' past':''}">
+            <div class="event-time">${esc(tl)}</div>
+            <div class="event-icon">${ev.icon||'📌'}</div>
+            <div class="event-body">
+              <div class="event-title">${esc(fill(ev.title))}${personalBadge}<span class="badge ${bc}">${bl}</span></div>
+              <div class="event-note">${esc(fill(ev.note||''))}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div>
+            </div></div>`;
+        }).join('');
+      })()
+    + `</div></div>`;
+
+    if (isPast) {
+      pastDaysHtml += dayHtml;
+      pastDayCount++;
     } else {
-      events.forEach(ev => {
-        // Auto-calculate hotel/house arrival = flight landing + drive time + luggage/customs
-        const CUSTOMS_MINS = 60; // baggage reclaim + customs for all flights
-        const TRAIN_STATION_MINS = 30; // walk from Bruges station to hotel
-        const NICE_DRIVE_MINS = 45; // Nice airport → Valbonne house
-
-        const isTrain = g.arrMode === 'train';
-        const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
-        const arrAirport = g.arrTo || g.arrFrom || ''; // prefer arrival airport for drive calc
-        const arrTransfer = isTrain
-          ? stationToHotelMins(trainStation)
-          : airportDriveMins(arrAirport) + CUSTOMS_MINS;
-        const niceTransfer = NICE_DRIVE_MINS + CUSTOMS_MINS;
-
-        const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
-        const niceArrival   = g.niceArrTime ? addMins(g.niceArrTime, niceTransfer) : null;
-
-        const tl = ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival')
-                 :ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC'))
-                 :ev.time==='CHECK_OUT'?'11:00 AM'
-                 :ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival')
-                 :ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
-
-        // Sub-note explaining the calculation
-        const arrivalNote = (ev.time==='CHECK_ARR' && g.arrTime)
-          ? (isTrain
-              ? ` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`
-              : ` · Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`)
-          : (ev.time==='NICE_ARR' && g.niceArrTime)
-          ? ` · Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`
-          : '';
-        const bc='badge-'+(ev.type||'activity');
-        const bl=(ev.type||'activity')[0].toUpperCase()+(ev.type||'activity').slice(1);
-        const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
-        const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
-        const personalBadge=ev.personal?`<span class="personal-label">Your Pickup</span>`:'';
-        html+=`<div class="event${ev.personal?' personal':''}">
-          <div class="event-time">${esc(tl)}</div>
-          <div class="event-icon">${ev.icon||'📌'}</div>
-          <div class="event-body">
-            <div class="event-title">${esc(fill(ev.title))}${personalBadge}<span class="badge ${bc}">${bl}</span></div>
-            <div class="event-note">${esc(fill(ev.note||''))}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div>
-          </div></div>`;
-      });
+      html += dayHtml;
     }
-    html += `</div></div>`;
   }
+  // Add past days behind a toggle
+  if (pastDayCount > 0) {
+    html = `<button class="show-past-btn" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">📅 Show ${pastDayCount} past day${pastDayCount>1?'s':''}</button><div style="display:none">${pastDaysHtml}</div>` + html;
+  }
+
   if (g.goingValbonne && g.retFlight && g.retFlight!=='—') {    const rd=new Date(g.retDate+'T12:00:00');
     html+=`<div class="day-block"><div class="day-header"><span class="day-chip nice">Departure Day</span><span class="day-date">${esc(rd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</span></div>
     <div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">✈️</div>
@@ -1770,10 +1814,25 @@ function copyPersonalLink() {
 }
 
 async function viewReturningItinerary() {
-  const g = loadGuestLocally();
+  let g = loadGuestLocally();
   if (!g) return;
   prefillForm(g);
   document.getElementById('returning-banner').style.display = 'none';
+
+  // Silently refresh missing flight data in background
+  refreshGuestFlightData(g).then(async updated => {
+    const changed = updated.arrTo !== g.arrTo || updated.arrTime !== g.arrTime;
+    if (changed) {
+      saveGuestLocally(updated);
+      if (firebaseReady && updated.key) await fbSave('guests/' + updated.key, updated);
+      g = updated;
+    }
+    document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
+    document.getElementById('modal-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  });
+
+  // Show itinerary immediately with current data while refresh runs
   document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
   document.getElementById('modal-overlay').style.display = 'block';
   document.body.style.overflow = 'hidden';
@@ -1815,8 +1874,71 @@ function checkOnLoad() {
 }
 
 // ════════════════════════
-// iOS INSTALL BANNER
+// REFRESH GUEST FLIGHT DATA
 // ════════════════════════
+async function refreshGuestFlightData(g) {
+  // Re-lookup flight to fill missing arrTo (arrival airport)
+  if (!RAPIDAPI_KEY) return g;
+  if (g.arrMode === 'train' || !g.arrFlight || g.arrFlight === '—') return g;
+  try {
+    const num  = g.arrFlight.replace(/\s+/g,'');
+    const date = g.arrDate || '2026-06-19';
+    const resp = await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`, {
+      method:'GET', mode:'cors', credentials:'omit',
+      headers:{ 'X-RapidAPI-Key': RAPIDAPI_KEY, 'X-RapidAPI-Host': 'aerodatabox.p.rapidapi.com' }
+    });
+    if (!resp.ok) return g;
+    const data = await resp.json();
+    if (!data?.length) return g;
+    const flight = data[0];
+    const parseTime = t => { if(!t) return null; const m=t.match(/[\sT](\d{2}:\d{2})/); return m?m[1]:null; };
+    const arrName = flight.arrival?.airport?.name || flight.arrival?.airport?.iata || '';
+    const arrTime = parseTime(flight.arrival?.scheduledTime?.local) || parseTime(flight.arrival?.scheduledTime?.utc);
+    const depName = flight.departure?.airport?.name || flight.departure?.airport?.iata || '';
+    const updated = {
+      ...g,
+      arrTo:   arrName || g.arrTo,
+      arrFrom: depName || g.arrFrom,
+      arrTime: arrTime || g.arrTime,
+    };
+    return updated;
+  } catch(e) { return g; }
+}
+
+async function refreshAllGuests() {
+  const statusEl = document.getElementById('refresh-all-status');
+  if (!RAPIDAPI_KEY) {
+    statusEl.textContent = '⚠️ No RapidAPI key saved — please enter it above first.';
+    return;
+  }
+  if (!firebaseReady) {
+    statusEl.textContent = '⚠️ Not connected to Firebase.';
+    return;
+  }
+  statusEl.textContent = '🔄 Loading guests…';
+  const allGuests = await fbGet('guests');
+  if (!allGuests) { statusEl.textContent = '❌ No guests found.'; return; }
+
+  const entries = Object.entries(allGuests);
+  let updated = 0, skipped = 0, failed = 0;
+  statusEl.textContent = `🔄 Processing 0 / ${entries.length}…`;
+
+  for (let i = 0; i < entries.length; i++) {
+    const [key, g] = entries[i];
+    statusEl.textContent = `🔄 Processing ${i+1} / ${entries.length} — ${g.name||'unknown'}…`;
+    const refreshed = await refreshGuestFlightData({key, ...g});
+    const changed = refreshed.arrTo !== g.arrTo || refreshed.arrFrom !== g.arrFrom || refreshed.arrTime !== g.arrTime;
+    if (changed) {
+      await fbSave('guests/' + key, refreshed);
+      updated++;
+    } else {
+      skipped++;
+    }
+    // Throttle to avoid hitting rate limit
+    await new Promise(r => setTimeout(r, 400));
+  }
+  statusEl.innerHTML = `✅ Done! <strong>${updated}</strong> updated, ${skipped} already current${failed?' · '+failed+' failed':''}.`;
+}
 function checkIOSInstall() {
   const isIOSDevice  = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isInstalled  = window.navigator.standalone === true;
