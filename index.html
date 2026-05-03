@@ -251,7 +251,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   <div class="section-label"><span class="dot"></span>Arriving in Bruges</div>
   <div class="form-card">
     <h3>🇧🇪 Bruges Arrival – Jun 19</h3>
-    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're departing the US on <strong>Jun 18</strong> and landing in <strong>Belgium on Jun 19</strong> — enter your landing details below.</p>
+    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're arriving in <strong>Belgium on Jun 19</strong> — enter your flight details below and times will fill in automatically.</p>
     <div class="mode-selector">
       <button class="mode-btn active" onclick="setMode('arr','flight',this)">✈️ Flight</button>
       <button class="mode-btn" onclick="setMode('arr','train',this)">🚂 Train</button>
@@ -700,10 +700,11 @@ async function autoLookupFlight(key) {
     if (!data || !data.length) throw new Error('No results');
 
     const flight  = data[0];
-    const depTime = flight.departure?.scheduledTime?.local?.split('T')[1]?.slice(0,5)
-                 || flight.departure?.scheduledTime?.utc?.split('T')[1]?.slice(0,5);
-    const arrTime = flight.arrival?.scheduledTime?.local?.split('T')[1]?.slice(0,5)
-                 || flight.arrival?.scheduledTime?.utc?.split('T')[1]?.slice(0,5);
+    // AeroDataBox returns times as "2026-06-19 14:25+02:00" (space, not T)
+    // This regex handles both formats safely
+    const parseTime = t => { if (!t) return null; const m = t.match(/[\sT](\d{2}:\d{2})/); return m ? m[1] : null; };
+    const depTime = parseTime(flight.departure?.scheduledTime?.local) || parseTime(flight.departure?.scheduledTime?.utc);
+    const arrTime = parseTime(flight.arrival?.scheduledTime?.local)   || parseTime(flight.arrival?.scheduledTime?.utc);
     const depName = flight.departure?.airport?.name || flight.departure?.airport?.iata || '';
     const arrName = flight.arrival?.airport?.name   || flight.arrival?.airport?.iata   || '';
 
