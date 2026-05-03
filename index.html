@@ -364,8 +364,9 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="lookup-result" id="train-lookup-result"></div>
           </div>
           <div class="field"><label>Departing From</label><input type="text" id="arrTrainFrom" placeholder="e.g. London St Pancras"></div>
+          <div class="field"><label>Arrival Station</label><input type="text" id="arrTrainTo" placeholder="e.g. Bruges, Lille-Europe, Brussels-Midi" autocorrect="off"></div>
           <div class="field"><label>Arrival Date</label><input type="date" id="arrDateTrain" value="2026-06-19"></div>
-          <div class="field"><label>Arriving Bruges At</label><input type="time" id="arrTimeTrain"></div>
+          <div class="field"><label>Arrives At</label><input type="time" id="arrTimeTrain"></div>
         </div>
       </div>
     </div>
@@ -828,7 +829,7 @@ const LOOKUP_MAP = {
   arr:   { flightId:'arrFlight',   dateId:'arrDate',      depTimeId:null,       arrTimeId:'arrTime',      fromId:'arrFrom',      toId:null,    mode:'flight' },
   dep:   { flightId:'depFlight',   dateId:'depDate',      depTimeId:'depTime',  arrTimeId:'niceArrTime',  fromId:null,           toId:null,    mode:'flight' },
   ret:   { flightId:'retFlight',   dateId:'retDate',      depTimeId:'retTime',  arrTimeId:null,           fromId:null,           toId:'retTo', mode:'flight' },
-  train:    { flightId:'arrTrainNum', dateId:'arrDateTrain', depTimeId:null,       arrTimeId:'arrTimeTrain', fromId:'arrTrainFrom', toId:null,       mode:'train'  },
+  train:    { flightId:'arrTrainNum', dateId:'arrDateTrain', depTimeId:null,       arrTimeId:'arrTimeTrain', fromId:'arrTrainFrom', toId:'arrTrainTo',  mode:'train'  },
   bdep:     { flightId:'bdepFlight',  dateId:'bdepDate',     depTimeId:'bdepTime', arrTimeId:null,           fromId:null,           toId:'bdepTo',   mode:'flight' },
   bdeptrain:{ flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,       fromId:null,           toId:'bdepTrainTo',mode:'train'},
 };
@@ -1020,7 +1021,7 @@ function closePickupModal() { document.getElementById('pickup-modal-overlay').st
 // SUBMIT
 // ════════════════════════
 async function submitAndGenerate() {
-  let arrFlight='—', arrDate='', arrTime='', arrFrom='';
+  let arrFlight='—', arrDate='', arrTime='', arrFrom='', arrTrainTo='';
   if (currentTripSection !== 'valbonne') {
     if (currentArrMode === 'flight') {
       arrFlight = document.getElementById('arrFlight').value.trim()||'—';
@@ -1032,6 +1033,7 @@ async function submitAndGenerate() {
       arrDate   = document.getElementById('arrDateTrain').value;
       arrTime   = document.getElementById('arrTimeTrain').value;
       arrFrom   = document.getElementById('arrTrainFrom').value.trim();
+      arrTrainTo = document.getElementById('arrTrainTo').value.trim();
     }
   } else {
     // Valbonne-only: use Nice arrival date as their arrival
@@ -1062,7 +1064,7 @@ async function submitAndGenerate() {
     tripSection:   currentTripSection,
     goingValbonne: currentTripSection !== 'bruges',
     arrMode:       currentTripSection === 'valbonne' ? 'none' : currentArrMode,
-    arrFlight, arrDate, arrTime, arrFrom,
+    arrFlight, arrDate, arrTime, arrFrom, arrTrainTo,
     brugesDepMode, brugesDepRef, brugesDepTime, brugesDepTo, brugesDepDate,
     hasRental:     document.getElementById('hasRental').checked,
     depFlight:     document.getElementById('depFlight').value.trim()||'—',
@@ -1221,11 +1223,35 @@ async function buildItinerary(g) {
       html += `<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>`;
     } else {
       events.forEach(ev => {
-        const tl = ev.time==='CHECK_ARR'?(g.arrTime?fmt12(g.arrTime):'On arrival')
+        // Auto-calculate hotel/house arrival = flight landing + drive time + luggage/customs
+        const CUSTOMS_MINS = 60; // baggage reclaim + customs for all flights
+        const TRAIN_STATION_MINS = 30; // walk from Bruges station to hotel
+        const NICE_DRIVE_MINS = 45; // Nice airport → Valbonne house
+
+        const isTrain = g.arrMode === 'train';
+        const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
+        const arrTransfer = isTrain
+          ? stationToHotelMins(trainStation)
+          : airportDriveMins(g.arrFrom) + CUSTOMS_MINS;
+        const niceTransfer = NICE_DRIVE_MINS + CUSTOMS_MINS;
+
+        const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
+        const niceArrival   = g.niceArrTime ? addMins(g.niceArrTime, niceTransfer) : null;
+
+        const tl = ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival')
                  :ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC'))
                  :ev.time==='CHECK_OUT'?'11:00 AM'
-                 :ev.time==='NICE_ARR'?(g.niceArrTime?fmt12(g.niceArrTime):'On arrival')
+                 :ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival')
                  :ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
+
+        // Sub-note explaining the calculation
+        const arrivalNote = (ev.time==='CHECK_ARR' && g.arrTime)
+          ? (isTrain
+              ? ` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`
+              : ` · Lands ${fmt12(g.arrTime)}, ~${airportDriveMins(g.arrFrom)} min drive + ${CUSTOMS_MINS} min luggage & customs`)
+          : (ev.time==='NICE_ARR' && g.niceArrTime)
+          ? ` · Lands ${fmt12(g.niceArrTime)}, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`
+          : '';
         const bc='badge-'+(ev.type||'activity');
         const bl=(ev.type||'activity')[0].toUpperCase()+(ev.type||'activity').slice(1);
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
@@ -1236,7 +1262,7 @@ async function buildItinerary(g) {
           <div class="event-icon">${ev.icon||'📌'}</div>
           <div class="event-body">
             <div class="event-title">${esc(fill(ev.title))}${personalBadge}<span class="badge ${bc}">${bl}</span></div>
-            <div class="event-note">${esc(fill(ev.note||''))}${mapsBtn}</div>
+            <div class="event-note">${esc(fill(ev.note||''))}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div>
           </div></div>`;
       });
     }
@@ -1526,6 +1552,82 @@ function syncRental(){document.getElementById('rental-section').style.display=do
 function closeModal(){document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';}
 function showNotice(el,msg,type){(typeof el==='string'?document.getElementById(el):el).innerHTML=`<div class="notice notice-${type}">${msg}</div>`;}
 function fmt12(t){if(!t)return'';const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;return`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;}
+function addMins(t,mins){if(!t||!mins)return t;const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;const tot=h*60+m+parseInt(mins);return String(Math.floor(tot/60)%24).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');}
+
+// Drive time from airport to Bruges (De Tuilerieen) in minutes, EXCLUDING luggage/customs
+const AIRPORT_DRIVE_MINS = {
+  // Belgium
+  'brussels': 95, 'bru': 95, 'zaventem': 95,
+  'charleroi': 130, 'crl': 130, 'brussels south': 130,
+  // Netherlands
+  'amsterdam': 180, 'ams': 180, 'schiphol': 180,
+  'rotterdam': 140, 'rtt': 140,
+  'eindhoven': 175, 'ein': 175,
+  // France
+  'paris': 200, 'cdg': 200, 'charles de gaulle': 200,
+  'orly': 210, 'ory': 210,
+  'lille': 80, 'lil': 80,
+  'calais': 70,
+  // UK
+  'london': 240, 'heathrow': 240, 'lhr': 240,
+  'gatwick': 255, 'lgw': 255,
+  'stansted': 270, 'stn': 270,
+  'luton': 265, 'ltn': 265,
+  'city': 255, 'lcy': 255,
+  'st pancras': 0, // Eurostar — handled as train
+  // Germany
+  'frankfurt': 310, 'fra': 310,
+  'dusseldorf': 200, 'dus': 200,
+  'cologne': 210, 'cgn': 210,
+  // Scandinavia
+  'copenhagen': 310, 'cph': 310,
+  'oslo': 400, 'osl': 400,
+  'stockholm': 450, 'arn': 450,
+  // Spain / Portugal
+  'madrid': 400, 'mad': 400,
+  'barcelona': 380, 'bcn': 380,
+  'lisbon': 500, 'lis': 500,
+  // Switzerland / Austria
+  'zurich': 280, 'zrh': 280,
+  'vienna': 360, 'vie': 360,
+  'geneva': 250, 'gva': 250,
+  // USA / Canada / Transatlantic (guests connect via EU hub)
+  'jfk': 200, 'new york': 200, 'newark': 200,
+  'boston': 200, 'bos': 200,
+  'toronto': 200, 'yyz': 200,
+  'montreal': 200,
+};
+
+// Car drive time from arrival station to hotel (De Tuilerieen, Bruges) in minutes
+const STATION_TO_HOTEL_MINS = {
+  'bruges': 10, 'brugge': 10,
+  'ghent': 40, 'gent': 40,
+  'brussels': 95, 'bruxelles': 95, 'brussel': 95, 'midi': 95, 'south': 95,
+  'antwerp': 80, 'anvers': 80,
+  'lille': 75,
+  'paris': 150,
+  'london': 0, // Eurostar only to continent — shouldn't occur
+  'amsterdam': 185,
+  'rotterdam': 130,
+  'cologne': 175, 'köln': 175,
+  'frankfurt': 310,
+};
+
+function stationToHotelMins(station) {
+  if (!station) return 10;
+  const s = station.toLowerCase();
+  for (const [key, mins] of Object.entries(STATION_TO_HOTEL_MINS)) {
+    if (s.includes(key)) return mins;
+  }
+  return 10; // default — assume arriving in Bruges area
+}
+  if (!airport) return 90;
+  const a = airport.toLowerCase();
+  for (const [key, mins] of Object.entries(AIRPORT_DRIVE_MINS)) {
+    if (a.includes(key)) return mins;
+  }
+  return 90; // safe default
+}
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
@@ -1605,6 +1707,7 @@ function prefillForm(g) {
   set('arrTime',        g.arrTime);
   set('arrTrainNum',    g.arrFlight === 'Train' ? g.arrFlight : '');
   set('arrTrainFrom',   g.arrFrom);
+  set('arrTrainTo',     g.arrTrainTo);
   set('arrDateTrain',   g.arrDate);
   set('arrTimeTrain',   g.arrTime);
   set('depFlight',      g.depFlight);
