@@ -1388,7 +1388,7 @@ function saveRapidAPIKey() {
 // ════════════════════════
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;document.getElementById('install-prompt').style.display='flex';});
 async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();const{outcome}=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(outcome==='accepted')document.getElementById('install-prompt').style.display='none';}
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission==='default')document.getElementById('push-optin-card').style.display='flex';});
 
 // ════════════════════════
