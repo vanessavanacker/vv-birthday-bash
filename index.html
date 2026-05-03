@@ -647,10 +647,10 @@ async function fbUpdate(path, data) { if(!firebaseReady)return false; try{await 
 // FLIGHT LOOKUP (Claude API + web search)
 // ════════════════════════
 const LOOKUP_MAP = {
-  arr:   { flightId:'arrFlight',   dateId:'arrDate',      timeOutId:'arrTime',      arrTimeId:null,          fromId:'arrFrom',     toId:null,    mode:'flight' },
-  dep:   { flightId:'depFlight',   dateId:'depDate',      timeOutId:'depTime',      arrTimeId:'niceArrTime', fromId:null,          toId:null,    mode:'flight' },
-  ret:   { flightId:'retFlight',   dateId:'retDate',      timeOutId:'retTime',      arrTimeId:null,          fromId:null,          toId:'retTo', mode:'flight' },
-  train: { flightId:'arrTrainNum', dateId:'arrDateTrain', timeOutId:'arrTimeTrain', arrTimeId:null,          fromId:'arrTrainFrom',toId:null,    mode:'train'  },
+  arr:   { flightId:'arrFlight',   dateId:'arrDate',      depTimeId:null,       arrTimeId:'arrTime',      fromId:'arrFrom',      toId:null,    mode:'flight' },
+  dep:   { flightId:'depFlight',   dateId:'depDate',      depTimeId:'depTime',  arrTimeId:'niceArrTime',  fromId:null,           toId:null,    mode:'flight' },
+  ret:   { flightId:'retFlight',   dateId:'retDate',      depTimeId:'retTime',  arrTimeId:null,           fromId:null,           toId:'retTo', mode:'flight' },
+  train: { flightId:'arrTrainNum', dateId:'arrDateTrain', depTimeId:null,       arrTimeId:'arrTimeTrain', fromId:'arrTrainFrom', toId:null,    mode:'train'  },
 };
 
 // ════════════════════════
@@ -707,7 +707,7 @@ async function autoLookupFlight(key) {
     const depName = flight.departure?.airport?.name || flight.departure?.airport?.iata || '';
     const arrName = flight.arrival?.airport?.name   || flight.arrival?.airport?.iata   || '';
 
-    if (map.timeOutId && depTime) document.getElementById(map.timeOutId).value = depTime;
+    if (map.depTimeId && depTime) document.getElementById(map.depTimeId).value = depTime;
     if (map.arrTimeId && arrTime) document.getElementById(map.arrTimeId).value = arrTime;
     if (key === 'dep' && arrTime)  document.getElementById('niceArrTime').value = arrTime;
     if (map.fromId    && depName)  document.getElementById(map.fromId).value    = depName;
