@@ -352,6 +352,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="lookup-result" id="arr-lookup-result"></div>
           </div>
           <div class="field"><label>Flying From</label><input type="text" id="arrFrom" placeholder="e.g. New York JFK"></div>
+          <div class="field"><label>Arriving At</label><input type="text" id="arrTo" placeholder="e.g. Brussels Airport" autocorrect="off"></div>
           <div class="field"><label>Arrival Date</label><input type="date" id="arrDate" value="2026-06-19"></div>
           <div class="field"><label>Arrival Time</label><input type="time" id="arrTime"></div>
         </div>
@@ -826,7 +827,7 @@ async function fbUpdate(path, data) { if(!firebaseReady)return false; try{await 
 // FLIGHT LOOKUP (Claude API + web search)
 // ════════════════════════
 const LOOKUP_MAP = {
-  arr:   { flightId:'arrFlight',   dateId:'arrDate',      depTimeId:null,       arrTimeId:'arrTime',      fromId:'arrFrom',      toId:null,    mode:'flight' },
+  arr:   { flightId:'arrFlight',   dateId:'arrDate',      depTimeId:null,       arrTimeId:'arrTime',      fromId:'arrFrom',      toId:'arrTo',   mode:'flight' },
   dep:   { flightId:'depFlight',   dateId:'depDate',      depTimeId:'depTime',  arrTimeId:'niceArrTime',  fromId:null,           toId:null,    mode:'flight' },
   ret:   { flightId:'retFlight',   dateId:'retDate',      depTimeId:'retTime',  arrTimeId:null,           fromId:null,           toId:'retTo', mode:'flight' },
   train:    { flightId:'arrTrainNum', dateId:'arrDateTrain', depTimeId:null,       arrTimeId:'arrTimeTrain', fromId:'arrTrainFrom', toId:'arrTrainTo',  mode:'train'  },
@@ -1021,13 +1022,14 @@ function closePickupModal() { document.getElementById('pickup-modal-overlay').st
 // SUBMIT
 // ════════════════════════
 async function submitAndGenerate() {
-  let arrFlight='—', arrDate='', arrTime='', arrFrom='', arrTrainTo='';
+  let arrFlight='—', arrDate='', arrTime='', arrFrom='', arrTrainTo='', arrTo='', g_arrTo='';
   if (currentTripSection !== 'valbonne') {
     if (currentArrMode === 'flight') {
       arrFlight = document.getElementById('arrFlight').value.trim()||'—';
       arrDate   = document.getElementById('arrDate').value;
       arrTime   = document.getElementById('arrTime').value;
       arrFrom   = document.getElementById('arrFrom').value.trim();
+      g_arrTo   = document.getElementById('arrTo').value.trim();
     } else if (currentArrMode === 'train') {
       arrFlight = document.getElementById('arrTrainNum').value.trim()||'Train';
       arrDate   = document.getElementById('arrDateTrain').value;
@@ -1064,7 +1066,7 @@ async function submitAndGenerate() {
     tripSection:   currentTripSection,
     goingValbonne: currentTripSection !== 'bruges',
     arrMode:       currentTripSection === 'valbonne' ? 'none' : currentArrMode,
-    arrFlight, arrDate, arrTime, arrFrom, arrTrainTo,
+    arrFlight, arrDate, arrTime, arrFrom, arrTrainTo, arrTo: g_arrTo,
     brugesDepMode, brugesDepRef, brugesDepTime, brugesDepTo, brugesDepDate,
     hasRental:     document.getElementById('hasRental').checked,
     depFlight:     document.getElementById('depFlight').value.trim()||'—',
@@ -1230,9 +1232,10 @@ async function buildItinerary(g) {
 
         const isTrain = g.arrMode === 'train';
         const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
+        const arrAirport = g.arrTo || g.arrFrom || ''; // prefer arrival airport for drive calc
         const arrTransfer = isTrain
           ? stationToHotelMins(trainStation)
-          : airportDriveMins(g.arrFrom) + CUSTOMS_MINS;
+          : airportDriveMins(arrAirport) + CUSTOMS_MINS;
         const niceTransfer = NICE_DRIVE_MINS + CUSTOMS_MINS;
 
         const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
@@ -1248,9 +1251,9 @@ async function buildItinerary(g) {
         const arrivalNote = (ev.time==='CHECK_ARR' && g.arrTime)
           ? (isTrain
               ? ` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`
-              : ` · Lands ${fmt12(g.arrTime)}, ~${airportDriveMins(g.arrFrom)} min drive + ${CUSTOMS_MINS} min luggage & customs`)
+              : ` · Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`)
           : (ev.time==='NICE_ARR' && g.niceArrTime)
-          ? ` · Lands ${fmt12(g.niceArrTime)}, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`
+          ? ` · Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`
           : '';
         const bc='badge-'+(ev.type||'activity');
         const bl=(ev.type||'activity')[0].toUpperCase()+(ev.type||'activity').slice(1);
@@ -1704,6 +1707,7 @@ function prefillForm(g) {
   set('email',          g.email);
   set('arrFlight',      g.arrFlight);
   set('arrFrom',        g.arrFrom);
+  set('arrTo',          g.arrTo);
   set('arrDate',        g.arrDate);
   set('arrTime',        g.arrTime);
   set('arrTrainNum',    g.arrFlight === 'Train' ? g.arrFlight : '');
