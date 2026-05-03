@@ -1,8 +1,9 @@
 {
   "name": "VV Birthday Bash 2026",
   "short_name": "VV Bash",
-  "description": "Your personalised itinerary for VV Birthday Bash — Bruges & Valbonne, June 2026",
-  "start_url": "/",
+  "description": "Your personalised itinerary for VV Birthday Bash — June 2026",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#1a1208",
   "theme_color": "#1a1208",
