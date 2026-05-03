@@ -684,7 +684,7 @@ const DEFAULT_ACTIVITIES=[
 ];
 const DAY_LABELS=['Day 1 – Arrival · Bruges','Day 2 – Bruges','Day 3 – Ypres',"Day 4 – Travel to Côte d'Azur",'Day 5 – Valbonne','Day 6 – Valbonne','Day 7 – Valbonne','Day 8 – Valbonne','Day 9 – Last Night · Valbonne','Day 10 – Departures'];
 let LIVE_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES)),EDITED_ACTIVITIES=null,db=null,firebaseReady=false,lastGeneratedGuest=null,deferredInstallPrompt=null;
-let currentTripSection='both',currentArrMode='flight',currentDepMode='flight';
+let currentTripSection='both',currentArrMode='flight',currentDepMode='flight',currentBrugesDepMode='flight';
 
 function setTripSection(section,btn){
   currentTripSection=section;
@@ -737,6 +737,7 @@ function setMode(prefix,mode,btn){
   const target=document.getElementById(`${prefix}-${mode}`);if(target)target.classList.add('active');
   if(btn){btn.closest('.mode-selector').querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
   if(prefix==='arr')currentArrMode=mode;
+  if(prefix==='bdep')currentBrugesDepMode=mode;
 }
 async function saveGuest(g){if(firebaseReady)return fbPush('guests',g);try{const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');a.push(g);localStorage.setItem('vv_guests',JSON.stringify(a));return true;}catch(e){return false;}}
 async function loadGuests(){if(firebaseReady){const d=await fbGet('guests');if(!d)return[];return Object.entries(d).map(([k,v])=>({key:k,...v})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));}try{return JSON.parse(localStorage.getItem('vv_guests')||'[]');}catch(e){return[];}}
@@ -750,7 +751,7 @@ async function submitAndGenerate(){
   let arrFlight='—',arrDate='',arrTime='',arrFrom='',arrTrainTo='',arrTo='',g_arrTo='';
   if(currentTripSection!=='valbonne'){if(currentArrMode==='flight'){arrFlight=document.getElementById('arrFlight').value.trim()||'—';arrDate=document.getElementById('arrDate').value;arrTime=document.getElementById('arrTime').value;arrFrom=document.getElementById('arrFrom').value.trim();g_arrTo=document.getElementById('arrTo').value.trim();}else if(currentArrMode==='train'){arrFlight=document.getElementById('arrTrainNum').value.trim()||'Train';arrDate=document.getElementById('arrDateTrain').value;arrTime=document.getElementById('arrTimeTrain').value;arrFrom=document.getElementById('arrTrainFrom').value.trim();arrTrainTo=document.getElementById('arrTrainTo').value.trim();}}else{arrDate=document.getElementById('depDate').value||'2026-06-22';}
   let brugesDepMode='flight',brugesDepRef='—',brugesDepTime='',brugesDepTo='',brugesDepDate='',g_bdepFromAirport='';
-  if(currentTripSection==='bruges'){const bdepActive=document.querySelector('#bdep-train.active');brugesDepMode=bdepActive?'train':'flight';if(brugesDepMode==='train'){brugesDepRef=document.getElementById('bdepTrainNum').value.trim()||'Train';brugesDepTo=document.getElementById('bdepTrainTo').value.trim();brugesDepDate=document.getElementById('bdepTrainDate').value;brugesDepTime=document.getElementById('bdepTrainTime').value;}else{brugesDepRef=document.getElementById('bdepFlight').value.trim()||'—';brugesDepTo=document.getElementById('bdepTo').value.trim();brugesDepDate=document.getElementById('bdepDate').value;brugesDepTime=document.getElementById('bdepTime').value;g_bdepFromAirport=document.getElementById('bdepFromAirport').value.trim();}}
+  if(currentTripSection==='bruges'){brugesDepMode=currentBrugesDepMode;if(brugesDepMode==='train'){brugesDepRef=document.getElementById('bdepTrainNum').value.trim()||'Train';brugesDepTo=document.getElementById('bdepTrainTo').value.trim();brugesDepDate=document.getElementById('bdepTrainDate').value;brugesDepTime=document.getElementById('bdepTrainTime').value;}else{brugesDepRef=document.getElementById('bdepFlight').value.trim()||'—';brugesDepTo=document.getElementById('bdepTo').value.trim();brugesDepDate=document.getElementById('bdepDate').value;brugesDepTime=document.getElementById('bdepTime').value;g_bdepFromAirport=document.getElementById('bdepFromAirport').value.trim();}}
   const g={name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),tripSection:currentTripSection,goingValbonne:currentTripSection!=='bruges',arrMode:currentTripSection==='valbonne'?'none':currentArrMode,arrFlight,arrDate,arrTime,arrFrom,arrTrainTo,arrTo:g_arrTo,brugesDepMode,brugesDepRef,brugesDepTime,brugesDepTo,brugesDepDate,bdepFromAirport:g_bdepFromAirport,hasRental:document.getElementById('hasRental').checked,depFlight:document.getElementById('depFlight').value.trim()||'—',depFrom:document.getElementById('depFrom').value.trim(),depDate:document.getElementById('depDate').value,depTime:document.getElementById('depTime').value,niceArrTime:document.getElementById('niceArrTime').value,rentalCo:document.getElementById('rentalCo').value.trim()||'rental company',rentalPickup:document.getElementById('rentalPickup').value.trim()||'Nice Airport',rentalReturn:document.getElementById('rentalReturn').value,retFlight:document.getElementById('retFlight').value.trim()||'—',retDate:document.getElementById('retDate').value,retTime:document.getElementById('retTime').value,retTo:document.getElementById('retTo').value.trim(),notes:document.getElementById('notes').value.trim(),
     arrTransport:document.getElementById('arrTransport')?.value.trim()||'',
     depTransport:document.getElementById('depTransport')?.value.trim()||'',
@@ -952,6 +953,12 @@ function prefillForm(g){
   set('niceArrTransport',g.niceArrTransport);set('retTransport',g.retTransport);
   if(g.hasRental){document.getElementById('hasRental').checked=true;syncRental();}
   if(g.arrMode==='train')setMode('arr','train',document.querySelectorAll('.mode-btn')[1]);
+  if(g.brugesDepMode==='train'){
+    currentBrugesDepMode='train';
+    setMode('bdep','train', document.querySelectorAll('#bruges-dep-section .mode-btn')[1]||null);
+  } else {
+    currentBrugesDepMode='flight';
+  }
 }
 function encodeGuest(g){try{const json=JSON.stringify(g),bytes=new TextEncoder().encode(json);let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary);}catch(e){return null;}}
 function decodeGuest(b64){try{const binary=atob(b64),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return JSON.parse(new TextDecoder('utf-8').decode(bytes));}catch(e){return null;}}
