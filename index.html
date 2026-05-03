@@ -16,10 +16,10 @@
 <style>
 :root{--ink:#1a1208;--sand:#f5ede0;--gold:#c9923a;--rust:#b85c38;--sage:#5a7a60;--sky:#4a7fa5;--card:#fffdf8;--border:rgba(201,146,58,.25);--nice:#1a5276;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:linear-gradient(rgba(245,237,224,.97),rgba(245,237,224,.97)),url('https://images.unsplash.com/photo-1559628233-100c798642d1?w=1920&auto=format&fit=crop&q=80') center/cover fixed;color:var(--ink);min-height:100vh;}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(rgba(245,237,224,.97),rgba(245,237,224,.97)),url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Brugge_Rozenhoedkaai_R01.jpg/1920px-Brugge_Rozenhoedkaai_R01.jpg') center/cover fixed;color:var(--ink);min-height:100vh;}
 
 /* HEADER */
-header{background:linear-gradient(rgba(26,18,8,.72),rgba(26,18,8,.92)),url('https://images.unsplash.com/photo-1559628233-100c798642d1?w=1920&auto=format&fit=crop&q=80') center/cover no-repeat;color:var(--sand);padding:2.6rem 2rem 0;text-align:center;position:relative;overflow:hidden;}
+header{background:linear-gradient(rgba(26,18,8,.72),rgba(26,18,8,.92)),url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Brugge_Rozenhoedkaai_R01.jpg/1920px-Brugge_Rozenhoedkaai_R01.jpg') center/cover no-repeat;color:var(--sand);padding:2.6rem 2rem 0;text-align:center;position:relative;overflow:hidden;}
 header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(201,146,58,.06) 40px,rgba(201,146,58,.06) 80px);}
 header h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,3.2rem);font-weight:900;letter-spacing:-.02em;position:relative;}
 header h1 span{color:var(--gold);}
@@ -253,11 +253,10 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   <div class="section-label"><span class="dot"></span>Arriving in Bruges</div>
   <div class="form-card">
     <h3>🇧🇪 Bruges Arrival – Jun 19</h3>
-    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're departing the US on <strong>Jun 18</strong> and landing in Bruges on <strong>Jun 19</strong> — enter your landing details below.</p>
+    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're departing the US on <strong>Jun 18</strong> and landing in <strong>Belgium on Jun 19</strong> — enter your landing details below.</p>
     <div class="mode-selector">
       <button class="mode-btn active" onclick="setMode('arr','flight',this)">✈️ Flight</button>
       <button class="mode-btn" onclick="setMode('arr','train',this)">🚂 Train</button>
-      <button class="mode-btn" onclick="setMode('arr','car',this)">🚗 Car / Transfer</button>
     </div>
 
     <!-- FLIGHT -->
@@ -298,14 +297,6 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
     </div>
 
-    <!-- CAR -->
-    <div class="mode-section" id="arr-car">
-      <div class="form-grid">
-        <div class="field"><label>Coming From</label><input type="text" id="arrCarFrom" placeholder="e.g. Brussels Airport"></div>
-        <div class="field"><label>Arrival Date</label><input type="date" id="arrDateCar" value="2026-06-19"></div>
-        <div class="field"><label>Estimated Arrival Time</label><input type="time" id="arrTimeCar"></div>
-      </div>
-    </div>
   </div>
 
   <div class="form-card" style="padding:1.2rem 1.5rem">
@@ -839,10 +830,6 @@ async function submitAndGenerate() {
     arrDate   = document.getElementById('arrDateTrain').value;
     arrTime   = document.getElementById('arrTimeTrain').value;
     arrFrom   = document.getElementById('arrTrainFrom').value.trim();
-  } else {
-    arrDate   = document.getElementById('arrDateCar').value;
-    arrTime   = document.getElementById('arrTimeCar').value;
-    arrFrom   = document.getElementById('arrCarFrom').value.trim();
   }
 
   const g = {
