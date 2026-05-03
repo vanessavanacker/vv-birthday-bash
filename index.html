@@ -395,6 +395,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="lookup-result" id="bdep-lookup-result"></div>
           </div>
           <div class="field"><label>Flying To</label><input type="text" id="bdepTo" placeholder="e.g. London Heathrow"></div>
+          <div class="field"><label>Departing From Airport</label><input type="text" id="bdepFromAirport" placeholder="e.g. Brussels Airport" autocorrect="off"></div>
           <div class="field"><label>Departure Date</label><input type="date" id="bdepDate" value="2026-06-22"></div>
           <div class="field"><label>Departs At</label><input type="time" id="bdepTime"></div>
         </div>
@@ -427,8 +428,8 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
           <div class="lookup-result" id="dep-lookup-result"></div>
         </div>
         <div class="field" id="dep-from-field" style="display:none">
-          <label>Flying From</label>
-          <input type="text" id="depFrom" placeholder="e.g. New York JFK">
+          <label id="dep-from-label">Flying From (airport)</label>
+          <input type="text" id="depFrom" placeholder="e.g. Brussels Airport, Charleroi">
         </div>
         <div class="field"><label>Departure Date</label><input type="date" id="depDate" value="2026-06-22"></div>
         <div class="field"><label>Departs At</label><input type="time" id="depTime"></div>
@@ -753,7 +754,7 @@ const DEFAULT_ACTIVITIES = [
   {day:2,time:'13:00',title:'Lunch in Ypres',note:'Free time for lunch in the market square.',type:'food',icon:'🥗',tags:[]},
   {day:2,time:'20:00',title:'Last Post Ceremony',note:'Optional: Menin Gate, nightly at 20:00.',address:'Menenstraat, 8900 Ieper, Belgium',type:'activity',icon:'🎺',tags:[]},
   {day:2,time:'21:00',title:'Return to Bruges',note:'Transfer back to De Tuilerieen.',type:'transport',icon:'🚌',tags:[]},
-  {day:3,time:'CHECK_OUT',title:'Check out – De Tuilerieen',note:'By 11:00. Luggage storage available.',type:'hotel',icon:'🏨',tags:[]},
+  {day:3,time:'CHECK_OUT',title:'Check out – De Tuilerieen',note:'{checkoutNote}',type:'hotel',icon:'🏨',tags:[]},
   {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:'Transfer to airport ~3 hrs before your flight ({depTime}).',type:'flight',icon:'✈️',tags:['valbonne']},
   {day:3,time:'NICE_ARR',title:'Arrive Nice',note:'Landing at {niceArrTime}. Clear customs and collect bags.',type:'flight',icon:'✈️',tags:['valbonne']},
   {day:3,time:'NICE_ARR',title:'Pick up rental – {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'🚗',tags:['rental']},
@@ -798,7 +799,7 @@ function setTripSection(section, btn) {
   const isVOnly = section === 'valbonne';
   document.getElementById('nice-card-title').textContent    = isVOnly ? '✈️ Flying to Nice – Jun 22' : '✈️ Bruges → Nice – Jun 22';
   document.getElementById('nice-section-label').textContent = isVOnly ? 'Arriving in Nice'           : 'Flying to Nice';
-  document.getElementById('dep-from-field').style.display   = isVOnly ? '' : 'none';
+  document.getElementById('dep-from-field').style.display = (isVOnly || section === 'both' || currentTripSection === 'both') ? '' : 'none'; document.getElementById('dep-from-label').textContent = isVOnly ? 'Flying From (airport)' : 'Departing From (Belgian airport)';
 }
 
 // ════════════════════════
@@ -1053,7 +1054,7 @@ async function submitAndGenerate() {
   }
 
   // Collect Bruges departure (for Bruges-only guests)
-  let brugesDepMode='flight', brugesDepRef='—', brugesDepTime='', brugesDepTo='', brugesDepDate='';
+  let brugesDepMode='flight', brugesDepRef='—', brugesDepTime='', brugesDepTo='', brugesDepDate='', g_bdepFromAirport='';
   if (currentTripSection === 'bruges') {
     const bdepActive = document.querySelector('#bdep-train.active');
     brugesDepMode = bdepActive ? 'train' : 'flight';
@@ -1067,6 +1068,7 @@ async function submitAndGenerate() {
       brugesDepTo   = document.getElementById('bdepTo').value.trim();
       brugesDepDate = document.getElementById('bdepDate').value;
       brugesDepTime = document.getElementById('bdepTime').value;
+      g_bdepFromAirport = document.getElementById('bdepFromAirport').value.trim();
     }
   }
 
@@ -1078,6 +1080,7 @@ async function submitAndGenerate() {
     arrMode:       currentTripSection === 'valbonne' ? 'none' : currentArrMode,
     arrFlight, arrDate, arrTime, arrFrom, arrTrainTo, arrTo: g_arrTo,
     brugesDepMode, brugesDepRef, brugesDepTime, brugesDepTo, brugesDepDate,
+    bdepFromAirport: g_bdepFromAirport,
     hasRental:     document.getElementById('hasRental').checked,
     depFlight:     document.getElementById('depFlight').value.trim()||'—',
     depFrom:       document.getElementById('depFrom').value.trim(),
@@ -1136,6 +1139,7 @@ async function buildItinerary(g) {
     .replace(/{rentalReturn}/g, g.rentalReturn ? fmtDate(g.rentalReturn) : '28 Jun')
     .replace(/{retFlight}/g, g.retFlight||'—')
     .replace(/{retTime}/g, fmt12(g.retTime))
+    .replace(/{checkoutNote}/g, checkoutNote(g))
     .replace(/{brugesDepRef}/g,  g.brugesDepRef||'—')
     .replace(/{brugesDepTime}/g, fmt12(g.brugesDepTime))
     .replace(/{brugesDepTo}/g,   g.brugesDepTo||'home');
@@ -1186,7 +1190,11 @@ async function buildItinerary(g) {
   const timeSortKey = t => {
     if (!t || t === 'FREE')      return '00:01';
     if (t === 'CHECK_ARR')       return '00:02';
-    if (t === 'CHECK_OUT')       return '10:30';
+    if (t === 'CHECK_OUT') {
+      const ct = calcCheckoutTime(g);
+      if (ct) { const [h,m]=ct.split(':').map(Number); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+      return '10:30';
+    }
     if (t === 'NICE_ARR')        return '15:00';
     if (t === 'EVENING')         return '19:00';
     if (t === 'CHECK_DEP')       return '23:58';
@@ -1260,9 +1268,10 @@ async function buildItinerary(g) {
           const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
           const niceArrival   = g.niceArrTime ? addMins(g.niceArrTime, niceTransfer) : null;
 
+          const checkoutTime = calcCheckoutTime(g) || '11:00';
           const tl = ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival')
                    :ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC'))
-                   :ev.time==='CHECK_OUT'?'11:00 AM'
+                   :ev.time==='CHECK_OUT'?fmt12(checkoutTime)
                    :ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival')
                    :ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
 
@@ -1272,7 +1281,7 @@ async function buildItinerary(g) {
             const t = ev.time;
             if (t==='FREE') return 0;
             if (t==='CHECK_ARR') return brugesArrival ? parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]) : 0;
-            if (t==='CHECK_OUT') return 11*60;
+            if (t==='CHECK_OUT') { const ct=calcCheckoutTime(g); if(ct){const[h,m]=ct.split(':').map(Number);return h*60+m;} return 11*60; }
             if (t==='EVENING') return 19*60;
             if (t==='CHECK_DEP' || t==='NICE_ARR') return 23*60;
             const m = t && t.match(/^(\d{2}):(\d{2})$/);
@@ -1599,7 +1608,7 @@ function syncRental(){document.getElementById('rental-section').style.display=do
 function closeModal(){document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';}
 function showNotice(el,msg,type){(typeof el==='string'?document.getElementById(el):el).innerHTML=`<div class="notice notice-${type}">${msg}</div>`;}
 function fmt12(t){if(!t)return'';const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;return`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;}
-function addMins(t,mins){if(!t||!mins)return t;const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;const tot=h*60+m+parseInt(mins);return String(Math.floor(tot/60)%24).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');}
+function addMins(t,mins){if(!t||mins==null)return t;const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;const tot=((h*60+m+parseInt(mins))%1440+1440)%1440;return String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');}
 
 // Drive time from airport to Bruges (De Tuilerieen) in minutes, EXCLUDING luggage/customs
 const AIRPORT_DRIVE_MINS = {
@@ -1668,6 +1677,50 @@ function stationToHotelMins(station) {
   }
   return 10; // default — assume arriving in Bruges area
 }
+function calcCheckoutTime(g) {
+  const FLIGHT_BUFFER = 120; // 2h airport check-in
+  const TRAIN_BUFFER  = 30;  // 30 min before train
+  const TO_STATION    = 10;  // 10 min Bruges hotel → Bruges station
+
+  if (g.tripSection === 'valbonne') return null;
+
+  if (g.tripSection === 'both' && g.depTime) {
+    const driveMins = airportDriveMins(g.depFrom || 'brussels');
+    return addMins(g.depTime, -(driveMins + FLIGHT_BUFFER));
+  }
+  if (g.tripSection === 'bruges') {
+    if (g.brugesDepMode === 'train' && g.brugesDepTime) {
+      return addMins(g.brugesDepTime, -(TO_STATION + TRAIN_BUFFER));
+    }
+    if (g.brugesDepMode === 'flight' && g.brugesDepTime) {
+      const driveMins = airportDriveMins(g.bdepFromAirport || 'brussels');
+      return addMins(g.brugesDepTime, -(driveMins + FLIGHT_BUFFER));
+    }
+  }
+  return '11:00'; // fallback
+}
+
+function checkoutNote(g) {
+  const FLIGHT_BUFFER = 120;
+  const TRAIN_BUFFER  = 30;
+  const TO_STATION    = 10;
+  if (g.tripSection === 'both' && g.depTime) {
+    const dep = g.depFrom || 'Brussels Airport';
+    const drive = airportDriveMins(dep);
+    return `~${drive} min drive to ${dep} + ${FLIGHT_BUFFER} min check-in before ${fmt12(g.depTime)} flight`;
+  }
+  if (g.tripSection === 'bruges') {
+    if (g.brugesDepMode === 'train' && g.brugesDepTime)
+      return `~${TO_STATION} min to Bruges station + ${TRAIN_BUFFER} min before ${fmt12(g.brugesDepTime)} train`;
+    if (g.brugesDepMode === 'flight' && g.brugesDepTime) {
+      const dep = g.bdepFromAirport || 'Brussels Airport';
+      const drive = airportDriveMins(dep);
+      return `~${drive} min drive to ${dep} + ${FLIGHT_BUFFER} min check-in before ${fmt12(g.brugesDepTime)} flight`;
+    }
+  }
+  return 'Luggage storage available if needed.';
+}
+
 function airportDriveMins(airport) {
   if (!airport) return 90;
   const a = airport.toLowerCase();
@@ -1743,7 +1796,7 @@ function prefillForm(g) {
   const isVOnly = currentTripSection === 'valbonne';
   document.getElementById('nice-card-title').textContent    = isVOnly ? '✈️ Flying to Nice – Jun 22' : '✈️ Bruges → Nice – Jun 22';
   document.getElementById('nice-section-label').textContent = isVOnly ? 'Arriving in Nice' : 'Flying to Nice';
-  document.getElementById('dep-from-field').style.display   = isVOnly ? '' : 'none';
+  document.getElementById('dep-from-field').style.display = (isVOnly || section === 'both' || currentTripSection === 'both') ? '' : 'none'; document.getElementById('dep-from-label').textContent = isVOnly ? 'Flying From (airport)' : 'Departing From (Belgian airport)';
 
   // Fields
   const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
@@ -1772,6 +1825,7 @@ function prefillForm(g) {
   set('retDate',        g.retDate);
   set('retTime',        g.retTime);
   set('notes',          g.notes);
+  set('bdepFromAirport', g.bdepFromAirport);
   if (g.hasRental) { document.getElementById('hasRental').checked = true; syncRental(); }
   if (g.arrMode === 'train') setMode('arr', 'train', document.querySelector('.mode-btn:nth-child(2)') || document.querySelectorAll('.mode-btn')[1]);
 }
