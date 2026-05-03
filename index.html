@@ -161,7 +161,18 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .login-wrap{max-width:360px;margin:3.5rem auto;}
 
 /* ACTIVITY EDITOR */
-.act-day-group{margin-bottom:1.2rem;}
+.trip-selector{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem;}
+.trip-btn{flex:1;min-width:130px;padding:.9rem .6rem;border:1.5px solid var(--border);border-radius:12px;background:var(--sand);cursor:pointer;text-align:center;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.trip-btn:hover{border-color:var(--gold);}
+.trip-btn.active{background:var(--ink);color:var(--sand);border-color:var(--ink);}
+.trip-icon{display:block;font-size:1.6rem;margin-bottom:.3rem;}
+.trip-label{display:block;font-weight:700;font-size:.9rem;}
+.trip-dates{display:block;font-size:.72rem;opacity:.5;margin-top:.15rem;}
+.trip-btn.active .trip-dates{opacity:.6;color:var(--sand);}
+.act-filter-bar{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;}
+.act-filter-btn{padding:.38rem .9rem;border-radius:7px;border:1.5px solid var(--border);background:var(--sand);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;}
+.act-filter-btn.active{background:var(--ink);color:var(--sand);border-color:var(--ink);}
+.act-filter-btn:hover:not(.active){border-color:var(--gold);}
 .act-day-label{font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;padding:.4rem .7rem;background:var(--ink);color:var(--sand);border-radius:7px 7px 0 0;display:flex;align-items:center;justify-content:space-between;}
 .act-day-label span{opacity:.5;font-size:.75rem;font-weight:400;}
 .act-list{border:1px solid var(--border);border-radius:0 0 10px 10px;overflow:hidden;}
@@ -248,64 +259,79 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     </div>
   </div>
 
-  <div class="section-label"><span class="dot"></span>Arriving in Bruges</div>
+  <div class="section-label"><span class="dot"></span>Your Trip</div>
   <div class="form-card">
-    <h3>🇧🇪 Bruges Arrival – Jun 19</h3>
-    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're arriving in <strong>Belgium on Jun 19</strong> — enter your flight details below and times will fill in automatically.</p>
-    <div class="mode-selector">
-      <button class="mode-btn active" onclick="setMode('arr','flight',this)">✈️ Flight</button>
-      <button class="mode-btn" onclick="setMode('arr','train',this)">🚂 Train</button>
-    </div>
-
-    <!-- FLIGHT -->
-    <div class="mode-section active" id="arr-flight">
-      <div class="form-grid">
-        <div class="field">
-          <label>Flight Number</label>
-          <input type="text" id="arrFlight" placeholder="e.g. BA 256" oninput="scheduleFlightLookup('arr')">
-          <div class="lookup-result" id="arr-lookup-result"></div>
-        </div>
-        <div class="field"><label>Flying From</label><input type="text" id="arrFrom" placeholder="e.g. London Heathrow"></div>
-        <div class="field"><label>Arrival Date</label><input type="date" id="arrDate" value="2026-06-19"></div>
-        <div class="field"><label>Arrival Time</label><input type="time" id="arrTime"></div>
-      </div>
-    </div>
-
-    <!-- TRAIN -->
-    <div class="mode-section" id="arr-train">
-      <div class="form-grid">
-        <div class="field">
-          <label>Train Number (optional)</label>
-          <input type="text" id="arrTrainNum" placeholder="e.g. Eurostar 9114" oninput="scheduleFlightLookup('train')">
-          <div class="lookup-result" id="train-lookup-result"></div>
-        </div>
-        <div class="field"><label>Departing From</label><input type="text" id="arrTrainFrom" placeholder="e.g. London St Pancras"></div>
-        <div class="field"><label>Arrival Date</label><input type="date" id="arrDateTrain" value="2026-06-19"></div>
-        <div class="field"><label>Arriving Bruges At</label><input type="time" id="arrTimeTrain"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="form-card" style="padding:1.2rem 1.5rem">
-    <div class="toggle-row" onclick="toggleValbonne(event)">
-      <input type="checkbox" id="goingValbonne" checked onclick="event.stopPropagation();syncValbonne()">
-      <div>
-        <label for="goingValbonne">I'm continuing to Valbonne, Côte d'Azur 🇫🇷</label>
-        <div class="sub">Jun 22 – 27 · House in Valbonne</div>
-      </div>
+    <h3>🗺️ Which part are you joining?</h3>
+    <div class="trip-selector">
+      <button class="trip-btn active" onclick="setTripSection('both',this)">
+        <span class="trip-icon">🎉</span>
+        <span class="trip-label">Bruges &amp; Valbonne</span>
+        <span class="trip-dates">Jun 19 – 27</span>
+      </button>
+      <button class="trip-btn" onclick="setTripSection('bruges',this)">
+        <span class="trip-icon">🇧🇪</span>
+        <span class="trip-label">Bruges Only</span>
+        <span class="trip-dates">Jun 19 – 22</span>
+      </button>
+      <button class="trip-btn" onclick="setTripSection('valbonne',this)">
+        <span class="trip-icon">🇫🇷</span>
+        <span class="trip-label">Valbonne Only</span>
+        <span class="trip-dates">Jun 22 – 27</span>
+      </button>
     </div>
   </div>
 
-  <div id="valbonne-section">
-    <div class="section-label"><span class="dot"></span>Flying to Nice</div>
+  <!-- BRUGES ARRIVAL — hidden for Valbonne-only -->
+  <div id="bruges-arrival-section">
+    <div class="section-label"><span class="dot"></span>Arriving in Bruges</div>
     <div class="form-card">
-      <h3>✈️ Bruges → Nice – Jun 22</h3>
+      <h3>🇧🇪 Bruges Arrival – Jun 19</h3>
+      <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're arriving in <strong>Belgium on Jun 19</strong> — enter your flight details below and times will fill in automatically.</p>
+      <div class="mode-selector">
+        <button class="mode-btn active" onclick="setMode('arr','flight',this)">✈️ Flight</button>
+        <button class="mode-btn" onclick="setMode('arr','train',this)">🚂 Train</button>
+      </div>
+      <div class="mode-section active" id="arr-flight">
+        <div class="form-grid">
+          <div class="field">
+            <label>Flight Number</label>
+            <input type="text" id="arrFlight" placeholder="e.g. BA 256" oninput="scheduleFlightLookup('arr')">
+            <div class="lookup-result" id="arr-lookup-result"></div>
+          </div>
+          <div class="field"><label>Flying From</label><input type="text" id="arrFrom" placeholder="e.g. New York JFK"></div>
+          <div class="field"><label>Arrival Date</label><input type="date" id="arrDate" value="2026-06-19"></div>
+          <div class="field"><label>Arrival Time</label><input type="time" id="arrTime"></div>
+        </div>
+      </div>
+      <div class="mode-section" id="arr-train">
+        <div class="form-grid">
+          <div class="field">
+            <label>Train Number (optional)</label>
+            <input type="text" id="arrTrainNum" placeholder="e.g. Eurostar 9114" oninput="scheduleFlightLookup('train')">
+            <div class="lookup-result" id="train-lookup-result"></div>
+          </div>
+          <div class="field"><label>Departing From</label><input type="text" id="arrTrainFrom" placeholder="e.g. London St Pancras"></div>
+          <div class="field"><label>Arrival Date</label><input type="date" id="arrDateTrain" value="2026-06-19"></div>
+          <div class="field"><label>Arriving Bruges At</label><input type="time" id="arrTimeTrain"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALBONNE / NICE SECTION — hidden for Bruges-only -->
+  <div id="valbonne-section">
+    <div class="section-label"><span class="dot"></span><span id="nice-section-label">Flying to Nice</span></div>
+    <div class="form-card">
+      <h3 id="nice-card-title">✈️ Bruges → Nice – Jun 22</h3>
       <div class="form-grid">
         <div class="field">
           <label>Flight Number</label>
           <input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')">
           <div class="lookup-result" id="dep-lookup-result"></div>
+        </div>
+        <div class="field" id="dep-from-field" style="display:none">
+          <label>Flying From</label>
+          <input type="text" id="depFrom" placeholder="e.g. New York JFK">
         </div>
         <div class="field"><label>Departure Date</label><input type="date" id="depDate" value="2026-06-22"></div>
         <div class="field"><label>Departs At</label><input type="time" id="depTime"></div>
@@ -401,6 +427,11 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
         </div>
       </div>
       <div id="unsaved-notice" style="display:none" class="notice notice-warn">⚠️ Unsaved changes — click <strong>Save & Publish</strong> to push to all guests.</div>
+      <div class="act-filter-bar">
+        <button class="act-filter-btn active" onclick="setActFilter('all',this)">All days</button>
+        <button class="act-filter-btn" onclick="setActFilter('bruges',this)">🇧🇪 Bruges (Jun 19–22)</button>
+        <button class="act-filter-btn" onclick="setActFilter('valbonne',this)">🇫🇷 Valbonne (Jun 22–27)</button>
+      </div>
       <div id="act-editor-list"></div>
     </div>
 
@@ -608,8 +639,21 @@ let db = null;
 let firebaseReady = false;
 let lastGeneratedGuest = null;
 let deferredInstallPrompt = null;
+let currentTripSection = 'both'; // 'both' | 'bruges' | 'valbonne'
 let currentArrMode = 'flight';
-let currentDepMode = 'flight'; // always flight for Nice leg
+let currentDepMode = 'flight';
+
+function setTripSection(section, btn) {
+  currentTripSection = section;
+  document.querySelectorAll('.trip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('bruges-arrival-section').style.display = section === 'valbonne' ? 'none' : '';
+  document.getElementById('valbonne-section').style.display       = section === 'bruges'   ? 'none' : '';
+  const isVOnly = section === 'valbonne';
+  document.getElementById('nice-card-title').textContent    = isVOnly ? '✈️ Flying to Nice – Jun 22' : '✈️ Bruges → Nice – Jun 22';
+  document.getElementById('nice-section-label').textContent = isVOnly ? 'Arriving in Nice'           : 'Flying to Nice';
+  document.getElementById('dep-from-field').style.display   = isVOnly ? '' : 'none';
+}
 
 // ════════════════════════
 // FIREBASE
@@ -835,28 +879,34 @@ function closePickupModal() { document.getElementById('pickup-modal-overlay').st
 // SUBMIT
 // ════════════════════════
 async function submitAndGenerate() {
-  // Collect arrival details based on mode
   let arrFlight='—', arrDate='', arrTime='', arrFrom='';
-  if (currentArrMode === 'flight') {
-    arrFlight = document.getElementById('arrFlight').value.trim()||'—';
-    arrDate   = document.getElementById('arrDate').value;
-    arrTime   = document.getElementById('arrTime').value;
-    arrFrom   = document.getElementById('arrFrom').value.trim();
-  } else if (currentArrMode === 'train') {
-    arrFlight = document.getElementById('arrTrainNum').value.trim()||'Train';
-    arrDate   = document.getElementById('arrDateTrain').value;
-    arrTime   = document.getElementById('arrTimeTrain').value;
-    arrFrom   = document.getElementById('arrTrainFrom').value.trim();
+  if (currentTripSection !== 'valbonne') {
+    if (currentArrMode === 'flight') {
+      arrFlight = document.getElementById('arrFlight').value.trim()||'—';
+      arrDate   = document.getElementById('arrDate').value;
+      arrTime   = document.getElementById('arrTime').value;
+      arrFrom   = document.getElementById('arrFrom').value.trim();
+    } else if (currentArrMode === 'train') {
+      arrFlight = document.getElementById('arrTrainNum').value.trim()||'Train';
+      arrDate   = document.getElementById('arrDateTrain').value;
+      arrTime   = document.getElementById('arrTimeTrain').value;
+      arrFrom   = document.getElementById('arrTrainFrom').value.trim();
+    }
+  } else {
+    // Valbonne-only: use Nice arrival date as their arrival
+    arrDate = document.getElementById('depDate').value || '2026-06-22';
   }
 
   const g = {
     name:          document.getElementById('name').value.trim(),
     email:         document.getElementById('email').value.trim(),
-    arrMode:       currentArrMode,
+    tripSection:   currentTripSection,
+    goingValbonne: currentTripSection !== 'bruges',
+    arrMode:       currentTripSection === 'valbonne' ? 'none' : currentArrMode,
     arrFlight, arrDate, arrTime, arrFrom,
-    goingValbonne: document.getElementById('goingValbonne').checked,
     hasRental:     document.getElementById('hasRental').checked,
     depFlight:     document.getElementById('depFlight').value.trim()||'—',
+    depFrom:       document.getElementById('depFrom').value.trim(),
     depDate:       document.getElementById('depDate').value,
     depTime:       document.getElementById('depTime').value,
     niceArrTime:   document.getElementById('niceArrTime').value,
@@ -873,7 +923,6 @@ async function submitAndGenerate() {
 
   const ni = document.getElementById('form-notice');
   if (!g.name) { showNotice(ni,'⚠️ Please enter your name.','warn'); return; }
-  if (!g.arrDate) { showNotice(ni,'⚠️ Please enter your arrival date.','warn'); return; }
 
   const saved = await saveGuest(g);
   showNotice(ni, saved ? '✅ Details saved! Your itinerary is below.' : 'ℹ️ Your itinerary is below.', saved ? 'success' : 'info');
@@ -897,8 +946,11 @@ async function refreshItinerary() {
 // BUILD ITINERARY
 // ════════════════════════
 async function buildItinerary(g) {
-  const arrival = new Date(g.arrDate + 'T12:00:00');
-  const acts = LIVE_ACTIVITIES;
+  const TRIP_BASE = new Date('2026-06-19T12:00:00');
+  const acts    = LIVE_ACTIVITIES;
+  const isVOnly = g.tripSection === 'valbonne';
+  const isBOnly = g.tripSection === 'bruges';
+
   const fill = s => String(s||'')
     .replace(/{depFlight}/g, g.depFlight||'—')
     .replace(/{depTime}/g, fmt12(g.depTime))
@@ -935,36 +987,46 @@ async function buildItinerary(g) {
             if (!byDay[p.day]) byDay[p.day] = [];
             byDay[p.day].push({ day:p.day, time:p.time||'TBC', title:'Your Pickup – ' + (p.vehicle||'Car'), note:(p.location?'Meet at: '+p.location:'') + (p.note?' · '+p.note:''), type:'transport', icon:'🚗', personal:true });
           });
-          // Re-sort each day
           Object.keys(byDay).forEach(d => byDay[d].sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
         }
       }
     } catch(e){}
   }
 
-  // Arrival mode label
-  const arrModeLabel = g.arrMode === 'train' ? '🚂 ' + (g.arrFlight||'Train') : g.arrMode === 'car' ? '🚗 ' + (g.arrFrom||'By car') : '✈️ ' + (g.arrFlight||'—');
+  // Tag pills
   const tagPills = [];
-  if (g.goingValbonne) tagPills.push(`<span class="tag-pill tag-valbonne">🇫🇷 Valbonne</span>`);
-  else tagPills.push(`<span class="tag-pill tag-bruges">🇧🇪 Bruges only</span>`);
-  if (g.hasRental) tagPills.push(`<span class="tag-pill tag-rental">🚗 Rental car</span>`);
+  if (isVOnly)       tagPills.push(`<span class="tag-pill tag-valbonne">🇫🇷 Valbonne only</span>`);
+  else if (isBOnly)  tagPills.push(`<span class="tag-pill tag-bruges">🇧🇪 Bruges only</span>`);
+  else               tagPills.push(`<span class="tag-pill tag-valbonne">🇧🇪🇫🇷 Full trip</span>`);
+  if (g.hasRental)   tagPills.push(`<span class="tag-pill tag-rental">🚗 Rental car</span>`);
+
+  // Arrival pill
+  const arrPill = isVOnly
+    ? (g.depFlight&&g.depFlight!=='—' ? `<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>` : '')
+    : (g.arrMode==='train' ? `<span class="flight-pill">🚂 ${esc(g.arrFlight||'Train')}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>`
+                           : `<span class="flight-pill">✈️ ${esc(g.arrFlight||'—')}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>`);
 
   let html = `<div class="traveler-banner">
     <div><div class="t-meta">Itinerary for</div><div class="t-name">${esc(g.name)}</div>${g.email?`<div style="font-size:.73rem;opacity:.38">${esc(g.email)}</div>`:''}</div>
     <div style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center">${tagPills.join('')}</div>
     <div style="display:flex;flex-wrap:wrap;gap:.35rem">
-      <span class="flight-pill">${esc(arrModeLabel)}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>
-      ${g.goingValbonne&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''}
+      ${arrPill}
+      ${!isVOnly&&g.goingValbonne&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''}
       ${g.retFlight&&g.retFlight!=='—'?`<span class="flight-pill">🏠 ${esc(g.retFlight)}${g.retTo?' → '+esc(g.retTo):''}</span>`:''}
     </div>
   </div>`;
 
-  const lastDay = g.goingValbonne ? Math.max(...acts.map(a=>a.day))+1 : 4;
-  for (let d = 0; d < lastDay; d++) {
-    const dd = new Date(arrival); dd.setDate(arrival.getDate()+d);
-    const label = DAY_LABELS[d]||'Day '+(d+1);
+  const startDay = isVOnly ? 3 : 0;
+  const lastDay  = isBOnly ? 4 : Math.max(...acts.map(a=>a.day))+1;
+
+  // Valbonne-only day labels (renumber from Day 1)
+  const valonlyLabels = ['Arrival Day · Valbonne','Day 2 – Valbonne','Day 3 – Valbonne','Day 4 – Valbonne (Zuma)','Day 5 – Valbonne','Day 6 – Valbonne (Medusa)','Last Night · Valbonne'];
+
+  for (let d = startDay; d < lastDay; d++) {
+    const dd = new Date(TRIP_BASE); dd.setDate(TRIP_BASE.getDate()+d);
+    const label   = isVOnly ? (valonlyLabels[d-3]||'Day '+(d-2)) : (DAY_LABELS[d]||'Day '+(d+1));
     const dateStr = dd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-    const isNice = d >= 3;
+    const isNice  = d >= 3;
     html += `<div class="day-block"><div class="day-header"><span class="day-chip${isNice?' nice':''}">${esc(label)}</span><span class="day-date">${esc(dateStr)}</span></div><div class="events">`;
     const events = byDay[d]||[];
     if (!events.length) {
@@ -992,8 +1054,7 @@ async function buildItinerary(g) {
     }
     html += `</div></div>`;
   }
-  if (g.goingValbonne && g.retFlight && g.retFlight!=='—') {
-    const rd=new Date(g.retDate+'T12:00:00');
+  if (g.goingValbonne && g.retFlight && g.retFlight!=='—') {    const rd=new Date(g.retDate+'T12:00:00');
     html+=`<div class="day-block"><div class="day-header"><span class="day-chip nice">Departure Day</span><span class="day-date">${esc(rd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</span></div>
     <div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">✈️</div>
     <div class="event-body"><div class="event-title">Fly home – ${esc(g.retFlight)}${g.retTo?' to '+esc(g.retTo):''}<span class="badge badge-flight">Flight</span></div>
@@ -1024,13 +1085,15 @@ function orgLogin() {
 
 async function renderGuestDashboard() {
   const guests = await loadGuests();
-  const nV=guests.filter(g=>g.goingValbonne).length;
-  const nR=guests.filter(g=>g.hasRental).length;
-  const nBO=guests.filter(g=>!g.goingValbonne).length;
+  const nV  = guests.filter(g=>g.tripSection==='valbonne'||g.goingValbonne).length;
+  const nR  = guests.filter(g=>g.hasRental).length;
+  const nBO = guests.filter(g=>g.tripSection==='bruges'||(!g.goingValbonne&&g.tripSection!=='valbonne')).length;
+  const nBoth = guests.filter(g=>g.tripSection==='both'||(g.goingValbonne&&g.tripSection!=='valbonne')).length;
   document.getElementById('stat-strip').innerHTML=`
     <div class="stat-box"><div class="num">${guests.length}</div><div class="lbl">Total guests</div></div>
-    <div class="stat-box"><div class="num">${nV}</div><div class="lbl">→ Valbonne</div></div>
+    <div class="stat-box"><div class="num">${nBoth}</div><div class="lbl">Full trip</div></div>
     <div class="stat-box"><div class="num">${nBO}</div><div class="lbl">Bruges only</div></div>
+    <div class="stat-box"><div class="num">${guests.filter(g=>g.tripSection==='valbonne').length}</div><div class="lbl">Valbonne only</div></div>
     <div class="stat-box"><div class="num">${nR}</div><div class="lbl">Rental car</div></div>`;
 
   const wrap = document.getElementById('guest-table-wrap');
@@ -1090,7 +1153,13 @@ async function exportCSV() {
 // ACTIVITY EDITOR
 // ════════════════════════
 function renderActivityEditor() {
-  const acts = EDITED_ACTIVITIES || LIVE_ACTIVITIES;
+  const allActs = EDITED_ACTIVITIES || LIVE_ACTIVITIES;
+  const acts = allActs.filter(a => {
+    if (activityFilter === 'all') return true;
+    if (activityFilter === 'bruges')   return a.day <= 2 || (a.day === 3 && (a.tags||[]).includes('bruges-only'));
+    if (activityFilter === 'valbonne') return a.day >= 3 && !(a.tags||[]).includes('bruges-only');
+    return true;
+  });
   const groups = {};
   acts.forEach((a,i) => { if(!groups[a.day])groups[a.day]=[]; groups[a.day].push({...a,_i:i}); });
   let html = '';
@@ -1198,8 +1267,13 @@ document.getElementById('name').addEventListener('blur',()=>{if('Notification' i
 // ════════════════════════
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();}
 function showOrgTab(t,btn){document.querySelectorAll('.org-tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.sub-tab').forEach(e=>e.classList.remove('active'));document.getElementById('org-tab-'+t).classList.add('active');btn.classList.add('active');if(t==='activities')renderActivityEditor();if(t==='guests')renderGuestDashboard();}
-function toggleValbonne(e){const cb=document.getElementById('goingValbonne');if(e.target!==cb)cb.checked=!cb.checked;syncValbonne();}
-function syncValbonne(){document.getElementById('valbonne-section').style.display=document.getElementById('goingValbonne').checked?'':'none';}
+let activityFilter = 'all';
+function setActFilter(f, btn) {
+  activityFilter = f;
+  document.querySelectorAll('.act-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderActivityEditor();
+}
 function toggleRental(e){const cb=document.getElementById('hasRental');if(e.target!==cb)cb.checked=!cb.checked;syncRental();}
 function syncRental(){document.getElementById('rental-section').style.display=document.getElementById('hasRental').checked?'':'none';}
 function closeModal(){document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';}
