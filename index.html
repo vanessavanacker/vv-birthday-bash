@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>VV Birthday Bash Â· 2026</title>
+<title>VV Birthday Bash · 2026</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1208">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -215,13 +215,13 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   <button onclick="dismissAndroidBanner(false)" style="width:100%;margin-top:.8rem;padding:.6rem;background:#f2f2f7;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:#666;cursor:pointer;">Maybe later</button>
 </div>
 <div id="firebase-bar"></div>
-<div id="update-banner" onclick="refreshItinerary()">â¨ The organiser has updated the schedule â tap to refresh your itinerary</div>
+<div id="update-banner" onclick="refreshItinerary()">✨ The organiser has updated the schedule — tap to refresh your itinerary</div>
 <header>
   <h1>VV <span>Birthday</span> Bash</h1>
-  <p>Jun 19 â 29 Â· 2026 Â· Your personalised itinerary</p>
+  <p>Jun 19 – 29 · 2026 · Your personalised itinerary</p>
   <div class="nav-tabs">
-    <button class="tab-btn active" id="tab-form" onclick="showPage('form',this)">ð My Itinerary</button>
-    <button class="tab-btn" id="tab-org" onclick="showPage('organiser',this)">ð Organiser</button>
+    <button class="tab-btn active" id="tab-form" onclick="showPage('form',this)">🎉 My Itinerary</button>
+    <button class="tab-btn" id="tab-org" onclick="showPage('organiser',this)">🗂 Organiser</button>
   </div>
 </header>
 <div class="container">
@@ -232,29 +232,29 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700" id="rb-name"></div>
     </div>
     <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-      <button onclick="viewReturningItinerary()" style="background:var(--gold);color:#fff;border:none;padding:.55rem 1.1rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer">View my itinerary â</button>
+      <button onclick="viewReturningItinerary()" style="background:var(--gold);color:#fff;border:none;padding:.55rem 1.1rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer">View my itinerary →</button>
       <button onclick="dismissReturning()" style="background:rgba(255,255,255,.12);color:var(--sand);border:none;padding:.55rem 1.1rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer">Update details</button>
     </div>
   </div>
   <div id="form-notice"></div>
   <div id="returning-lookup-card" style="display:none;background:linear-gradient(135deg,#1a1208,#2d2010);color:var(--sand);border-radius:16px;padding:1.5rem;margin-bottom:1.4rem;">
-    <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.3rem">ð Already registered?</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.3rem">👋 Already registered?</div>
     <p style="font-size:.82rem;opacity:.6;margin-bottom:.9rem;line-height:1.5">Enter your name to load your saved details from any device.</p>
     <div style="display:flex;gap:.6rem;margin-bottom:.6rem;flex-wrap:wrap">
       <input type="text" id="lookup-name" placeholder="e.g. Sarah Johnson" onkeydown="if(event.key==='Enter')lookupReturningGuest()" autocorrect="off" autocapitalize="words" spellcheck="false" style="flex:1;min-width:160px;padding:.62rem .9rem;border:1.5px solid rgba(255,255,255,.2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.92rem;background:rgba(255,255,255,.1);color:var(--sand);outline:none;">
-      <button onclick="lookupReturningGuest()" style="background:var(--gold);color:#fff;border:none;padding:.62rem 1.2rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;white-space:nowrap">Load my details â</button>
+      <button onclick="lookupReturningGuest()" style="background:var(--gold);color:#fff;border:none;padding:.62rem 1.2rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;white-space:nowrap">Load my details →</button>
     </div>
     <div id="lookup-status" style="font-size:.8rem;min-height:1.1rem;opacity:.8"></div>
-    <button onclick="document.getElementById('returning-lookup-card').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.35);font-family:'DM Sans',sans-serif;font-size:.76rem;cursor:pointer;margin-top:.5rem;padding:0">First time here? Fill in the form below â</button>
+    <button onclick="document.getElementById('returning-lookup-card').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.35);font-family:'DM Sans',sans-serif;font-size:.76rem;cursor:pointer;margin-top:.5rem;padding:0">First time here? Fill in the form below ↓</button>
   </div>
   <div class="push-card" id="push-optin-card" style="display:none">
-    <div style="font-size:2rem">ð</div>
+    <div style="font-size:2rem">🔔</div>
     <div class="push-text" style="flex:1"><h4>Get day-of reminders</h4><p>Allow notifications and we'll ping you before dinners, transfers and activities.</p></div>
     <button class="btn-push" id="push-optin-btn" onclick="requestPush()">Enable Alerts</button>
   </div>
   <div class="section-label"><span class="dot"></span>Your Details</div>
   <div class="form-card">
-    <h3>ð¤ About You</h3>
+    <h3>👤 About You</h3>
     <div class="form-grid">
       <div class="field"><label>Your Name *</label><input type="text" id="name" placeholder="e.g. Sarah Johnson"></div>
       <div class="field"><label>Email (optional)</label><input type="email" id="email" placeholder="sarah@email.com"></div>
@@ -262,21 +262,21 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   </div>
   <div class="section-label"><span class="dot"></span>Your Trip</div>
   <div class="form-card">
-    <h3>ðºï¸ Which part are you joining?</h3>
+    <h3>🗺️ Which part are you joining?</h3>
     <div class="trip-selector">
-      <button class="trip-btn active" onclick="setTripSection('both',this)"><span class="trip-icon">ð</span><span class="trip-label">Bruges &amp; Valbonne</span><span class="trip-dates">Jun 19 â 27</span></button>
-      <button class="trip-btn" onclick="setTripSection('bruges',this)"><span class="trip-icon">ð§ðª</span><span class="trip-label">Bruges Only</span><span class="trip-dates">Jun 19 â 22</span></button>
-      <button class="trip-btn" onclick="setTripSection('valbonne',this)"><span class="trip-icon">ð«ð·</span><span class="trip-label">Valbonne Only</span><span class="trip-dates">Jun 22 â 27</span></button>
+      <button class="trip-btn active" onclick="setTripSection('both',this)"><span class="trip-icon">🎉</span><span class="trip-label">Bruges &amp; Valbonne</span><span class="trip-dates">Jun 19 – 27</span></button>
+      <button class="trip-btn" onclick="setTripSection('bruges',this)"><span class="trip-icon">🇧🇪</span><span class="trip-label">Bruges Only</span><span class="trip-dates">Jun 19 – 22</span></button>
+      <button class="trip-btn" onclick="setTripSection('valbonne',this)"><span class="trip-icon">🇫🇷</span><span class="trip-label">Valbonne Only</span><span class="trip-dates">Jun 22 – 27</span></button>
     </div>
   </div>
   <div id="bruges-arrival-section">
     <div class="section-label"><span class="dot"></span>Arriving in Bruges</div>
     <div class="form-card">
-      <h3>ð§ðª Bruges Arrival â Jun 19</h3>
-      <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">âï¸ You're arriving in <strong>Belgium on Jun 19</strong> â enter your flight details below and times will fill in automatically.</p>
+      <h3>🇧🇪 Bruges Arrival – Jun 19</h3>
+      <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're arriving in <strong>Belgium on Jun 19</strong> — enter your flight details below and times will fill in automatically.</p>
       <div class="mode-selector">
-        <button class="mode-btn active" onclick="setMode('arr','flight',this)">âï¸ Flight</button>
-        <button class="mode-btn" onclick="setMode('arr','train',this)">ð Train</button>
+        <button class="mode-btn active" onclick="setMode('arr','flight',this)">✈️ Flight</button>
+        <button class="mode-btn" onclick="setMode('arr','train',this)">🚂 Train</button>
       </div>
       <!-- Transport to hotel field injected below flight/train sections -->
 
@@ -300,19 +300,19 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
       <hr class="divider">
       <div class="field">
-        <label>ð How are you getting to the hotel? (optional)</label>
-        <input type="text" id="arrTransport" placeholder="e.g. Group hotel shuttle Â· Taxi booked, ref. ABC Â· Car rental" autocorrect="off">
-        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure â organiser can fill this in for you</span>
+        <label>🚗 How are you getting to the hotel? (optional)</label>
+        <input type="text" id="arrTransport" placeholder="e.g. Group hotel shuttle · Taxi booked, ref. ABC · Car rental" autocorrect="off">
+        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure — organiser can fill this in for you</span>
       </div>
     </div>
   </div>
   <div id="bruges-dep-section" style="display:none">
     <div class="section-label"><span class="dot"></span>Departing Bruges</div>
     <div class="form-card">
-      <h3>ð§³ Leaving Bruges â Jun 22</h3>
+      <h3>🧳 Leaving Bruges – Jun 22</h3>
       <div class="mode-selector">
-        <button class="mode-btn active" onclick="setMode('bdep','flight',this)">âï¸ Flight</button>
-        <button class="mode-btn" onclick="setMode('bdep','train',this)">ð Train</button>
+        <button class="mode-btn active" onclick="setMode('bdep','flight',this)">✈️ Flight</button>
+        <button class="mode-btn" onclick="setMode('bdep','train',this)">🚂 Train</button>
       </div>
       <div class="mode-section active" id="bdep-flight">
         <div class="form-grid">
@@ -333,16 +333,16 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
       <hr class="divider">
       <div class="field">
-        <label>ð How are you getting to the airport/station? (optional)</label>
-        <input type="text" id="depTransport" placeholder="e.g. Taxi booked Â· Self-drive Â· Shuttle ref. XYZ" autocorrect="off">
-        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure â organiser can fill this in for you</span>
+        <label>🚗 How are you getting to the airport/station? (optional)</label>
+        <input type="text" id="depTransport" placeholder="e.g. Taxi booked · Self-drive · Shuttle ref. XYZ" autocorrect="off">
+        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure — organiser can fill this in for you</span>
       </div>
     </div>
   </div>
   <div id="valbonne-section">
     <div class="section-label"><span class="dot"></span><span id="nice-section-label">Flying to Nice</span></div>
     <div class="form-card">
-      <h3 id="nice-card-title">âï¸ Bruges â Nice â Jun 22</h3>
+      <h3 id="nice-card-title">✈️ Bruges → Nice – Jun 22</h3>
       <div class="form-grid">
         <div class="field"><label>Flight Number</label><input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')"><div class="lookup-result" id="dep-lookup-result"></div></div>
         <div class="field" id="dep-from-field" style="display:none"><label id="dep-from-label">Flying From (airport)</label><input type="text" id="depFrom" placeholder="e.g. Brussels Airport, Charleroi"></div>
@@ -353,7 +353,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <hr class="divider">
       <div class="toggle-row" onclick="toggleRental(event)">
         <input type="checkbox" id="hasRental" onclick="event.stopPropagation();syncRental()">
-        <div><label for="hasRental">I have a rental car in Valbonne ð</label><div class="sub">Your itinerary will show self-drive notes instead of group transfers</div></div>
+        <div><label for="hasRental">I have a rental car in Valbonne 🚗</label><div class="sub">Your itinerary will show self-drive notes instead of group transfers</div></div>
       </div>
       <div id="rental-section" style="display:none;margin-top:1rem">
         <div class="form-grid three">
@@ -364,14 +364,14 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
       <hr class="divider">
       <div class="field">
-        <label>ð Transfer from Nice airport to Valbonne (optional)</label>
-        <input type="text" id="niceArrTransport" placeholder="e.g. Group transfer Â· Car rental terminal 2 Â· Booked taxi" autocorrect="off">
-        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure â organiser can fill this in for you</span>
+        <label>🚐 Transfer from Nice airport to Valbonne (optional)</label>
+        <input type="text" id="niceArrTransport" placeholder="e.g. Group transfer · Car rental terminal 2 · Booked taxi" autocorrect="off">
+        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure — organiser can fill this in for you</span>
       </div>
     </div>
     <div class="section-label"><span class="dot"></span>Flying Home</div>
     <div class="form-card">
-      <h3>ð  Return from Nice</h3>
+      <h3>🏠 Return from Nice</h3>
       <div class="form-grid">
         <div class="field"><label>Flight Number</label><input type="text" id="retFlight" placeholder="e.g. BA 2744" oninput="scheduleFlightLookup('ret')"><div class="lookup-result" id="ret-lookup-result"></div></div>
         <div class="field"><label>Flying To</label><input type="text" id="retTo" placeholder="e.g. London Gatwick"></div>
@@ -380,28 +380,28 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
       <hr class="divider">
       <div class="field">
-        <label>ð Transfer to Nice airport on departure day (optional)</label>
-        <input type="text" id="retTransport" placeholder="e.g. Group taxi Â· Car rental return T1 Â· Rideshare booked" autocorrect="off">
-        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure â organiser can fill this in for you</span>
+        <label>🚗 Transfer to Nice airport on departure day (optional)</label>
+        <input type="text" id="retTransport" placeholder="e.g. Group taxi · Car rental return T1 · Rideshare booked" autocorrect="off">
+        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure — organiser can fill this in for you</span>
       </div>
     </div>
   </div>
   <div class="form-card">
-    <h3>ð Notes for the organiser</h3>
-    <div class="field"><label>Dietary needs, late arrivals, anything elseâ¦</label><textarea id="notes" placeholder="e.g. vegetarian, nut allergy, arriving late on Jun 19â¦"></textarea></div>
+    <h3>📝 Notes for the organiser</h3>
+    <div class="field"><label>Dietary needs, late arrivals, anything else…</label><textarea id="notes" placeholder="e.g. vegetarian, nut allergy, arriving late on Jun 19…"></textarea></div>
   </div>
   <div id="personal-link-card" style="display:none;background:var(--ink);color:var(--sand);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.2rem">
-    <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.4rem">ð Your personal link</div>
-    <p style="font-size:.82rem;opacity:.6;margin-bottom:.9rem;line-height:1.5">Save or bookmark this link. Opening it on any device instantly shows your itinerary â no re-entry needed.</p>
-    <button onclick="copyPersonalLink()" style="background:var(--gold);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;width:100%">ð Copy my personal link</button>
-    <div id="link-copied" style="display:none;font-size:.78rem;color:#6ee7b7;margin-top:.5rem;text-align:center">â Copied! Paste it into Notes, WhatsApp, or your browser bookmarks.</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.4rem">📎 Your personal link</div>
+    <p style="font-size:.82rem;opacity:.6;margin-bottom:.9rem;line-height:1.5">Save or bookmark this link. Opening it on any device instantly shows your itinerary — no re-entry needed.</p>
+    <button onclick="copyPersonalLink()" style="background:var(--gold);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;width:100%">📋 Copy my personal link</button>
+    <div id="link-copied" style="display:none;font-size:.78rem;color:#6ee7b7;margin-top:.5rem;text-align:center">✅ Copied! Paste it into Notes, WhatsApp, or your browser bookmarks.</div>
   </div>
-  <button class="btn btn-primary" onclick="submitAndGenerate()">ð Generate My Itinerary &amp; Submit</button>
+  <button class="btn btn-primary" onclick="submitAndGenerate()">🎉 Generate My Itinerary &amp; Submit</button>
 </div>
 <div class="page" id="page-organiser">
   <div id="login-panel">
     <div class="login-wrap">
-      <div style="font-size:3rem;text-align:center;margin-bottom:1rem">ð</div>
+      <div style="font-size:3rem;text-align:center;margin-bottom:1rem">🔐</div>
       <div class="section-label" style="justify-content:center"><span class="dot"></span>Organiser Access</div>
       <div class="form-card">
         <div class="field"><label>Password</label><input type="password" id="orgPassword" placeholder="Enter organiser password" onkeydown="if(event.key==='Enter')orgLogin()"></div>
@@ -413,17 +413,17 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   <div id="dashboard-panel" style="display:none">
     <div class="section-label"><span class="dot"></span>Organiser Dashboard</div>
     <div class="sub-tab-bar">
-      <button class="sub-tab active" onclick="showOrgTab('guests',this)">ð¥ Guests</button>
-      <button class="sub-tab" onclick="showOrgTab('activities',this)">ð Edit Schedule</button>
-      <button class="sub-tab" onclick="showOrgTab('push',this)">ð Push Alerts</button>
+      <button class="sub-tab active" onclick="showOrgTab('guests',this)">👥 Guests</button>
+      <button class="sub-tab" onclick="showOrgTab('activities',this)">📋 Edit Schedule</button>
+      <button class="sub-tab" onclick="showOrgTab('push',this)">🔔 Push Alerts</button>
     </div>
     <div class="org-tab active" id="org-tab-guests">
       <div class="dash-header">
         <div style="font-size:.9rem;font-weight:600">All Submissions</div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-          <button class="btn btn-secondary btn-sm" onclick="exportCSV()">â¬ CSV</button>
-          <button class="btn btn-secondary btn-sm" onclick="renderGuestDashboard()">â» Refresh</button>
-          <button class="btn btn-danger btn-sm" onclick="clearAllGuests()">ð Clear all</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="renderGuestDashboard()">↻ Refresh</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllGuests()">🗑 Clear all</button>
         </div>
       </div>
       <div class="stat-strip" id="stat-strip"></div>
@@ -434,44 +434,44 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
         <div><div style="font-size:.9rem;font-weight:600">Live Schedule Editor</div><div style="font-size:.75rem;opacity:.55;margin-top:.15rem">Changes publish instantly to all guests</div></div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" onclick="addActivity()">+ Add</button>
-          <button class="btn btn-secondary btn-sm" onclick="resetActivities()">â© Defaults</button>
-          <button class="btn btn-gold btn-sm" onclick="saveActivities()" id="save-act-btn">ð¾ Save &amp; Publish</button>
+          <button class="btn btn-secondary btn-sm" onclick="resetActivities()">↩ Defaults</button>
+          <button class="btn btn-gold btn-sm" onclick="saveActivities()" id="save-act-btn">💾 Save &amp; Publish</button>
         </div>
       </div>
-      <div id="unsaved-notice" style="display:none" class="notice notice-warn">â ï¸ Unsaved changes â click <strong>Save &amp; Publish</strong> to push to all guests.</div>
+      <div id="unsaved-notice" style="display:none" class="notice notice-warn">⚠️ Unsaved changes — click <strong>Save &amp; Publish</strong> to push to all guests.</div>
       <div class="act-filter-bar">
         <button class="act-filter-btn active" onclick="setActFilter('all',this)">All days</button>
-        <button class="act-filter-btn" onclick="setActFilter('bruges',this)">ð§ðª Bruges (Jun 19â22)</button>
-        <button class="act-filter-btn" onclick="setActFilter('valbonne',this)">ð«ð· Valbonne (Jun 22â27)</button>
+        <button class="act-filter-btn" onclick="setActFilter('bruges',this)">🇧🇪 Bruges (Jun 19–22)</button>
+        <button class="act-filter-btn" onclick="setActFilter('valbonne',this)">🇫🇷 Valbonne (Jun 22–27)</button>
       </div>
       <div id="act-editor-list"></div>
     </div>
     <div class="org-tab" id="org-tab-push">
       <div class="push-org-card">
-        <h4>ð£ Send a Push Notification</h4>
+        <h4>📣 Send a Push Notification</h4>
         <p style="font-size:.82rem;opacity:.6;margin-bottom:1rem">Send a reminder to all guests who have enabled notifications.</p>
         <div class="form-grid" style="margin-bottom:.9rem">
           <div class="field"><label>Title</label><input type="text" id="push-title" placeholder="e.g. Reminder"></div>
           <div class="field"><label>Message</label><input type="text" id="push-body" placeholder="e.g. Dinner at Zuma at 7pm tonight!"></div>
         </div>
-        <button class="btn btn-gold" onclick="sendPushNotification()" style="width:auto">ð£ Send to All Guests</button>
+        <button class="btn btn-gold" onclick="sendPushNotification()" style="width:auto">📣 Send to All Guests</button>
         <div id="push-send-result" style="margin-top:.8rem;font-size:.82rem"></div>
       </div>
       <div class="push-org-card">
-        <h4>âï¸ Auto Flight Lookup</h4>
-        <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Guests type their flight number and times fill in automatically. Requires a free <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month).<br>Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com â AeroDataBox â Subscribe Free</a></p>
+        <h4>✈️ Auto Flight Lookup</h4>
+        <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Guests type their flight number and times fill in automatically. Requires a free <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month).<br>Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com → AeroDataBox → Subscribe Free</a></p>
         <div class="field"><label>RapidAPI Key</label><input type="text" id="rapidapi-key" placeholder="Paste your RapidAPI key here" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
         <button class="btn btn-secondary" style="margin-top:.6rem;width:auto;font-size:.8rem" onclick="saveRapidAPIKey()">Save &amp; Enable Auto-Lookup</button>
         <div id="rapidapi-status" style="font-size:.78rem;margin-top:.5rem;opacity:.6"></div>
       </div>
       <div class="push-org-card">
-        <h4>ð Refresh All Guest Data</h4>
+        <h4>🔄 Refresh All Guest Data</h4>
         <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Re-runs flight lookups for all guests to fill in any missing arrival airports and recalculate transport times. Requires Auto Flight Lookup key above to be saved.</p>
-        <button class="btn btn-secondary" style="width:auto;font-size:.8rem" onclick="refreshAllGuests()">ð Refresh All Guests Now</button>
+        <button class="btn btn-secondary" style="width:auto;font-size:.8rem" onclick="refreshAllGuests()">🔄 Refresh All Guests Now</button>
         <div id="refresh-all-status" style="font-size:.8rem;margin-top:.8rem;line-height:1.6"></div>
       </div>
       <div class="push-org-card">
-        <h4>ð OneSignal Push Config</h4>
+        <h4>🔔 OneSignal Push Config</h4>
         <div class="form-grid" style="margin-top:.6rem">
           <div class="field"><label>App ID</label><input type="text" id="os-app-id" placeholder="From OneSignal dashboard"></div>
           <div class="field"><label>REST API Key</label><input type="text" id="os-api-key" placeholder="From OneSignal dashboard"></div>
@@ -486,11 +486,11 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 <!-- ITINERARY MODAL -->
 <div id="modal-overlay">
   <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">â</button>
+    <button class="modal-close" onclick="closeModal()">✕</button>
     <div id="modal-itinerary"></div>
     <div class="modal-actions">
-      <button class="print-btn" onclick="window.print()">ð¨ï¸ Print / Save as PDF</button>
-      <button class="print-btn" onclick="closeModal()">â Edit Details</button>
+      <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="print-btn" onclick="closeModal()">← Edit Details</button>
     </div>
   </div>
 </div>
@@ -502,25 +502,25 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     <div class="form-grid" style="margin-bottom:.9rem">
       <div class="field"><label>Day</label>
         <select id="act-day">
-          <option value="0">Day 0 â Jun 19 (Arrival)</option>
-          <option value="1">Day 1 â Jun 20 (Bikes/Damme)</option>
-          <option value="2">Day 2 â Jun 21 (Ypres)</option>
-          <option value="3">Day 3 â Jun 22 (Travel)</option>
-          <option value="4">Day 4 â Jun 23 (Valbonne)</option>
-          <option value="5">Day 5 â Jun 24 (Zuma)</option>
-          <option value="6">Day 6 â Jun 25 (Free)</option>
-          <option value="7">Day 7 â Jun 26 (Medusa)</option>
-          <option value="8">Day 8 â Jun 27 (Chef)</option>
+          <option value="0">Day 0 – Jun 19 (Arrival)</option>
+          <option value="1">Day 1 – Jun 20 (Bikes/Damme)</option>
+          <option value="2">Day 2 – Jun 21 (Ypres)</option>
+          <option value="3">Day 3 – Jun 22 (Travel)</option>
+          <option value="4">Day 4 – Jun 23 (Valbonne)</option>
+          <option value="5">Day 5 – Jun 24 (Zuma)</option>
+          <option value="6">Day 6 – Jun 25 (Free)</option>
+          <option value="7">Day 7 – Jun 26 (Medusa)</option>
+          <option value="8">Day 8 – Jun 27 (Chef)</option>
         </select>
       </div>
       <div class="field"><label>Time (HH:MM or CHECK_ARR / CHECK_OUT / CHECK_DEP / NICE_ARR / FREE / EVENING)</label><input type="text" id="act-time" placeholder="e.g. 19:00 or FREE"></div>
-      <div class="field"><label>Icon (emoji)</label><input type="text" id="act-icon" placeholder="ð½ï¸" maxlength="4"></div>
+      <div class="field"><label>Icon (emoji)</label><input type="text" id="act-icon" placeholder="🍽️" maxlength="4"></div>
       <div class="field"><label>Type</label>
         <select id="act-type"><option value="activity">Activity</option><option value="food">Food &amp; Drink</option><option value="hotel">Hotel</option><option value="flight">Flight</option><option value="transport">Transport</option><option value="free">Free Time</option></select>
       </div>
     </div>
     <div class="field" style="margin-bottom:.9rem"><label>Title</label><input type="text" id="act-title" placeholder="e.g. Dinner at Zuma"></div>
-    <div class="field" style="margin-bottom:.9rem"><label>Description</label><textarea id="act-note" placeholder="Details for guestsâ¦"></textarea></div>
+    <div class="field" style="margin-bottom:.9rem"><label>Description</label><textarea id="act-note" placeholder="Details for guests…"></textarea></div>
     <div class="field" style="margin-bottom:.9rem"><label>Address (adds a Maps link)</label><input type="text" id="act-address" placeholder="e.g. Langestraat 11, 8000 Bruges"></div>
     <div class="field" style="margin-bottom:1.2rem"><label>Show for</label>
       <div class="tag-checkboxes">
@@ -532,7 +532,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
     </div>
     <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="saveActivityEdit()">ð¾ Save Activity</button>
+      <button class="btn btn-gold" onclick="saveActivityEdit()">💾 Save Activity</button>
       <button class="btn btn-secondary" onclick="closeActModal()">Cancel</button>
     </div>
   </div>
@@ -540,19 +540,19 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 <!-- PICKUP ASSIGNMENT MODAL -->
 <div id="pickup-modal-overlay">
   <div class="act-modal">
-    <h3>ð Assign Pickup â <span id="pickup-guest-name-display" style="color:var(--gold)"></span></h3>
+    <h3>🚗 Assign Pickup — <span id="pickup-guest-name-display" style="color:var(--gold)"></span></h3>
     <input type="hidden" id="pickup-guest-key"><input type="hidden" id="pickup-edit-index">
     <div class="form-grid" style="margin-bottom:.9rem">
       <div class="field"><label>Day</label>
-        <select id="pickup-day"><option value="0">Jun 19 â Arrival day</option><option value="1">Jun 20</option><option value="2">Jun 21 â Ypres</option><option value="3">Jun 22 â Travel day</option><option value="4">Jun 23 â Valbonne</option><option value="5">Jun 24</option><option value="6">Jun 25</option><option value="7">Jun 26</option><option value="8">Jun 27</option></select>
+        <select id="pickup-day"><option value="0">Jun 19 – Arrival day</option><option value="1">Jun 20</option><option value="2">Jun 21 – Ypres</option><option value="3">Jun 22 – Travel day</option><option value="4">Jun 23 – Valbonne</option><option value="5">Jun 24</option><option value="6">Jun 25</option><option value="7">Jun 26</option><option value="8">Jun 27</option></select>
       </div>
       <div class="field"><label>Pickup Time</label><input type="time" id="pickup-time"></div>
-      <div class="field"><label>Vehicle / Driver</label><input type="text" id="pickup-vehicle" placeholder="e.g. Car 1 â James Â· White Mercedes"></div>
+      <div class="field"><label>Vehicle / Driver</label><input type="text" id="pickup-vehicle" placeholder="e.g. Car 1 – James · White Mercedes"></div>
       <div class="field"><label>Meeting Point</label><input type="text" id="pickup-location" placeholder="e.g. Hotel De Tuilerieen entrance"></div>
     </div>
-    <div class="field" style="margin-bottom:1.2rem"><label>Note for guest</label><textarea id="pickup-note" placeholder="e.g. White Mercedes, plate ABC 123. James' number: +32 â¦"></textarea></div>
+    <div class="field" style="margin-bottom:1.2rem"><label>Note for guest</label><textarea id="pickup-note" placeholder="e.g. White Mercedes, plate ABC 123. James' number: +32 …"></textarea></div>
     <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="savePickup()">ð¾ Save Pickup</button>
+      <button class="btn btn-gold" onclick="savePickup()">💾 Save Pickup</button>
       <button class="btn btn-secondary" onclick="closePickupModal()">Cancel</button>
     </div>
   </div>
@@ -560,27 +560,27 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 <!-- TRANSPORT OVERRIDE MODAL -->
 <div id="transport-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(26,18,8,.6);z-index:200;overflow-y:auto;padding:1.5rem 1rem;">
   <div class="act-modal">
-    <h3>ð Transport Override â <span id="transport-guest-name" style="color:var(--gold)"></span></h3>
+    <h3>🚗 Transport Override — <span id="transport-guest-name" style="color:var(--gold)"></span></h3>
     <input type="hidden" id="transport-guest-key">
-    <p style="font-size:.82rem;opacity:.6;line-height:1.5;margin-bottom:1.2rem">Fill in transport details for this guest. These appear in their itinerary only if <em>they</em> left the field blank â the guest's own entry always takes priority.</p>
+    <p style="font-size:.82rem;opacity:.6;line-height:1.5;margin-bottom:1.2rem">Fill in transport details for this guest. These appear in their itinerary only if <em>they</em> left the field blank — the guest's own entry always takes priority.</p>
     <div class="field" style="margin-bottom:.9rem">
-      <label>ð¨ Transfer to hotel (arrival day)</label>
-      <input type="text" id="t-arr" placeholder="e.g. Group shuttle Â· Taxi booked Â· Car hire" autocorrect="off">
+      <label>🏨 Transfer to hotel (arrival day)</label>
+      <input type="text" id="t-arr" placeholder="e.g. Group shuttle · Taxi booked · Car hire" autocorrect="off">
     </div>
     <div class="field" style="margin-bottom:.9rem">
-      <label>âï¸ Transfer to airport/station (departure from Bruges)</label>
-      <input type="text" id="t-dep" placeholder="e.g. Taxi arranged Â· Shuttle departs 08:30" autocorrect="off">
+      <label>✈️ Transfer to airport/station (departure from Bruges)</label>
+      <input type="text" id="t-dep" placeholder="e.g. Taxi arranged · Shuttle departs 08:30" autocorrect="off">
     </div>
     <div class="field" style="margin-bottom:.9rem">
-      <label>ð Transfer Nice airport â Valbonne</label>
-      <input type="text" id="t-nice" placeholder="e.g. Group transfer Â· Rental car terminal 2" autocorrect="off">
+      <label>🚐 Transfer Nice airport → Valbonne</label>
+      <input type="text" id="t-nice" placeholder="e.g. Group transfer · Rental car terminal 2" autocorrect="off">
     </div>
     <div class="field" style="margin-bottom:1.2rem">
-      <label>ð Transfer Valbonne â Nice airport (return)</label>
-      <input type="text" id="t-ret" placeholder="e.g. Group taxi Â· Car rental return" autocorrect="off">
+      <label>🚗 Transfer Valbonne → Nice airport (return)</label>
+      <input type="text" id="t-ret" placeholder="e.g. Group taxi · Car rental return" autocorrect="off">
     </div>
     <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="saveTransportOverride()">ð¾ Save</button>
+      <button class="btn btn-gold" onclick="saveTransportOverride()">💾 Save</button>
       <button class="btn btn-secondary" onclick="document.getElementById('transport-modal-overlay').style.display='none'">Cancel</button>
     </div>
   </div>
@@ -618,41 +618,41 @@ const FIREBASE_CONFIG = {
 let ONESIGNAL_APP_ID="",ONESIGNAL_API_KEY="",RAPIDAPI_KEY="";
 const ORG_PASSWORD='vvbash2026';
 const DEFAULT_ACTIVITIES=[
-  {day:0,time:'CHECK_ARR',title:'Arrive & check in â De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'ð¨',tags:[]},
-  {day:0,time:'14:30',title:'Group Pickup',note:'Meet in the hotel lobby at 14:30.',type:'transport',icon:'ð',tags:[]},
-  {day:0,time:'15:30',title:'Shoe Factory Visit',note:'Behind-the-scenes tour. Comfortable shoes advised!',type:'activity',icon:'ð',tags:[]},
-  {day:0,time:'16:30',title:'ApÃ©ro',note:'Drinks & nibbles after the tour. Cheers! ð»',type:'food',icon:'ð¥',tags:[]},
-  {day:0,time:'19:00',title:'Transfer back to hotel',note:'Transfer departs at 19:00 sharp.',type:'transport',icon:'ð',tags:[]},
-  {day:1,time:'13:30',title:'Meet at Bike Rental',note:'Meet the group at the bike rental. Helmets available.',type:'transport',icon:'ð²',tags:[]},
-  {day:1,time:'13:45',title:'Bike Ride to Damme',note:'Scenic 7 km ride along the canal. Easy, flat route.',type:'activity',icon:'ð¾',tags:[]},
-  {day:1,time:'16:00',title:'Beer Tasting',note:"Sample Belgium's finest brews.",type:'food',icon:'ðº',tags:[]},
-  {day:1,time:'19:00',title:"Dinner at Zet'joe",note:"Langestraat 11, 8000 Bruges. Michelin â â Chef Geert Van Hecke.",address:'Langestraat 11, 8000 Bruges, Belgium',type:'food',icon:'ð½ï¸',tags:[]},
-  {day:1,time:'22:00',title:'Drinks at Oswald',note:'Great cocktails. Bruges city centre.',type:'activity',icon:'ð¸',tags:[]},
-  {day:2,time:'09:00',title:'Coach to Ypres',note:'Departs hotel. Bring comfortable shoes and a jacket.',type:'transport',icon:'ð',tags:[]},
-  {day:2,time:'10:30',title:'Day Trip â Ypres (Ieper)',note:'In Flanders Fields Museum: Grote Markt 34. Menin Gate: Menenstraat.',address:'Grote Markt 34, 8900 Ieper, Belgium',type:'activity',icon:'ðï¸',tags:[]},
-  {day:2,time:'13:00',title:'Lunch in Ypres',note:'Free time for lunch in the market square.',type:'food',icon:'ð¥',tags:[]},
-  {day:2,time:'20:00',title:'Last Post Ceremony',note:'Optional: Menin Gate, nightly at 20:00.',address:'Menenstraat, 8900 Ieper, Belgium',type:'activity',icon:'ðº',tags:[]},
-  {day:2,time:'21:00',title:'Return to Bruges',note:'Transfer back to De Tuilerieen.',type:'transport',icon:'ð',tags:[]},
-  {day:3,time:'CHECK_OUT',title:'Check out â De Tuilerieen',note:'{checkoutNote}',type:'hotel',icon:'ð¨',tags:[]},
-  {day:3,time:'CHECK_DEP',title:'Depart â {depFlight}',note:'Transfer to airport ~3 hrs before your flight ({depTime}).',type:'flight',icon:'âï¸',tags:['valbonne']},
-  {day:3,time:'NICE_ARR',title:'Arrive Nice',note:'Landing at {niceArrTime}. Clear customs and collect bags.',type:'flight',icon:'âï¸',tags:['valbonne']},
-  {day:3,time:'NICE_ARR',title:'Pick up rental â {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'ð',tags:['rental']},
-  {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'ð',tags:['valbonne','no-rental']},
-  {day:3,time:'EVENING',title:'Settle in â House in Valbonne',note:"Get settled and relax. âï¸ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'ð¡',tags:['valbonne']},
-  {day:3,time:'CHECK_DEP',title:'Depart â {brugesDepRef}',note:'Safe travels home! Departing at {brugesDepTime} to {brugesDepTo}.',type:'transport',icon:'ð§³',tags:['bruges-only']},
-  {day:4,time:'FREE',title:'Free Day â Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'ð´',tags:['valbonne']},
-  {day:5,time:'FREE',title:'Free Day',note:'Beach, pool, or explore at your own pace.',type:'free',icon:'ðï¸',tags:['valbonne']},
-  {day:5,time:'18:30',title:'Drive to Cannes',note:'~25 min. Parking near Palais des Festivals.',type:'transport',icon:'ð',tags:['rental']},
-  {day:5,time:'18:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'ð',tags:['valbonne','no-rental']},
-  {day:5,time:'19:00',title:'Dinner at Zuma, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Modern Japanese. Smart dress.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'ð£',tags:['valbonne']},
-  {day:6,time:'FREE',title:'Free Day',note:'Antibes, Nice, Monaco â or stay by the pool.',type:'free',icon:'ð',tags:['valbonne']},
-  {day:7,time:'FREE',title:'Free Day',note:"Last full free day. Soak it all in.",type:'free',icon:'ð',tags:['valbonne']},
-  {day:7,time:'20:30',title:'Drive to Cannes',note:'~25 min. Dinner at 21:00.',type:'transport',icon:'ð',tags:['rental']},
-  {day:7,time:'20:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'ð',tags:['valbonne','no-rental']},
-  {day:7,time:'21:00',title:'Dinner at Medusa, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Cabaret & dining.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'ð¦',tags:['valbonne']},
-  {day:8,time:'19:00',title:'Private Chef Dinner at the House',note:'A private chef cooks for the whole group tonight. ð',type:'food',icon:'ð¨âð³',tags:['valbonne']},
+  {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
+  {day:0,time:'14:30',title:'Group Pickup',note:'Meet in the hotel lobby at 14:30.',type:'transport',icon:'🚌',tags:[]},
+  {day:0,time:'15:30',title:'Shoe Factory Visit',note:'Behind-the-scenes tour. Comfortable shoes advised!',type:'activity',icon:'👟',tags:[]},
+  {day:0,time:'16:30',title:'Apéro',note:'Drinks & nibbles after the tour. Cheers! 🍻',type:'food',icon:'🥂',tags:[]},
+  {day:0,time:'19:00',title:'Transfer back to hotel',note:'Transfer departs at 19:00 sharp.',type:'transport',icon:'🚌',tags:[]},
+  {day:1,time:'13:30',title:'Meet at Bike Rental',note:'Meet the group at the bike rental. Helmets available.',type:'transport',icon:'🚲',tags:[]},
+  {day:1,time:'13:45',title:'Bike Ride to Damme',note:'Scenic 7 km ride along the canal. Easy, flat route.',type:'activity',icon:'🌾',tags:[]},
+  {day:1,time:'16:00',title:'Beer Tasting',note:"Sample Belgium's finest brews.",type:'food',icon:'🍺',tags:[]},
+  {day:1,time:'19:00',title:"Dinner at Zet'joe",note:"Langestraat 11, 8000 Bruges. Michelin ★ — Chef Geert Van Hecke.",address:'Langestraat 11, 8000 Bruges, Belgium',type:'food',icon:'🍽️',tags:[]},
+  {day:1,time:'22:00',title:'Drinks at Oswald',note:'Great cocktails. Bruges city centre.',type:'activity',icon:'🍸',tags:[]},
+  {day:2,time:'09:00',title:'Coach to Ypres',note:'Departs hotel. Bring comfortable shoes and a jacket.',type:'transport',icon:'🚌',tags:[]},
+  {day:2,time:'10:30',title:'Day Trip – Ypres (Ieper)',note:'In Flanders Fields Museum: Grote Markt 34. Menin Gate: Menenstraat.',address:'Grote Markt 34, 8900 Ieper, Belgium',type:'activity',icon:'🏛️',tags:[]},
+  {day:2,time:'13:00',title:'Lunch in Ypres',note:'Free time for lunch in the market square.',type:'food',icon:'🥗',tags:[]},
+  {day:2,time:'20:00',title:'Last Post Ceremony',note:'Optional: Menin Gate, nightly at 20:00.',address:'Menenstraat, 8900 Ieper, Belgium',type:'activity',icon:'🎺',tags:[]},
+  {day:2,time:'21:00',title:'Return to Bruges',note:'Transfer back to De Tuilerieen.',type:'transport',icon:'🚌',tags:[]},
+  {day:3,time:'CHECK_OUT',title:'Check out – De Tuilerieen',note:'{checkoutNote}',type:'hotel',icon:'🏨',tags:[]},
+  {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:'Transfer to airport ~3 hrs before your flight ({depTime}).',type:'flight',icon:'✈️',tags:['valbonne']},
+  {day:3,time:'NICE_ARR',title:'Arrive Nice',note:'Landing at {niceArrTime}. Clear customs and collect bags.',type:'flight',icon:'✈️',tags:['valbonne']},
+  {day:3,time:'NICE_ARR',title:'Pick up rental – {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'🚗',tags:['rental']},
+  {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'🚐',tags:['valbonne','no-rental']},
+  {day:3,time:'EVENING',title:'Settle in – House in Valbonne',note:"Get settled and relax. ☀️ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'🏡',tags:['valbonne']},
+  {day:3,time:'CHECK_DEP',title:'Depart – {brugesDepRef}',note:'Safe travels home! Departing at {brugesDepTime} to {brugesDepTo}.',type:'transport',icon:'🧳',tags:['bruges-only']},
+  {day:4,time:'FREE',title:'Free Day – Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'🌴',tags:['valbonne']},
+  {day:5,time:'FREE',title:'Free Day',note:'Beach, pool, or explore at your own pace.',type:'free',icon:'🏖️',tags:['valbonne']},
+  {day:5,time:'18:30',title:'Drive to Cannes',note:'~25 min. Parking near Palais des Festivals.',type:'transport',icon:'🚗',tags:['rental']},
+  {day:5,time:'18:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'🚕',tags:['valbonne','no-rental']},
+  {day:5,time:'19:00',title:'Dinner at Zuma, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Modern Japanese. Smart dress.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'🍣',tags:['valbonne']},
+  {day:6,time:'FREE',title:'Free Day',note:'Antibes, Nice, Monaco — or stay by the pool.',type:'free',icon:'🌞',tags:['valbonne']},
+  {day:7,time:'FREE',title:'Free Day',note:"Last full free day. Soak it all in.",type:'free',icon:'🏊',tags:['valbonne']},
+  {day:7,time:'20:30',title:'Drive to Cannes',note:'~25 min. Dinner at 21:00.',type:'transport',icon:'🚗',tags:['rental']},
+  {day:7,time:'20:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'🚕',tags:['valbonne','no-rental']},
+  {day:7,time:'21:00',title:'Dinner at Medusa, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Cabaret & dining.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'🦑',tags:['valbonne']},
+  {day:8,time:'19:00',title:'Private Chef Dinner at the House',note:'A private chef cooks for the whole group tonight. 🎉',type:'food',icon:'👨‍🍳',tags:['valbonne']},
 ];
-const DAY_LABELS=['Day 1 â Arrival Â· Bruges','Day 2 â Bruges','Day 3 â Ypres',"Day 4 â Travel to CÃ´te d'Azur",'Day 5 â Valbonne','Day 6 â Valbonne','Day 7 â Valbonne','Day 8 â Valbonne','Day 9 â Last Night Â· Valbonne','Day 10 â Departures'];
+const DAY_LABELS=['Day 1 – Arrival · Bruges','Day 2 – Bruges','Day 3 – Ypres',"Day 4 – Travel to Côte d'Azur",'Day 5 – Valbonne','Day 6 – Valbonne','Day 7 – Valbonne','Day 8 – Valbonne','Day 9 – Last Night · Valbonne','Day 10 – Departures'];
 let LIVE_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES)),EDITED_ACTIVITIES=null,db=null,firebaseReady=false,lastGeneratedGuest=null,deferredInstallPrompt=null;
 let currentTripSection='both',currentArrMode='flight',currentDepMode='flight';
 
@@ -664,7 +664,7 @@ function setTripSection(section,btn){
   document.getElementById('bruges-dep-section').style.display=section==='bruges'?'':'none';
   document.getElementById('valbonne-section').style.display=section==='bruges'?'none':'';
   const isVOnly=section==='valbonne';
-  document.getElementById('nice-card-title').textContent=isVOnly?'âï¸ Flying to Nice â Jun 22':'âï¸ Bruges â Nice â Jun 22';
+  document.getElementById('nice-card-title').textContent=isVOnly?'✈️ Flying to Nice – Jun 22':'✈️ Bruges → Nice – Jun 22';
   document.getElementById('nice-section-label').textContent=isVOnly?'Arriving in Nice':'Flying to Nice';
   document.getElementById('dep-from-field').style.display=(isVOnly||section==='both')?'':'none';
   document.getElementById('dep-from-label').textContent=isVOnly?'Flying From (airport)':'Departing From (Belgian airport)';
@@ -676,14 +676,14 @@ function initFirebase(){
         scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}});
   }catch(e){console.warn('Firebase:',e);showFirebaseBar('offline');}
 }
-function showFirebaseBar(s){const b=document.getElementById('firebase-bar');b.className=s==='connected'?'fb-connected':'fb-offline';b.textContent=s==='connected'?'ð¥ Firebase connected â live updates enabled':'â ï¸ Running offline';b.style.display='block';if(s==='connected')setTimeout(()=>b.style.display='none',4000);}
+function showFirebaseBar(s){const b=document.getElementById('firebase-bar');b.className=s==='connected'?'fb-connected':'fb-offline';b.textContent=s==='connected'?'🔥 Firebase connected — live updates enabled':'⚠️ Running offline';b.style.display='block';if(s==='connected')setTimeout(()=>b.style.display='none',4000);}
 async function fbSave(p,d){if(!firebaseReady)return false;try{await db.ref(p).set(d);return true;}catch(e){return false;}}
 async function fbPush(p,d){if(!firebaseReady)return false;try{await db.ref(p).push(d);return true;}catch(e){return false;}}
 async function fbGet(p){if(!firebaseReady)return null;try{const s=await db.ref(p).once('value');return s.val();}catch(e){return null;}}
 async function fbUpdate(p,d){if(!firebaseReady)return false;try{await db.ref(p).update(d);return true;}catch(e){return false;}}
 const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrTimeId:'arrTime',fromId:'arrFrom',toId:'arrTo',mode:'flight'},dep:{flightId:'depFlight',dateId:'depDate',depTimeId:'depTime',arrTimeId:'niceArrTime',fromId:null,toId:null,mode:'flight'},ret:{flightId:'retFlight',dateId:'retDate',depTimeId:'retTime',arrTimeId:null,fromId:null,toId:'retTo',mode:'flight'},train:{flightId:'arrTrainNum',dateId:'arrDateTrain',depTimeId:null,arrTimeId:'arrTimeTrain',fromId:'arrTrainFrom',toId:'arrTrainTo',mode:'train'},bdep:{flightId:'bdepFlight',dateId:'bdepDate',depTimeId:'bdepTime',arrTimeId:null,fromId:null,toId:'bdepTo',mode:'flight'},bdeptrain:{flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,fromId:null,toId:'bdepTrainTo',mode:'train'}};
 const lookupTimers={};
-function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<4){if(resEl)resEl.style.display='none';return;}if(RAPIDAPI_KEY){showLookup(resEl,'ð Looking upâ¦',null);lookupTimers[key]=setTimeout(()=>autoLookupFlight(key),1500);}}
+function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<4){if(resEl)resEl.style.display='none';return;}if(RAPIDAPI_KEY){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupFlight(key),1500);}}
 async function autoLookupFlight(key){
   const map=LOOKUP_MAP[key],num=document.getElementById(map.flightId).value.trim().replace(/\s+/g,''),date=document.getElementById(map.dateId)?.value||'2026-06-19',resEl=document.getElementById(key+'-lookup-result');
   try{const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});
@@ -698,8 +698,8 @@ async function autoLookupFlight(key){
     if(key==='dep'&&arrTime)document.getElementById('niceArrTime').value=arrTime;
     if(map.fromId&&depName)document.getElementById(map.fromId).value=depName;
     if(map.toId&&arrName)document.getElementById(map.toId).value=arrName;
-    showLookup(resEl,`â ${depName} ${depTime||''} â ${arrName} ${arrTime||''}`.trim(),true);
-  }catch(e){if(e.message==='not_found')showLookup(resEl,'â Flight not found â please enter times manually below.',false);else showLookup(resEl,'â ï¸ Lookup blocked â Safari may have a content blocker active. Go to Settings â Safari â Extensions and disable any blockers, or enter times manually.',false);}
+    showLookup(resEl,`✅ ${depName} ${depTime||''} → ${arrName} ${arrTime||''}`.trim(),true);
+  }catch(e){if(e.message==='not_found')showLookup(resEl,'❓ Flight not found — please enter times manually below.',false);else showLookup(resEl,'⚠️ Lookup blocked — Safari may have a content blocker active. Go to Settings → Safari → Extensions and disable any blockers, or enter times manually.',false);}
 }
 function showLookup(el,msg,ok){el.textContent=msg;el.className='lookup-result '+(ok===true?'lookup-ok':ok===false?'lookup-err':'');el.style.display='block';}
 function setMode(prefix,mode,btn){
@@ -717,86 +717,52 @@ async function savePickup(){const key=document.getElementById('pickup-guest-key'
 async function deletePickup(guestKey,pickupIdx){let pickups=await getPickups(guestKey);pickups.splice(pickupIdx,1);await fbSave('guests/'+guestKey+'/pickups',pickups);renderGuestDashboard();}
 function closePickupModal(){document.getElementById('pickup-modal-overlay').style.display='none';}
 async function submitAndGenerate(){
-  let arrFlight='â',arrDate='',arrTime='',arrFrom='',arrTrainTo='',arrTo='',g_arrTo='';
-  if(currentTripSection!=='valbonne'){if(currentArrMode==='flight'){arrFlight=document.getElementById('arrFlight').value.trim()||'â';arrDate=document.getElementById('arrDate').value;arrTime=document.getElementById('arrTime').value;arrFrom=document.getElementById('arrFrom').value.trim();g_arrTo=document.getElementById('arrTo').value.trim();}else if(currentArrMode==='train'){arrFlight=document.getElementById('arrTrainNum').value.trim()||'Train';arrDate=document.getElementById('arrDateTrain').value;arrTime=document.getElementById('arrTimeTrain').value;arrFrom=document.getElementById('arrTrainFrom').value.trim();arrTrainTo=document.getElementById('arrTrainTo').value.trim();}}else{arrDate=document.getElementById('depDate').value||'2026-06-22';}
-  let brugesDepMode='flight',brugesDepRef='â',brugesDepTime='',brugesDepTo='',brugesDepDate='',g_bdepFromAirport='';
-  if(currentTripSection==='bruges'){const bdepActive=document.querySelector('#bdep-train.active');brugesDepMode=bdepActive?'train':'flight';if(brugesDepMode==='train'){brugesDepRef=document.getElementById('bdepTrainNum').value.trim()||'Train';brugesDepTo=document.getElementById('bdepTrainTo').value.trim();brugesDepDate=document.getElementById('bdepTrainDate').value;brugesDepTime=document.getElementById('bdepTrainTime').value;}else{brugesDepRef=document.getElementById('bdepFlight').value.trim()||'â';brugesDepTo=document.getElementById('bdepTo').value.trim();brugesDepDate=document.getElementById('bdepDate').value;brugesDepTime=document.getElementById('bdepTime').value;g_bdepFromAirport=document.getElementById('bdepFromAirport').value.trim();}}
-  const g={name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),tripSection:currentTripSection,goingValbonne:currentTripSection!=='bruges',arrMode:currentTripSection==='valbonne'?'none':currentArrMode,arrFlight,arrDate,arrTime,arrFrom,arrTrainTo,arrTo:g_arrTo,brugesDepMode,brugesDepRef,brugesDepTime,brugesDepTo,brugesDepDate,bdepFromAirport:g_bdepFromAirport,hasRental:document.getElementById('hasRental').checked,depFlight:document.getElementById('depFlight').value.trim()||'â',depFrom:document.getElementById('depFrom').value.trim(),depDate:document.getElementById('depDate').value,depTime:document.getElementById('depTime').value,niceArrTime:document.getElementById('niceArrTime').value,rentalCo:document.getElementById('rentalCo').value.trim()||'rental company',rentalPickup:document.getElementById('rentalPickup').value.trim()||'Nice Airport',rentalReturn:document.getElementById('rentalReturn').value,retFlight:document.getElementById('retFlight').value.trim()||'â',retDate:document.getElementById('retDate').value,retTime:document.getElementById('retTime').value,retTo:document.getElementById('retTo').value.trim(),notes:document.getElementById('notes').value.trim(),
+  let arrFlight='—',arrDate='',arrTime='',arrFrom='',arrTrainTo='',arrTo='',g_arrTo='';
+  if(currentTripSection!=='valbonne'){if(currentArrMode==='flight'){arrFlight=document.getElementById('arrFlight').value.trim()||'—';arrDate=document.getElementById('arrDate').value;arrTime=document.getElementById('arrTime').value;arrFrom=document.getElementById('arrFrom').value.trim();g_arrTo=document.getElementById('arrTo').value.trim();}else if(currentArrMode==='train'){arrFlight=document.getElementById('arrTrainNum').value.trim()||'Train';arrDate=document.getElementById('arrDateTrain').value;arrTime=document.getElementById('arrTimeTrain').value;arrFrom=document.getElementById('arrTrainFrom').value.trim();arrTrainTo=document.getElementById('arrTrainTo').value.trim();}}else{arrDate=document.getElementById('depDate').value||'2026-06-22';}
+  let brugesDepMode='flight',brugesDepRef='—',brugesDepTime='',brugesDepTo='',brugesDepDate='',g_bdepFromAirport='';
+  if(currentTripSection==='bruges'){const bdepActive=document.querySelector('#bdep-train.active');brugesDepMode=bdepActive?'train':'flight';if(brugesDepMode==='train'){brugesDepRef=document.getElementById('bdepTrainNum').value.trim()||'Train';brugesDepTo=document.getElementById('bdepTrainTo').value.trim();brugesDepDate=document.getElementById('bdepTrainDate').value;brugesDepTime=document.getElementById('bdepTrainTime').value;}else{brugesDepRef=document.getElementById('bdepFlight').value.trim()||'—';brugesDepTo=document.getElementById('bdepTo').value.trim();brugesDepDate=document.getElementById('bdepDate').value;brugesDepTime=document.getElementById('bdepTime').value;g_bdepFromAirport=document.getElementById('bdepFromAirport').value.trim();}}
+  const g={name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),tripSection:currentTripSection,goingValbonne:currentTripSection!=='bruges',arrMode:currentTripSection==='valbonne'?'none':currentArrMode,arrFlight,arrDate,arrTime,arrFrom,arrTrainTo,arrTo:g_arrTo,brugesDepMode,brugesDepRef,brugesDepTime,brugesDepTo,brugesDepDate,bdepFromAirport:g_bdepFromAirport,hasRental:document.getElementById('hasRental').checked,depFlight:document.getElementById('depFlight').value.trim()||'—',depFrom:document.getElementById('depFrom').value.trim(),depDate:document.getElementById('depDate').value,depTime:document.getElementById('depTime').value,niceArrTime:document.getElementById('niceArrTime').value,rentalCo:document.getElementById('rentalCo').value.trim()||'rental company',rentalPickup:document.getElementById('rentalPickup').value.trim()||'Nice Airport',rentalReturn:document.getElementById('rentalReturn').value,retFlight:document.getElementById('retFlight').value.trim()||'—',retDate:document.getElementById('retDate').value,retTime:document.getElementById('retTime').value,retTo:document.getElementById('retTo').value.trim(),notes:document.getElementById('notes').value.trim(),
     arrTransport:document.getElementById('arrTransport')?.value.trim()||'',
     depTransport:document.getElementById('depTransport')?.value.trim()||'',
     niceArrTransport:document.getElementById('niceArrTransport')?.value.trim()||'',
     retTransport:document.getElementById('retTransport')?.value.trim()||'',
     submittedAt:new Date().toISOString()};
   const ni=document.getElementById('form-notice');
-  if(!g.name){showNotice(ni,'â ï¸ Please enter your name.','warn');return;}
+  if(!g.name){showNotice(ni,'⚠️ Please enter your name.','warn');return;}
   const saved=await saveGuest(g);saveGuestLocally(g);
-  showNotice(ni,saved?'â Details saved! Your itinerary is below.':'â¹ï¸ Your itinerary is below.',saved?'success':'info');
+  showNotice(ni,saved?'✅ Details saved! Your itinerary is below.':'ℹ️ Your itinerary is below.',saved?'success':'info');
   document.getElementById('personal-link-card').style.display='block';
   lastGeneratedGuest=g;document.getElementById('update-banner').style.display='none';
   try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
-  catch(e){console.error('buildItinerary error:',e);showNotice(ni,'â ï¸ Itinerary error â please try again.','warn');}
+  catch(e){console.error('buildItinerary error:',e);showNotice(ni,'⚠️ Itinerary error — please try again.','warn');}
   scheduleActivityReminders(g);
 }
 async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElementById('modal-itinerary').innerHTML=await buildItinerary(lastGeneratedGuest);document.getElementById('update-banner').style.display='none';document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
 async function buildItinerary(g){
   const TRIP_BASE=new Date('2026-06-19T12:00:00'),acts=LIVE_ACTIVITIES,isVOnly=g.tripSection==='valbonne',isBOnly=g.tripSection==='bruges';
-  const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'â').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'â').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'â').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
+  const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'—').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'—').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'—').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
   const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&a.time==='CHECK_DEP')return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
   const byDay={};filtered.forEach(a=>{if(!byDay[a.day])byDay[a.day]=[];byDay[a.day].push({...a});});
-  if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup â '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' Â· '+p.note:''),type:'transport',icon:'ð',personal:true});})}}}catch(e){}}
-  // Inject personal departure activity for all guests arriving in Bruges (both & bruges-only)
-  if(g.tripSection !== 'valbonne'){
-    if(!byDay[3]) byDay[3]=[];
-    if(g.tripSection==='both' && g.depFlight && g.depFlight!=='â'){
-      byDay[3].push({day:3,time:g.depTime||'TBC',
-        title:`Depart to Nice â ${g.depFlight}`,
-        note:`${g.depFrom?'From '+g.depFrom+' ':''}â Nice CÃ´te d'Azur (NCE)${g.niceArrTime?' Â· Arrives '+fmt12(g.niceArrTime):''}`,
-        type:'flight',icon:'âï¸',personal:true,personalLabel:'Your Departure'});
-    } else if(g.tripSection==='bruges'){
-      const depRef=g.brugesDepRef&&g.brugesDepRef!=='â'?g.brugesDepRef:'';
-      const isTr=g.brugesDepMode==='train';
-      if(depRef||g.brugesDepTime){
-        byDay[3].push({day:3,time:g.brugesDepTime||'TBC',
-          title:`${isTr?'Train':'Flight'} home${depRef?' â '+depRef:''}`,
-          note:`${g.brugesDepTo?'To '+g.brugesDepTo:''}${g.brugesDepDate?' Â· '+fmtDate(g.brugesDepDate):''}`,
-          type:isTr?'transport':'flight',icon:isTr?'ð':'âï¸',personal:true,personalLabel:'Your Departure'});
-      }
-    }
-  }
-  // ââ Inject personal transport activities ââââââââââââââââââââââââââââââââââ
-  // Helper to resolve transport note: guest fills in, organiser overrides blanks
+  if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
+  // ── Personal transport notes — appended to relevant existing events in renderer ──
+  // (arrTransport → CHECK_ARR note; depTransport → CHECK_OUT note; niceArrTransport → NICE_ARR note)
+  // Return transport kept as standalone personal event since it has no system equivalent
   const tNote = (guest, org) => guest || org || '';
-  // Arrival â hotel (Day 0, non-valbonne)
-  if(g.tripSection !== 'valbonne'){
-    const note = tNote(g.arrTransport, g.transportOrg?.arr);
-    if(note){if(!byDay[0])byDay[0]=[];byDay[0].push({day:0,time:g.arrTime||g.arrTimeTrain||'TBC',title:'Your transfer to the hotel',note,type:'transport',icon:'ð',personal:true,personalLabel:'Your Transfer'});}
-  }
-  // Hotel â airport/station (Day 3, both/bruges)
-  if(g.tripSection !== 'valbonne'){
-    const note = tNote(g.depTransport, g.transportOrg?.dep);
-    if(note){if(!byDay[3])byDay[3]=[];const lt=calcCheckoutTime(g)||'11:00';byDay[3].push({day:3,time:lt,title:'Your transfer to departure point',note,type:'transport',icon:g.brugesDepMode==='train'?'ð':'ð',personal:true,personalLabel:'Your Transfer'});}
-  }
-  // Nice airport â Valbonne (Day 3, both/valbonne)
-  if(g.tripSection !== 'bruges'){
-    const note = tNote(g.niceArrTransport, g.transportOrg?.nice);
-    if(note){if(!byDay[3])byDay[3]=[];byDay[3].push({day:3,time:g.niceArrTime||'TBC',title:'Your transfer to Valbonne',note,type:'transport',icon:'ð',personal:true,personalLabel:'Your Transfer'});}
-  }
-  // Return: Valbonne â Nice airport (departure day, both/valbonne)
-  if(g.tripSection !== 'bruges' && g.retFlight && g.retFlight !== 'â'){
+  if(g.tripSection !== 'bruges' && g.retFlight && g.retFlight !== '—'){
     const note = tNote(g.retTransport, g.transportOrg?.ret);
-    if(note){const rd=g.retDate?Math.floor((new Date(g.retDate+'T12:00:00')-new Date('2026-06-19T00:00:00'))/86400000):9;if(!byDay[rd])byDay[rd]=[];byDay[rd].push({day:rd,time:g.retTime||'TBC',title:'Your transfer to Nice Airport',note,type:'transport',icon:'ð',personal:true,personalLabel:'Your Transfer'});}
+    if(note){const rd=g.retDate?Math.floor((new Date(g.retDate+'T12:00:00')-new Date('2026-06-19T00:00:00'))/86400000):9;if(!byDay[rd])byDay[rd]=[];byDay[rd].push({day:rd,time:g.retTime||'TBC',title:'Transfer to Nice Airport',note,type:'transport',icon:'🚗',personal:true,personalLabel:'Your Transfer'});}
   }
-  const timeSortKey=t=>{if(!t||t==='FREE')return'00:01';if(t==='CHECK_ARR')return'00:02';if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}return'10:30';}if(t==='NICE_ARR')return'15:00';if(t==='EVENING')return'19:00';if(t==='CHECK_DEP')return'23:58';if(t==='TBC')return'23:59';return t;};
+  const timeSortKey=t=>{if(!t||t==='FREE')return'00:01';if(t==='CHECK_ARR')return'00:02';if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}return'10:30';}if(t==='NICE_ARR'){const na=g.niceArrTime;if(na&&na.match(/^\d{2}:\d{2}$/))return na;return'15:00';}if(t==='EVENING')return'19:00';if(t==='CHECK_DEP'){const dt=g.tripSection==='bruges'?g.brugesDepTime:g.depTime;if(dt&&dt.match(/^\d{2}:\d{2}$/))return dt;return'23:58';}if(t==='TBC')return'23:59';return t;};
   Object.keys(byDay).forEach(d=>byDay[d].sort((a,b)=>timeSortKey(a.time).localeCompare(timeSortKey(b.time))));
   const tagPills=[];
-  if(isVOnly)tagPills.push('<span class="tag-pill tag-valbonne">ð«ð· Valbonne only</span>');
-  else if(isBOnly)tagPills.push('<span class="tag-pill tag-bruges">ð§ðª Bruges only</span>');
-  else tagPills.push('<span class="tag-pill tag-valbonne">ð§ðªð«ð· Full trip</span>');
-  if(g.hasRental)tagPills.push('<span class="tag-pill tag-rental">ð Rental car</span>');
-  const arrPill=isVOnly?(g.depFlight&&g.depFlight!=='â'?`<span class="flight-pill">âï¸ ${esc(g.depFlight)} â NCE</span>`:''): (g.arrMode==='train'?`<span class="flight-pill">ð ${esc(g.arrFlight||'Train')}${g.arrFrom?' Â· '+esc(g.arrFrom):''}</span>`:`<span class="flight-pill">âï¸ ${esc(g.arrFlight||'â')}${g.arrFrom?' Â· '+esc(g.arrFrom):''}</span>`);
-  let html=`<div class="traveler-banner"><div><div class="t-meta">Itinerary for</div><div class="t-name">${esc(g.name)}</div>${g.email?`<div style="font-size:.73rem;opacity:.38">${esc(g.email)}</div>`:''}</div><div style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center">${tagPills.join('')}</div><div style="display:flex;flex-wrap:wrap;gap:.35rem">${arrPill}${!isVOnly&&g.goingValbonne&&g.depFlight!=='â'?`<span class="flight-pill">âï¸ ${esc(g.depFlight)} â NCE</span>`:''}${g.retFlight&&g.retFlight!=='â'?`<span class="flight-pill">ð  ${esc(g.retFlight)}${g.retTo?' â '+esc(g.retTo):''}</span>`:''}</div></div>`;
+  if(isVOnly)tagPills.push('<span class="tag-pill tag-valbonne">🇫🇷 Valbonne only</span>');
+  else if(isBOnly)tagPills.push('<span class="tag-pill tag-bruges">🇧🇪 Bruges only</span>');
+  else tagPills.push('<span class="tag-pill tag-valbonne">🇧🇪🇫🇷 Full trip</span>');
+  if(g.hasRental)tagPills.push('<span class="tag-pill tag-rental">🚗 Rental car</span>');
+  const arrPill=isVOnly?(g.depFlight&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''): (g.arrMode==='train'?`<span class="flight-pill">🚂 ${esc(g.arrFlight||'Train')}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>`:`<span class="flight-pill">✈️ ${esc(g.arrFlight||'—')}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>`);
+  let html=`<div class="traveler-banner"><div><div class="t-meta">Itinerary for</div><div class="t-name">${esc(g.name)}</div>${g.email?`<div style="font-size:.73rem;opacity:.38">${esc(g.email)}</div>`:''}</div><div style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center">${tagPills.join('')}</div><div style="display:flex;flex-wrap:wrap;gap:.35rem">${arrPill}${!isVOnly&&g.goingValbonne&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''}${g.retFlight&&g.retFlight!=='—'?`<span class="flight-pill">🏠 ${esc(g.retFlight)}${g.retTo?' → '+esc(g.retTo):''}</span>`:''}</div></div>`;
   const startDay=isVOnly?3:0,lastDay=isBOnly?4:Math.max(...acts.map(a=>a.day))+1;
-  const valonlyLabels=['Arrival Day Â· Valbonne','Day 2 â Valbonne','Day 3 â Valbonne','Day 4 â Valbonne (Zuma)','Day 5 â Valbonne','Day 6 â Valbonne (Medusa)','Last Night Â· Valbonne'];
+  const valonlyLabels=['Arrival Day · Valbonne','Day 2 – Valbonne','Day 3 – Valbonne','Day 4 – Valbonne (Zuma)','Day 5 – Valbonne','Day 6 – Valbonne (Medusa)','Last Night · Valbonne'];
   const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
   const todayTripDay=Math.floor((now-new Date('2026-06-19T00:00:00'))/86400000),tripOngoing=todayTripDay>=startDay&&todayTripDay<lastDay;
   let pastDaysHtml='',pastDayCount=0;
@@ -809,7 +775,7 @@ async function buildItinerary(g){
     const todayBadge=isToday?'<span style="background:#c9923a;color:#fff;font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em">Today</span>':'';
     const dayHtml='<div class="day-block"><div class="day-header"><span class="'+chipClass+'">'+esc(label)+'</span><span class="day-date">'+esc(dateStr)+'</span>'+todayBadge+'</div><div class="events">'+(()=>{
       const events=byDay[d]||[];
-      if(!events.length)return'<div class="event"><div class="event-time">â</div><div class="event-icon">ð</div><div class="event-body"><div class="event-title">Free day</div></div></div>';
+      if(!events.length)return'<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>';
       return events.map(ev=>{
         const CUSTOMS_MINS=60,NICE_DRIVE_MINS=45,isTrain=g.arrMode==='train',trainStation=g.arrTrainTo||g.arrTrainFrom||'',arrAirport=g.arrTo||g.arrFrom||'';
         const arrTransfer=isTrain?stationToHotelMins(trainStation):airportDriveMins(arrAirport)+CUSTOMS_MINS;
@@ -818,62 +784,69 @@ async function buildItinerary(g){
         const tl=ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival'):ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC')):ev.time==='CHECK_OUT'?fmt12(checkoutTime):ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival'):ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
         const evMins=(()=>{if(!isToday)return null;const t=ev.time;if(t==='FREE')return 0;if(t==='CHECK_ARR')return brugesArrival?parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]):0;if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return h*60+m;}return 11*60;}if(t==='EVENING')return 19*60;if(t==='CHECK_DEP'||t==='NICE_ARR')return 23*60;const mt=t&&t.match(/^(\d{2}):(\d{2})$/);return mt?parseInt(mt[1])*60+parseInt(mt[2]):null;})();
         const actPast=isToday&&evMins!==null&&evMins<nowMins-30;
-        const arrivalNote=(ev.time==='CHECK_ARR'&&g.arrTime)?(isTrain?` Â· Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`:` Â· Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`):(ev.time==='NICE_ARR'&&g.niceArrTime)?` Â· Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`:'';
+        // Append guest/organiser transport notes to relevant system events
+        const tNoteArr = g.arrTransport||(g.transportOrg?.arr)||'';
+        const tNoteDep = g.depTransport||(g.transportOrg?.dep)||'';
+        const tNoteNice = g.niceArrTransport||(g.transportOrg?.nice)||'';
+        if(ev.time==='CHECK_ARR'&&tNoteArr) evNote+=(evNote?' · ':'')+tNoteArr;
+        if(ev.time==='CHECK_OUT'&&tNoteDep) evNote+=(evNote?' · ':'')+tNoteDep;
+        if(ev.time==='NICE_ARR'&&tNoteNice) evNote+=(evNote?' · ':'')+tNoteNice;
+        const arrivalNote=(ev.time==='CHECK_ARR'&&g.arrTime)?(isTrain?` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`:` · Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`):(ev.time==='NICE_ARR'&&g.niceArrTime)?` · Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`:'';
         // CHECK_OUT: display as transport to departure point
-        let evIcon=ev.icon||'ð', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
+        let evIcon=ev.icon||'📌', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
         if(ev.time==='CHECK_OUT' && g.tripSection!=='valbonne'){
           evType='transport';
           if(g.tripSection==='both'){
             const dest=g.depFrom||'Brussels Airport';
-            evIcon='ð'; evTitle=`Transfer to ${esc(dest)}`;
+            evIcon='🚗'; evTitle=`Transfer to ${esc(dest)}`;
           } else if(g.tripSection==='bruges'){
-            if(g.brugesDepMode==='train'){evIcon='ð';evTitle='Transfer to Bruges Station';}
-            else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='ð';evTitle=`Transfer to ${esc(dest)}`;}
+            if(g.brugesDepMode==='train'){evIcon='🚂';evTitle='Transfer to Bruges Station';}
+            else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
           }
-          // note already contains checkoutNote via {checkoutNote} fill â append hotel reminder
-          evNote = evNote + (evNote?' Â· ':'')+`Check out of De Tuilerieen before you leave.`;
+          // note already contains checkoutNote via {checkoutNote} fill — append hotel reminder
+          evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
         }
         const bc='badge-'+evType,bl=evType[0].toUpperCase()+evType.slice(1);
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
-        const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">ð Maps</a>`:'';
+        const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
         const personalBadge=ev.personal?`<span class="personal-label">${ev.personalLabel||'Your Pickup'}</span>`:'';
         return`<div class="event${ev.personal?' personal':''}${actPast?' past':''}"><div class="event-time">${esc(tl)}</div><div class="event-icon">${evIcon}</div><div class="event-body"><div class="event-title">${evTitle}${personalBadge}<span class="badge ${bc}">${bl}</span></div><div class="event-note">${esc(evNote)}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div></div></div>`;
       }).join('');
     })()+`</div></div>`;
     if(isPast){pastDaysHtml+=dayHtml;pastDayCount++;}else{html+=dayHtml;}
   }
-  if(pastDayCount>0)html=`<button class="show-past-btn" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">ð Show ${pastDayCount} past day${pastDayCount>1?'s':''}</button><div style="display:none">${pastDaysHtml}</div>`+html;
-  if(g.goingValbonne&&g.retFlight&&g.retFlight!=='â'){const rd=new Date(g.retDate+'T12:00:00');html+=`<div class="day-block"><div class="day-header"><span class="day-chip nice">Departure Day</span><span class="day-date">${esc(rd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</span></div><div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">âï¸</div><div class="event-body"><div class="event-title">Fly home â ${esc(g.retFlight)}${g.retTo?' to '+esc(g.retTo):''}<span class="badge badge-flight">Flight</span></div><div class="event-note">${g.hasRental?'Return rental at '+esc(g.rentalPickup)+' before check-in.':'Allow ~45 min transfer from Valbonne to Nice Airport.'}</div></div></div></div></div>`;}
-  if(g.notes)html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">ð Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
+  if(pastDayCount>0)html=`<button class="show-past-btn" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">📅 Show ${pastDayCount} past day${pastDayCount>1?'s':''}</button><div style="display:none">${pastDaysHtml}</div>`+html;
+  if(g.goingValbonne&&g.retFlight&&g.retFlight!=='—'){const rd=new Date(g.retDate+'T12:00:00');html+=`<div class="day-block"><div class="day-header"><span class="day-chip nice">Departure Day</span><span class="day-date">${esc(rd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</span></div><div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">✈️</div><div class="event-body"><div class="event-title">Fly home – ${esc(g.retFlight)}${g.retTo?' to '+esc(g.retTo):''}<span class="badge badge-flight">Flight</span></div><div class="event-note">${g.hasRental?'Return rental at '+esc(g.rentalPickup)+' before check-in.':'Allow ~45 min transfer from Valbonne to Nice Airport.'}</div></div></div></div></div>`;}
+  if(g.notes)html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">📝 Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
   return html;
 }
-function orgLogin(){if(document.getElementById('orgPassword').value===ORG_PASSWORD){document.getElementById('login-panel').style.display='none';document.getElementById('dashboard-panel').style.display='block';renderGuestDashboard();const os=localStorage.getItem('os_config');if(os){const c=JSON.parse(os);ONESIGNAL_APP_ID=c.appId||'';ONESIGNAL_API_KEY=c.apiKey||'';}document.getElementById('os-app-id').value=ONESIGNAL_APP_ID;document.getElementById('os-api-key').value=ONESIGNAL_API_KEY;const rk=localStorage.getItem('rapidapi_key');if(rk){RAPIDAPI_KEY=rk;document.getElementById('rapidapi-key').value=rk;document.getElementById('rapidapi-status').textContent='â Auto-lookup enabled.';document.getElementById('rapidapi-status').style.color='#065f46';}}else{alert('Incorrect password.');}}
-async function renderGuestDashboard(){const guests=await loadGuests();const nR=guests.filter(g=>g.hasRental).length,nBO=guests.filter(g=>g.tripSection==='bruges'||(!g.goingValbonne&&g.tripSection!=='valbonne')).length,nBoth=guests.filter(g=>g.tripSection==='both'||(g.goingValbonne&&g.tripSection!=='valbonne')).length;document.getElementById('stat-strip').innerHTML=`<div class="stat-box"><div class="num">${guests.length}</div><div class="lbl">Total guests</div></div><div class="stat-box"><div class="num">${nBoth}</div><div class="lbl">Full trip</div></div><div class="stat-box"><div class="num">${nBO}</div><div class="lbl">Bruges only</div></div><div class="stat-box"><div class="num">${guests.filter(g=>g.tripSection==='valbonne').length}</div><div class="lbl">Valbonne only</div></div><div class="stat-box"><div class="num">${nR}</div><div class="lbl">Rental car</div></div>`;const wrap=document.getElementById('guest-table-wrap');if(!guests.length){wrap.innerHTML='<div class="empty-state">No guests yet. Share the link and check back!</div>';return;}const rows=guests.map(g=>{const pickups=Array.isArray(g.pickups)?g.pickups:(g.pickups?Object.values(g.pickups):[]);const pickupBadge=pickups.length?`<span class="pickup-badge">${pickups.length} pickup${pickups.length>1?'s':''}</span>`:'';const pickupList=pickups.map((p,i)=>`<div class="pickup-item">ð Jun ${19+p.day} ${p.time?fmt12(p.time):''} Â· ${esc(p.vehicle||'')}${p.location?' @ '+esc(p.location):''}<button onclick="editPickupInline('${esc(g.key)}','${esc(g.name)}',${i})" title="Edit">âï¸</button><button onclick="deletePickup('${esc(g.key)}',${i})" title="Delete">â</button></div>`).join('');const arrDisplay=g.arrMode==='train'?`ð ${esc(g.arrFlight||'Train')}`:g.arrMode==='car'?`ð By car`:`âï¸ ${esc(g.arrFlight||'â')}`;return`<tr><td><strong>${esc(g.name||'â')}</strong>${pickupBadge}${g.email?`<div class="sub-text">${esc(g.email)}</div>`:''}<div class="pickup-list">${pickupList}</div><button class="btn btn-gold btn-sm" style="margin-top:.4rem" onclick="openPickupModal('${esc(g.key)}','${esc(g.name)}')">+ Assign Pickup</button>
-        <button class="btn btn-secondary btn-sm" style="margin-top:.3rem" onclick="openTransportModal('${esc(g.key)}','${esc(g.name)}',${JSON.stringify({arr:g.transportOrg?.arr||'',dep:g.transportOrg?.dep||'',nice:g.transportOrg?.nice||'',ret:g.transportOrg?.ret||''}).replace(/"/g,'&quot;')})">ð Transport</button>
-      </td><td><div>${arrDisplay} ${g.arrDate?fmtDate(g.arrDate):''}</div><div class="sub-text">${g.arrTime?fmt12(g.arrTime):''} ${g.arrFrom?'from '+esc(g.arrFrom):''}</div></td><td>${g.goingValbonne?`<div>âï¸ ${esc(g.depFlight||'â')} ${g.depDate?fmtDate(g.depDate):''}</div><div class="sub-text">${g.depTime?fmt12(g.depTime):''} â NCE ${g.niceArrTime?fmt12(g.niceArrTime):''}</div>`:'<span class="tag-pill tag-bruges" style="font-size:.68rem">Bruges only</span>'}</td><td>${g.goingValbonne?`<div>${esc(g.retFlight||'â')} ${g.retDate?fmtDate(g.retDate):''}</div><div class="sub-text">${g.retTime?fmt12(g.retTime):''} ${g.retTo?'â '+esc(g.retTo):''}</div>`:'â'}</td><td style="text-align:center">${g.goingValbonne?'<span class="tag-pill tag-valbonne">â</span>':'â'}</td><td style="text-align:center">${g.hasRental?`<span class="tag-pill tag-rental">ð ${esc(g.rentalCo||'')}</span>`:'â'}</td><td><div class="sub-text">${g.notes?esc(g.notes.slice(0,50))+(g.notes.length>50?'â¦':''):'â'}</div><div class="sub-text">${g.submittedAt?new Date(g.submittedAt).toLocaleDateString('en-GB'):''}</div></td><td><button class="btn btn-danger btn-sm" onclick="deleteGuest('${esc(g.key||'')}')">â</button></td></tr>`;}).join('');wrap.innerHTML=`<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Name & Pickups</th><th>Arrival</th><th>â Nice</th><th>Return</th><th>Valbonne</th><th>Rental</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+function orgLogin(){if(document.getElementById('orgPassword').value===ORG_PASSWORD){document.getElementById('login-panel').style.display='none';document.getElementById('dashboard-panel').style.display='block';renderGuestDashboard();const os=localStorage.getItem('os_config');if(os){const c=JSON.parse(os);ONESIGNAL_APP_ID=c.appId||'';ONESIGNAL_API_KEY=c.apiKey||'';}document.getElementById('os-app-id').value=ONESIGNAL_APP_ID;document.getElementById('os-api-key').value=ONESIGNAL_API_KEY;const rk=localStorage.getItem('rapidapi_key');if(rk){RAPIDAPI_KEY=rk;document.getElementById('rapidapi-key').value=rk;document.getElementById('rapidapi-status').textContent='✅ Auto-lookup enabled.';document.getElementById('rapidapi-status').style.color='#065f46';}}else{alert('Incorrect password.');}}
+async function renderGuestDashboard(){const guests=await loadGuests();const nR=guests.filter(g=>g.hasRental).length,nBO=guests.filter(g=>g.tripSection==='bruges'||(!g.goingValbonne&&g.tripSection!=='valbonne')).length,nBoth=guests.filter(g=>g.tripSection==='both'||(g.goingValbonne&&g.tripSection!=='valbonne')).length;document.getElementById('stat-strip').innerHTML=`<div class="stat-box"><div class="num">${guests.length}</div><div class="lbl">Total guests</div></div><div class="stat-box"><div class="num">${nBoth}</div><div class="lbl">Full trip</div></div><div class="stat-box"><div class="num">${nBO}</div><div class="lbl">Bruges only</div></div><div class="stat-box"><div class="num">${guests.filter(g=>g.tripSection==='valbonne').length}</div><div class="lbl">Valbonne only</div></div><div class="stat-box"><div class="num">${nR}</div><div class="lbl">Rental car</div></div>`;const wrap=document.getElementById('guest-table-wrap');if(!guests.length){wrap.innerHTML='<div class="empty-state">No guests yet. Share the link and check back!</div>';return;}const rows=guests.map(g=>{const pickups=Array.isArray(g.pickups)?g.pickups:(g.pickups?Object.values(g.pickups):[]);const pickupBadge=pickups.length?`<span class="pickup-badge">${pickups.length} pickup${pickups.length>1?'s':''}</span>`:'';const pickupList=pickups.map((p,i)=>`<div class="pickup-item">🚗 Jun ${19+p.day} ${p.time?fmt12(p.time):''} · ${esc(p.vehicle||'')}${p.location?' @ '+esc(p.location):''}<button onclick="editPickupInline('${esc(g.key)}','${esc(g.name)}',${i})" title="Edit">✏️</button><button onclick="deletePickup('${esc(g.key)}',${i})" title="Delete">✕</button></div>`).join('');const arrDisplay=g.arrMode==='train'?`🚂 ${esc(g.arrFlight||'Train')}`:g.arrMode==='car'?`🚗 By car`:`✈️ ${esc(g.arrFlight||'—')}`;return`<tr><td><strong>${esc(g.name||'—')}</strong>${pickupBadge}${g.email?`<div class="sub-text">${esc(g.email)}</div>`:''}<div class="pickup-list">${pickupList}</div><button class="btn btn-gold btn-sm" style="margin-top:.4rem" onclick="openPickupModal('${esc(g.key)}','${esc(g.name)}')">+ Assign Pickup</button>
+        <button class="btn btn-secondary btn-sm" style="margin-top:.3rem" onclick="openTransportModal('${esc(g.key)}','${esc(g.name)}',${JSON.stringify({arr:g.transportOrg?.arr||'',dep:g.transportOrg?.dep||'',nice:g.transportOrg?.nice||'',ret:g.transportOrg?.ret||''}).replace(/"/g,'&quot;')})">🚗 Transport</button>
+      </td><td><div>${arrDisplay} ${g.arrDate?fmtDate(g.arrDate):''}</div><div class="sub-text">${g.arrTime?fmt12(g.arrTime):''} ${g.arrFrom?'from '+esc(g.arrFrom):''}</div></td><td>${g.goingValbonne?`<div>✈️ ${esc(g.depFlight||'—')} ${g.depDate?fmtDate(g.depDate):''}</div><div class="sub-text">${g.depTime?fmt12(g.depTime):''} → NCE ${g.niceArrTime?fmt12(g.niceArrTime):''}</div>`:'<span class="tag-pill tag-bruges" style="font-size:.68rem">Bruges only</span>'}</td><td>${g.goingValbonne?`<div>${esc(g.retFlight||'—')} ${g.retDate?fmtDate(g.retDate):''}</div><div class="sub-text">${g.retTime?fmt12(g.retTime):''} ${g.retTo?'→ '+esc(g.retTo):''}</div>`:'—'}</td><td style="text-align:center">${g.goingValbonne?'<span class="tag-pill tag-valbonne">✓</span>':'—'}</td><td style="text-align:center">${g.hasRental?`<span class="tag-pill tag-rental">🚗 ${esc(g.rentalCo||'')}</span>`:'—'}</td><td><div class="sub-text">${g.notes?esc(g.notes.slice(0,50))+(g.notes.length>50?'…':''):'—'}</div><div class="sub-text">${g.submittedAt?new Date(g.submittedAt).toLocaleDateString('en-GB'):''}</div></td><td><button class="btn btn-danger btn-sm" onclick="deleteGuest('${esc(g.key||'')}')">✕</button></td></tr>`;}).join('');wrap.innerHTML=`<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Name & Pickups</th><th>Arrival</th><th>→ Nice</th><th>Return</th><th>Valbonne</th><th>Rental</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 async function editPickupInline(guestKey,guestName,idx){const pickups=await getPickups(guestKey);openPickupModal(guestKey,guestName,idx,pickups[idx]);}
 async function clearAllGuests(){if(!confirm('Delete ALL guest entries?'))return;if(firebaseReady){try{await db.ref('guests').remove();}catch(e){}}else localStorage.removeItem('vv_guests');renderGuestDashboard();}
 async function exportCSV(){const gs=await loadGuests();if(!gs.length){alert('No guests to export.');return;}const cols=['name','email','arrMode','arrFlight','arrDate','arrTime','arrFrom','goingValbonne','hasRental','depFlight','depDate','depTime','niceArrTime','rentalCo','rentalPickup','retFlight','retDate','retTime','retTo','notes','submittedAt'];const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([cols.join(','),...gs.map(g=>cols.map(c=>'"'+String(g[c]||'').replace(/"/g,'""')+'"').join(','))].join('\n'));a.download='vv-birthday-bash-guests.csv';a.click();}
-function renderActivityEditor(){const allActs=EDITED_ACTIVITIES||LIVE_ACTIVITIES;const acts=allActs.filter(a=>{if(activityFilter==='all')return true;if(activityFilter==='bruges')return a.day<=2||(a.day===3&&(a.tags||[]).includes('bruges-only'));if(activityFilter==='valbonne')return a.day>=3&&!(a.tags||[]).includes('bruges-only');return true;});const groups={};acts.forEach((a,i)=>{if(!groups[a.day])groups[a.day]=[];groups[a.day].push({...a,_i:i});});let html='';Object.keys(groups).sort((a,b)=>+a-+b).forEach(day=>{html+=`<div class="act-day-group"><div class="act-day-label">${esc(DAY_LABELS[+day]||'Day '+(+day+1))} <span>Jun ${19+parseInt(day)}</span></div><div class="act-list">`;groups[day].forEach(a=>{const tc=(a.tags||[]).length?(a.tags||[]).map(t=>`<span class="tag-chip ${t==='valbonne'?'vv':t==='rental'||t==='no-rental'?'rr':t==='bruges-only'?'bb':''}">${esc(t)}</span>`).join(''):'<span class="tag-chip">all</span>';html+=`<div class="act-row"><div class="act-time-chip">${esc(a.time||'')}</div><div class="act-icon-cell">${a.icon||'ð'}</div><div class="act-title-cell">${esc(a.title||'')}${a.address?` <span style="font-size:.7rem;opacity:.5">ð</span>`:''}</div><div class="act-tag-cell">${tc}</div><div class="act-actions"><button class="btn btn-secondary btn-sm" onclick="editActivity(${a._i})">âï¸</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a._i})">ð</button></div></div>`;});html+=`</div></div>`;});document.getElementById('act-editor-list').innerHTML=html||'<div class="empty-state">No activities. Click + Add to start.</div>';}
+function renderActivityEditor(){const allActs=EDITED_ACTIVITIES||LIVE_ACTIVITIES;const acts=allActs.filter(a=>{if(activityFilter==='all')return true;if(activityFilter==='bruges')return a.day<=2||(a.day===3&&(a.tags||[]).includes('bruges-only'));if(activityFilter==='valbonne')return a.day>=3&&!(a.tags||[]).includes('bruges-only');return true;});const groups={};acts.forEach((a,i)=>{if(!groups[a.day])groups[a.day]=[];groups[a.day].push({...a,_i:i});});let html='';Object.keys(groups).sort((a,b)=>+a-+b).forEach(day=>{html+=`<div class="act-day-group"><div class="act-day-label">${esc(DAY_LABELS[+day]||'Day '+(+day+1))} <span>Jun ${19+parseInt(day)}</span></div><div class="act-list">`;groups[day].forEach(a=>{const tc=(a.tags||[]).length?(a.tags||[]).map(t=>`<span class="tag-chip ${t==='valbonne'?'vv':t==='rental'||t==='no-rental'?'rr':t==='bruges-only'?'bb':''}">${esc(t)}</span>`).join(''):'<span class="tag-chip">all</span>';html+=`<div class="act-row"><div class="act-time-chip">${esc(a.time||'')}</div><div class="act-icon-cell">${a.icon||'📌'}</div><div class="act-title-cell">${esc(a.title||'')}${a.address?` <span style="font-size:.7rem;opacity:.5">📍</span>`:''}</div><div class="act-tag-cell">${tc}</div><div class="act-actions"><button class="btn btn-secondary btn-sm" onclick="editActivity(${a._i})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a._i})">🗑</button></div></div>`;});html+=`</div></div>`;});document.getElementById('act-editor-list').innerHTML=html||'<div class="empty-state">No activities. Click + Add to start.</div>';}
 function markEdited(){if(!EDITED_ACTIVITIES)EDITED_ACTIVITIES=JSON.parse(JSON.stringify(LIVE_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';}
 function addActivity(){openActModal(-1,null);}
 function editActivity(i){openActModal(i,(EDITED_ACTIVITIES||LIVE_ACTIVITIES)[i]);}
-function openActModal(i,a){document.getElementById('act-modal-title').textContent=i===-1?'Add Activity':'Edit Activity';document.getElementById('act-edit-index').value=i;document.getElementById('act-day').value=a?.day??0;document.getElementById('act-time').value=a?.time||'';document.getElementById('act-icon').value=a?.icon||'ð';document.getElementById('act-type').value=a?.type||'activity';document.getElementById('act-title').value=a?.title||'';document.getElementById('act-note').value=a?.note||'';document.getElementById('act-address').value=a?.address||'';const tags=a?.tags||[];document.getElementById('tag-all').checked=!tags.length;['valbonne','bruges-only','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=tags.includes(t));document.getElementById('act-modal-overlay').style.display='block';}
+function openActModal(i,a){document.getElementById('act-modal-title').textContent=i===-1?'Add Activity':'Edit Activity';document.getElementById('act-edit-index').value=i;document.getElementById('act-day').value=a?.day??0;document.getElementById('act-time').value=a?.time||'';document.getElementById('act-icon').value=a?.icon||'📌';document.getElementById('act-type').value=a?.type||'activity';document.getElementById('act-title').value=a?.title||'';document.getElementById('act-note').value=a?.note||'';document.getElementById('act-address').value=a?.address||'';const tags=a?.tags||[];document.getElementById('tag-all').checked=!tags.length;['valbonne','bruges-only','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=tags.includes(t));document.getElementById('act-modal-overlay').style.display='block';}
 function deleteActivity(i){if(!confirm('Delete this activity?'))return;markEdited();EDITED_ACTIVITIES.splice(i,1);renderActivityEditor();}
-function saveActivityEdit(){markEdited();const idx=parseInt(document.getElementById('act-edit-index').value);const tags=[];if(!document.getElementById('tag-all').checked)['valbonne','bruges-only','rental','no-rental'].forEach(t=>{if(document.getElementById('tag-'+t).checked)tags.push(t);});const a={day:parseInt(document.getElementById('act-day').value),time:document.getElementById('act-time').value.trim(),icon:document.getElementById('act-icon').value.trim()||'ð',type:document.getElementById('act-type').value,title:document.getElementById('act-title').value.trim(),note:document.getElementById('act-note').value.trim(),address:document.getElementById('act-address').value.trim(),tags};if(!a.title){alert('Title is required.');return;}if(idx===-1)EDITED_ACTIVITIES.push(a);else EDITED_ACTIVITIES[idx]=a;EDITED_ACTIVITIES.sort((x,y)=>x.day!==y.day?x.day-y.day:(x.time||'').localeCompare(y.time||''));closeActModal();renderActivityEditor();}
+function saveActivityEdit(){markEdited();const idx=parseInt(document.getElementById('act-edit-index').value);const tags=[];if(!document.getElementById('tag-all').checked)['valbonne','bruges-only','rental','no-rental'].forEach(t=>{if(document.getElementById('tag-'+t).checked)tags.push(t);});const a={day:parseInt(document.getElementById('act-day').value),time:document.getElementById('act-time').value.trim(),icon:document.getElementById('act-icon').value.trim()||'📌',type:document.getElementById('act-type').value,title:document.getElementById('act-title').value.trim(),note:document.getElementById('act-note').value.trim(),address:document.getElementById('act-address').value.trim(),tags};if(!a.title){alert('Title is required.');return;}if(idx===-1)EDITED_ACTIVITIES.push(a);else EDITED_ACTIVITIES[idx]=a;EDITED_ACTIVITIES.sort((x,y)=>x.day!==y.day?x.day-y.day:(x.time||'').localeCompare(y.time||''));closeActModal();renderActivityEditor();}
 function syncAllTag(){if(document.getElementById('tag-all').checked)['valbonne','bruges-only','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=false);}
 function closeActModal(){document.getElementById('act-modal-overlay').style.display='none';}
-async function saveActivities(){const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES,btn=document.getElementById('save-act-btn');btn.textContent='â³ Savingâ¦';const ok=await fbSave('activities',acts);if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='â Published!';setTimeout(()=>btn.textContent='ð¾ Save & Publish',2500);// Reschedule reminders with updated activities
-    scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}else{btn.textContent='â Error';setTimeout(()=>btn.textContent='ð¾ Save & Publish',2500);}}
+async function saveActivities(){const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES,btn=document.getElementById('save-act-btn');btn.textContent='⏳ Saving…';const ok=await fbSave('activities',acts);if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='✅ Published!';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);// Reschedule reminders with updated activities
+    scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}else{btn.textContent='❌ Error';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);}}
 function resetActivities(){if(!confirm('Reset to the original default schedule?'))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';renderActivityEditor();}
-async function requestPush(){const btn=document.getElementById('push-optin-btn');btn.textContent='Enablingâ¦';btn.disabled=true;try{const perm=await Notification.requestPermission();if(perm!=='granted'){btn.textContent='Blocked';btn.disabled=false;return;}btn.textContent='â Reminders on!';document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';// Schedule 30-min reminders for today's activities
+async function requestPush(){const btn=document.getElementById('push-optin-btn');btn.textContent='Enabling…';btn.disabled=true;try{const perm=await Notification.requestPermission();if(perm!=='granted'){btn.textContent='Blocked';btn.disabled=false;return;}btn.textContent='✅ Reminders on!';document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';// Schedule 30-min reminders for today's activities
     scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}catch(e){btn.textContent='Error';btn.disabled=false;}}
-async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='â ï¸ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='â ï¸ OneSignal not configured yet.';return;}res.textContent='Sendingâ¦';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`â Sent to ~${d.recipients||'all'} guests!`:'â '+JSON.stringify(d.errors||d);}catch(e){res.textContent='â '+e.message;}}
+async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
 function saveOneSignalConfig(){ONESIGNAL_APP_ID=document.getElementById('os-app-id').value.trim();ONESIGNAL_API_KEY=document.getElementById('os-api-key').value.trim();localStorage.setItem('os_config',JSON.stringify({appId:ONESIGNAL_APP_ID,apiKey:ONESIGNAL_API_KEY}));alert('Saved.');}
-function saveRapidAPIKey(){const key=document.getElementById('rapidapi-key').value.trim();RAPIDAPI_KEY=key;localStorage.setItem('rapidapi_key',key);const status=document.getElementById('rapidapi-status');if(key){status.textContent='â Auto-lookup enabled â guests\' flight times will fill in automatically.';status.style.color='#065f46';}else{status.textContent='Key cleared.';status.style.color='';}}
+function saveRapidAPIKey(){const key=document.getElementById('rapidapi-key').value.trim();RAPIDAPI_KEY=key;localStorage.setItem('rapidapi_key',key);const status=document.getElementById('rapidapi-status');if(key){status.textContent='✅ Auto-lookup enabled — guests\' flight times will fill in automatically.';status.style.color='#065f46';}else{status.textContent='Key cleared.';status.style.color='';}}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;if(!localStorage.getItem('android_banner_ok')&&!isIOS())setTimeout(()=>{document.getElementById('android-banner').style.display='block';},2500);});
 async function installApp(){if(deferredInstallPrompt){try{await deferredInstallPrompt.prompt();const{outcome}=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(outcome==='accepted')dismissAndroidBanner(true);else showManualInstallInstructions();}catch(e){showManualInstallInstructions();}}else showManualInstallInstructions();}
-function showManualInstallInstructions(){document.getElementById('android-auto').style.display='none';const ua=navigator.userAgent,step=document.getElementById('android-step2');if(/SamsungBrowser/i.test(ua))step.innerHTML='Tap the <strong>â° menu</strong> â <strong>"Add page to"</strong> â <strong>"Home Screen"</strong>';else if(/Firefox/i.test(ua))step.innerHTML='Tap the <strong>â® menu</strong> â <strong>"Install"</strong>';else if(/Edg\//i.test(ua))step.innerHTML='Tap the <strong>â¯ menu</strong> â <strong>"Add to phone"</strong>';else if(/OPR\//i.test(ua))step.innerHTML='Tap the <strong>â® menu</strong> â <strong>"Home Screen"</strong>';else step.innerHTML='Tap the <strong>â® menu</strong> (three dots) â <strong>"Add to Home Screen"</strong>';document.getElementById('android-manual').style.display='block';}
+function showManualInstallInstructions(){document.getElementById('android-auto').style.display='none';const ua=navigator.userAgent,step=document.getElementById('android-step2');if(/SamsungBrowser/i.test(ua))step.innerHTML='Tap the <strong>☰ menu</strong> → <strong>"Add page to"</strong> → <strong>"Home Screen"</strong>';else if(/Firefox/i.test(ua))step.innerHTML='Tap the <strong>⋮ menu</strong> → <strong>"Install"</strong>';else if(/Edg\//i.test(ua))step.innerHTML='Tap the <strong>⋯ menu</strong> → <strong>"Add to phone"</strong>';else if(/OPR\//i.test(ua))step.innerHTML='Tap the <strong>⋮ menu</strong> → <strong>"Home Screen"</strong>';else step.innerHTML='Tap the <strong>⋮ menu</strong> (three dots) → <strong>"Add to Home Screen"</strong>';document.getElementById('android-manual').style.display='block';}
 function dismissAndroidBanner(permanent){document.getElementById('android-banner').style.display='none';if(permanent)localStorage.setItem('android_banner_ok','1');}
 function isIOS(){return/iphone|ipad|ipod/i.test(navigator.userAgent);}
 function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=localStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
@@ -890,7 +863,7 @@ function showNotice(el,msg,type){(typeof el==='string'?document.getElementById(e
 function fmt12(t){if(!t)return'';const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;return`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;}
 function addMins(t,mins){if(!t||mins==null)return t;const[h,m]=t.split(':').map(Number);if(isNaN(h))return t;const tot=((h*60+m+parseInt(mins))%1440+1440)%1440;return String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');}
 const AIRPORT_DRIVE_MINS={'brussels':95,'bru':95,'zaventem':95,'charleroi':130,'crl':130,'brussels south':130,'amsterdam':180,'ams':180,'schiphol':180,'rotterdam':140,'rtt':140,'eindhoven':175,'ein':175,'paris':200,'cdg':200,'charles de gaulle':200,'orly':210,'ory':210,'lille':80,'lil':80,'calais':70,'london':240,'heathrow':240,'lhr':240,'gatwick':255,'lgw':255,'stansted':270,'stn':270,'luton':265,'ltn':265,'city':255,'lcy':255,'st pancras':0,'frankfurt':310,'fra':310,'dusseldorf':200,'dus':200,'cologne':210,'cgn':210,'copenhagen':310,'cph':310,'oslo':400,'osl':400,'stockholm':450,'arn':450,'madrid':400,'mad':400,'barcelona':380,'bcn':380,'lisbon':500,'lis':500,'zurich':280,'zrh':280,'vienna':360,'vie':360,'geneva':250,'gva':250,'jfk':200,'new york':200,'newark':200,'boston':200,'bos':200,'toronto':200,'yyz':200,'montreal':200};
-const STATION_TO_HOTEL_MINS={'bruges':10,'brugge':10,'ghent':40,'gent':40,'brussels':95,'bruxelles':95,'brussel':95,'midi':95,'south':95,'antwerp':80,'anvers':80,'lille':75,'paris':150,'london':0,'amsterdam':185,'rotterdam':130,'cologne':175,'kÃ¶ln':175,'frankfurt':310};
+const STATION_TO_HOTEL_MINS={'bruges':10,'brugge':10,'ghent':40,'gent':40,'brussels':95,'bruxelles':95,'brussel':95,'midi':95,'south':95,'antwerp':80,'anvers':80,'lille':75,'paris':150,'london':0,'amsterdam':185,'rotterdam':130,'cologne':175,'köln':175,'frankfurt':310};
 function stationToHotelMins(station){if(!station)return 10;const s=station.toLowerCase();for(const[key,mins]of Object.entries(STATION_TO_HOTEL_MINS)){if(s.includes(key))return mins;}return 10;}
 function airportDriveMins(airport){if(!airport)return 90;const a=airport.toLowerCase();for(const[key,mins]of Object.entries(AIRPORT_DRIVE_MINS)){if(a.includes(key))return mins;}return 90;}
 function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(g.tripSection==='both'&&g.depTime){const driveMins=airportDriveMins(g.depFrom||'brussels');return addMins(g.depTime,-(driveMins+FLIGHT_BUFFER));}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
@@ -900,24 +873,24 @@ function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateSt
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 async function lookupReturningGuest(){
   const name=document.getElementById('lookup-name').value.trim(),statusEl=document.getElementById('lookup-status');
-  if(!name){statusEl.textContent='â ï¸ Please enter your name first.';return;}
-  statusEl.textContent='ð Looking upâ¦';
-  if(!firebaseReady){statusEl.textContent='â ï¸ Not connected yet â wait a moment and try again.';return;}
+  if(!name){statusEl.textContent='⚠️ Please enter your name first.';return;}
+  statusEl.textContent='🔍 Looking up…';
+  if(!firebaseReady){statusEl.textContent='⚠️ Not connected yet — wait a moment and try again.';return;}
   try{const allGuests=await fbGet('guests');if(!allGuests)throw new Error('not_found');
     const matches=Object.entries(allGuests).filter(([,v])=>v.name?.toLowerCase().trim()===name.toLowerCase().trim()).sort((a,b)=>new Date(b[1].submittedAt||0)-new Date(a[1].submittedAt||0));
     if(!matches.length)throw new Error('not_found');
     const g={key:matches[0][0],...matches[0][1]};saveGuestLocally(g);prefillForm(g);
-    statusEl.innerHTML=`â Found! Welcome back, <strong style="color:#f0c878">${esc(g.name)}</strong>. Your details are loaded.`;
+    statusEl.innerHTML=`✅ Found! Welcome back, <strong style="color:#f0c878">${esc(g.name)}</strong>. Your details are loaded.`;
     setTimeout(()=>{document.getElementById('returning-lookup-card').style.display='none';document.getElementById('rb-name').textContent=g.name;document.getElementById('returning-banner').style.display='flex';},1800);
-  }catch(e){if(e.message==='not_found')statusEl.textContent='â Name not found â you may not have submitted yet. Fill in the form below.';else statusEl.textContent='â Connection error â check your internet and try again.';}
+  }catch(e){if(e.message==='not_found')statusEl.textContent='❓ Name not found — you may not have submitted yet. Fill in the form below.';else statusEl.textContent='❌ Connection error — check your internet and try again.';}
 }
 function saveGuestLocally(g){try{localStorage.setItem('vv_my_profile',JSON.stringify(g));}catch(e){}}
 function loadGuestLocally(){try{const s=localStorage.getItem('vv_my_profile');return s?JSON.parse(s):null;}catch(e){return null;}}
 
-// ââââââââââââââââââââââââ
-// prefillForm â BUG FIXED
-// Removed undefined variable 'section' â was causing ReferenceError crash
-// ââââââââââââââââââââââââ
+// ════════════════════════
+// prefillForm — BUG FIXED
+// Removed undefined variable 'section' — was causing ReferenceError crash
+// ════════════════════════
 function prefillForm(g){
   if(!g)return;
   currentTripSection=g.tripSection||(g.goingValbonne?'both':'bruges');
@@ -926,9 +899,9 @@ function prefillForm(g){
   document.getElementById('bruges-dep-section').style.display=currentTripSection==='bruges'?'':'none';
   document.getElementById('valbonne-section').style.display=currentTripSection==='bruges'?'none':'';
   const isVOnly=currentTripSection==='valbonne';
-  document.getElementById('nice-card-title').textContent=isVOnly?'âï¸ Flying to Nice â Jun 22':'âï¸ Bruges â Nice â Jun 22';
+  document.getElementById('nice-card-title').textContent=isVOnly?'✈️ Flying to Nice – Jun 22':'✈️ Bruges → Nice – Jun 22';
   document.getElementById('nice-section-label').textContent=isVOnly?'Arriving in Nice':'Flying to Nice';
-  // FIX: was (isVOnly || section === 'both' || currentTripSection === 'both') â 'section' is undefined here
+  // FIX: was (isVOnly || section === 'both' || currentTripSection === 'both') — 'section' is undefined here
   document.getElementById('dep-from-field').style.display=(isVOnly||currentTripSection==='both')?'':'none';
   document.getElementById('dep-from-label').textContent=isVOnly?'Flying From (airport)':'Departing From (Belgian airport)';
   const set=(id,val)=>{const el=document.getElementById(id);if(el&&val!=null)el.value=val;};
@@ -952,7 +925,7 @@ async function viewReturningItinerary(){
   prefillForm(g);
   document.getElementById('returning-banner').style.display='none';
   try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
-  catch(e){console.error('buildItinerary error:',e);document.getElementById('modal-itinerary').innerHTML='<div style="padding:2rem;color:#c0392b">â ï¸ Couldn\'t load itinerary. Please tap "Update details" and re-submit.</div>';document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  catch(e){console.error('buildItinerary error:',e);document.getElementById('modal-itinerary').innerHTML='<div style="padding:2rem;color:#c0392b">⚠️ Couldn\'t load itinerary. Please tap "Update details" and re-submit.</div>';document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
   scheduleActivityReminders(g);
 }
 function dismissReturning(){document.getElementById('returning-banner').style.display='none';const g=loadGuestLocally();if(g)prefillForm(g);}
@@ -963,14 +936,14 @@ function checkOnLoad(){
   if(g&&g.name){document.getElementById('rb-name').textContent=g.name;document.getElementById('returning-banner').style.display='flex';scheduleActivityReminders(g);}
   else{document.getElementById('returning-lookup-card').style.display='block';}
 }
-async function refreshGuestFlightData(g){if(!RAPIDAPI_KEY)return g;if(g.arrMode==='train'||!g.arrFlight||g.arrFlight==='â')return g;try{const num=g.arrFlight.replace(/\s+/g,''),date=g.arrDate||'2026-06-19';const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});if(!resp.ok)return g;const data=await resp.json();if(!data?.length)return g;const flight=data[0],parseTime=t=>{if(!t)return null;const m=t.match(/[\sT](\d{2}:\d{2})/);return m?m[1]:null;};const arrName=flight.arrival?.airport?.name||flight.arrival?.airport?.iata||'';const arrTime=parseTime(flight.arrival?.scheduledTime?.local)||parseTime(flight.arrival?.scheduledTime?.utc);const depName=flight.departure?.airport?.name||flight.departure?.airport?.iata||'';return{...g,arrTo:arrName||g.arrTo,arrFrom:depName||g.arrFrom,arrTime:arrTime||g.arrTime};}catch(e){return g;}}
-async function refreshAllGuests(){const statusEl=document.getElementById('refresh-all-status');if(!RAPIDAPI_KEY){statusEl.textContent='â ï¸ No RapidAPI key saved â please enter it above first.';return;}if(!firebaseReady){statusEl.textContent='â ï¸ Not connected to Firebase.';return;}statusEl.textContent='ð Loading guestsâ¦';const allGuests=await fbGet('guests');if(!allGuests){statusEl.textContent='â No guests found.';return;}const entries=Object.entries(allGuests);let updated=0,skipped=0;statusEl.textContent=`ð Processing 0 / ${entries.length}â¦`;for(let i=0;i<entries.length;i++){const[key,g]=entries[i];statusEl.textContent=`ð Processing ${i+1} / ${entries.length} â ${g.name||'unknown'}â¦`;const refreshed=await refreshGuestFlightData({key,...g});const changed=refreshed.arrTo!==g.arrTo||refreshed.arrFrom!==g.arrFrom||refreshed.arrTime!==g.arrTime;if(changed){await fbSave('guests/'+key,refreshed);updated++;}else{skipped++;}await new Promise(r=>setTimeout(r,400));}statusEl.innerHTML=`â Done! <strong>${updated}</strong> updated, ${skipped} already current.`;}
+async function refreshGuestFlightData(g){if(!RAPIDAPI_KEY)return g;if(g.arrMode==='train'||!g.arrFlight||g.arrFlight==='—')return g;try{const num=g.arrFlight.replace(/\s+/g,''),date=g.arrDate||'2026-06-19';const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});if(!resp.ok)return g;const data=await resp.json();if(!data?.length)return g;const flight=data[0],parseTime=t=>{if(!t)return null;const m=t.match(/[\sT](\d{2}:\d{2})/);return m?m[1]:null;};const arrName=flight.arrival?.airport?.name||flight.arrival?.airport?.iata||'';const arrTime=parseTime(flight.arrival?.scheduledTime?.local)||parseTime(flight.arrival?.scheduledTime?.utc);const depName=flight.departure?.airport?.name||flight.departure?.airport?.iata||'';return{...g,arrTo:arrName||g.arrTo,arrFrom:depName||g.arrFrom,arrTime:arrTime||g.arrTime};}catch(e){return g;}}
+async function refreshAllGuests(){const statusEl=document.getElementById('refresh-all-status');if(!RAPIDAPI_KEY){statusEl.textContent='⚠️ No RapidAPI key saved — please enter it above first.';return;}if(!firebaseReady){statusEl.textContent='⚠️ Not connected to Firebase.';return;}statusEl.textContent='🔄 Loading guests…';const allGuests=await fbGet('guests');if(!allGuests){statusEl.textContent='❌ No guests found.';return;}const entries=Object.entries(allGuests);let updated=0,skipped=0;statusEl.textContent=`🔄 Processing 0 / ${entries.length}…`;for(let i=0;i<entries.length;i++){const[key,g]=entries[i];statusEl.textContent=`🔄 Processing ${i+1} / ${entries.length} — ${g.name||'unknown'}…`;const refreshed=await refreshGuestFlightData({key,...g});const changed=refreshed.arrTo!==g.arrTo||refreshed.arrFrom!==g.arrFrom||refreshed.arrTime!==g.arrTime;if(changed){await fbSave('guests/'+key,refreshed);updated++;}else{skipped++;}await new Promise(r=>setTimeout(r,400));}statusEl.innerHTML=`✅ Done! <strong>${updated}</strong> updated, ${skipped} already current.`;}
 function checkIOSInstall(){const isIOSDevice=/iphone|ipad|ipod/i.test(navigator.userAgent),isInstalled=window.navigator.standalone===true,dismissed=localStorage.getItem('ios_banner_ok');if(isIOSDevice&&!isInstalled&&!dismissed)setTimeout(()=>{document.getElementById('ios-banner').style.display='block';},2500);}
 function dismissIOSBanner(permanent){document.getElementById('ios-banner').style.display='none';if(permanent)localStorage.setItem('ios_banner_ok','1');}
-// ââââââââââââââââââââââââ
-// ACTIVITY REMINDERS â 30-min local notifications
+// ════════════════════════
+// ACTIVITY REMINDERS — 30-min local notifications
 // Fires for all of today's relevant activities; rescheduled on every load + activity update
-// ââââââââââââââââââââââââ
+// ════════════════════════
 let _notifyTimers = [];
 function clearReminders(){ _notifyTimers.forEach(t=>clearTimeout(t)); _notifyTimers=[]; }
 
@@ -996,8 +969,8 @@ function scheduleActivityReminders(g){
   });
   // Add personal departure activities for day 3
   if(todayTripDay===3 && g.tripSection!=='valbonne'){
-    if(g.tripSection==='both'&&g.depTime) todayActs.push({time:g.depTime,title:`Fly to Nice â ${g.depFlight||''}`,icon:'âï¸'});
-    else if(g.tripSection==='bruges'&&g.brugesDepTime) todayActs.push({time:g.brugesDepTime,title:`Your departure${g.brugesDepRef&&g.brugesDepRef!=='â'?' â '+g.brugesDepRef:''}`,icon:g.brugesDepMode==='train'?'ð':'âï¸'});
+    if(g.tripSection==='both'&&g.depTime) todayActs.push({time:g.depTime,title:`Fly to Nice – ${g.depFlight||''}`,icon:'✈️'});
+    else if(g.tripSection==='bruges'&&g.brugesDepTime) todayActs.push({time:g.brugesDepTime,title:`Your departure${g.brugesDepRef&&g.brugesDepRef!=='—'?' – '+g.brugesDepRef:''}`,icon:g.brugesDepMode==='train'?'🚂':'✈️'});
   }
 
   let scheduled=0;
@@ -1010,7 +983,7 @@ function scheduleActivityReminders(g){
     if(msUntil<=0) return;
     const timer=setTimeout(()=>{
       try{
-        new Notification(`â° In 30 min: ${act.title||'Activity'}`,{
+        new Notification(`⏰ In 30 min: ${act.title||'Activity'}`,{
           body:(act.note||'').replace(/\{[^}]+\}/g,'').trim().slice(0,120),
           icon:'./icons/icon-192.png',
           tag:`vv-${todayTripDay}-${act.time}`,
@@ -1024,9 +997,9 @@ function scheduleActivityReminders(g){
   if(scheduled) console.log(`VV: ${scheduled} reminder(s) scheduled for today.`);
 }
 
-// ââââââââââââââââââââââââ
-// TRANSPORT OVERRIDE â organiser fills in transport for guests who left fields blank
-// ââââââââââââââââââââââââ
+// ════════════════════════
+// TRANSPORT OVERRIDE — organiser fills in transport for guests who left fields blank
+// ════════════════════════
 function openTransportModal(guestKey, guestName, existing){
   document.getElementById('transport-guest-key').value=guestKey;
   document.getElementById('transport-guest-name').textContent=guestName;
