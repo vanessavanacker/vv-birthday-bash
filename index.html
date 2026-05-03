@@ -827,31 +827,30 @@ function scheduleFlightLookup(key) {
 }
 
 async function autoLookupFlight(key) {
-  const map   = LOOKUP_MAP[key];
-  const num   = document.getElementById(map.flightId).value.trim().replace(/\s+/g,'');
-  const date  = document.getElementById(map.dateId)?.value || '2026-06-19';
-  const resEl = document.getElementById(key + '-lookup-result');
+  const map    = LOOKUP_MAP[key];
+  const num    = document.getElementById(map.flightId).value.trim().replace(/\s+/g,'');
+  const date   = document.getElementById(map.dateId)?.value || '2026-06-19';
+  const resEl  = document.getElementById(key + '-lookup-result');
   const isTrain = map.mode === 'train';
 
   try {
-    const endpoint = isTrain
-      ? `https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`
-      : `https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`;
+    const endpoint = `https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`;
 
     const resp = await fetch(endpoint, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
       headers: {
         'X-RapidAPI-Key':  RAPIDAPI_KEY,
         'X-RapidAPI-Host': 'aerodatabox.p.rapidapi.com'
       }
     });
 
-    if (!resp.ok) throw new Error('Not found');
+    if (!resp.ok) throw new Error('not_found');
     const data = await resp.json();
-    if (!data || !data.length) throw new Error('No results');
+    if (!data || !data.length) throw new Error('not_found');
 
     const flight  = data[0];
-    // AeroDataBox returns times as "2026-06-19 14:25+02:00" (space, not T)
-    // This regex handles both formats safely
     const parseTime = t => { if (!t) return null; const m = t.match(/[\sT](\d{2}:\d{2})/); return m ? m[1] : null; };
     const depTime = parseTime(flight.departure?.scheduledTime?.local) || parseTime(flight.departure?.scheduledTime?.utc);
     const arrTime = parseTime(flight.arrival?.scheduledTime?.local)   || parseTime(flight.arrival?.scheduledTime?.utc);
@@ -867,7 +866,13 @@ async function autoLookupFlight(key) {
     showLookup(resEl, `✅ ${depName} ${depTime||''} → ${arrName} ${arrTime||''}`.trim(), true);
 
   } catch(e) {
-    showLookup(resEl, '❓ Flight not found — please enter your arrival time manually below.', false);
+    // Distinguish between "flight not found" and a network/CORS block
+    if (e.message === 'not_found') {
+      showLookup(resEl, '❓ Flight not found — please enter times manually below.', false);
+    } else {
+      // Likely a CORS/network block (common in Safari with content blockers)
+      showLookup(resEl, '⚠️ Lookup blocked — Safari may have a content blocker active. Go to Settings → Safari → Extensions and disable any blockers, or enter times manually.', false);
+    }
   }
 }
 
