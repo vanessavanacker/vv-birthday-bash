@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>VV Birthday Bash Â· 2026</title>
+<title>VV Birthday Bash · 2026</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1208">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -215,36 +215,36 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 
 <!-- PHOTO TIP: Upload a bruges.jpg to your GitHub repo, then in CSS change header background to:
      background: linear-gradient(rgba(13,30,46,.7),rgba(26,18,8,.92)), url('./bruges.jpg') center/cover no-repeat; -->
-  <p>ð± Add to your home screen for quick access</p>
+  <p>📱 Add to your home screen for quick access</p>
   <button class="btn-install" onclick="installApp()">Add to Home Screen</button>
-  <button style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1.2rem" onclick="this.parentElement.style.display='none'">â</button>
+  <button style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1.2rem" onclick="this.parentElement.style.display='none'">✕</button>
 </div>
 <div id="firebase-bar"></div>
-<div id="update-banner" onclick="refreshItinerary()">â¨ The organiser has updated the schedule â tap to refresh your itinerary</div>
+<div id="update-banner" onclick="refreshItinerary()">✨ The organiser has updated the schedule — tap to refresh your itinerary</div>
 
 <header>
   <h1>VV <span>Birthday</span> Bash</h1>
-  <p>Jun 19 â 29 Â· 2026 Â· Your personalised itinerary</p>
+  <p>Jun 19 – 29 · 2026 · Your personalised itinerary</p>
   <div class="nav-tabs">
-    <button class="tab-btn active" id="tab-form" onclick="showPage('form',this)">ð My Itinerary</button>
-    <button class="tab-btn" id="tab-org" onclick="showPage('organiser',this)">ð Organiser</button>
+    <button class="tab-btn active" id="tab-form" onclick="showPage('form',this)">🎉 My Itinerary</button>
+    <button class="tab-btn" id="tab-org" onclick="showPage('organiser',this)">🗂 Organiser</button>
   </div>
 </header>
 
 <div class="container">
 
-<!-- ââ GUEST FORM ââ -->
+<!-- ══ GUEST FORM ══ -->
 <div class="page active" id="page-form">
   <div id="form-notice"></div>
   <div class="push-card" id="push-optin-card" style="display:none">
-    <div style="font-size:2rem">ð</div>
+    <div style="font-size:2rem">🔔</div>
     <div class="push-text" style="flex:1"><h4>Get day-of reminders</h4><p>Allow notifications and we'll ping you before dinners, transfers and activities.</p></div>
     <button class="btn-push" id="push-optin-btn" onclick="requestPush()">Enable Alerts</button>
   </div>
 
   <div class="section-label"><span class="dot"></span>Your Details</div>
   <div class="form-card">
-    <h3>ð¤ About You</h3>
+    <h3>👤 About You</h3>
     <div class="form-grid">
       <div class="field"><label>Your Name *</label><input type="text" id="name" placeholder="e.g. Sarah Johnson"></div>
       <div class="field"><label>Email (optional)</label><input type="email" id="email" placeholder="sarah@email.com"></div>
@@ -253,11 +253,11 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 
   <div class="section-label"><span class="dot"></span>Arriving in Bruges</div>
   <div class="form-card">
-    <h3>ð§ðª Bruges Arrival â Jun 19</h3>
-    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">âï¸ You're departing the US on <strong>Jun 18</strong> and landing in <strong>Belgium on Jun 19</strong> â enter your landing details below.</p>
+    <h3>🇧🇪 Bruges Arrival – Jun 19</h3>
+    <p style="font-size:.8rem;background:rgba(201,146,58,.1);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;color:var(--rust)">✈️ You're departing the US on <strong>Jun 18</strong> and landing in <strong>Belgium on Jun 19</strong> — enter your landing details below.</p>
     <div class="mode-selector">
-      <button class="mode-btn active" onclick="setMode('arr','flight',this)">âï¸ Flight</button>
-      <button class="mode-btn" onclick="setMode('arr','train',this)">ð Train</button>
+      <button class="mode-btn active" onclick="setMode('arr','flight',this)">✈️ Flight</button>
+      <button class="mode-btn" onclick="setMode('arr','train',this)">🚂 Train</button>
     </div>
 
     <!-- FLIGHT -->
@@ -269,7 +269,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="field" style="margin:0">
               <input type="text" id="arrFlight" placeholder="e.g. BA 256" oninput="scheduleFlightLookup('arr')">
             </div>
-            <button class="btn-lookup" onclick="lookupFlight('arr')">ð Look up â</button>
+            <button class="btn-lookup" onclick="lookupFlight('arr')">🔍 Look up →</button>
           </div>
           <div class="lookup-result" id="arr-lookup-result"></div>
         </div>
@@ -288,7 +288,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="field" style="margin:0">
               <input type="text" id="arrTrainNum" placeholder="e.g. Eurostar 9114" oninput="scheduleFlightLookup('train')">
             </div>
-            <button class="btn-lookup" onclick="lookupFlight('train')">ð Look up â</button>
+            <button class="btn-lookup" onclick="lookupFlight('train')">🔍 Look up →</button>
           </div>
           <div class="lookup-result" id="train-lookup-result"></div>
         </div>
@@ -304,8 +304,8 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     <div class="toggle-row" onclick="toggleValbonne(event)">
       <input type="checkbox" id="goingValbonne" checked onclick="event.stopPropagation();syncValbonne()">
       <div>
-        <label for="goingValbonne">I'm continuing to Valbonne, CÃ´te d'Azur ð«ð·</label>
-        <div class="sub">Jun 22 â 27 Â· House in Valbonne</div>
+        <label for="goingValbonne">I'm continuing to Valbonne, Côte d'Azur 🇫🇷</label>
+        <div class="sub">Jun 22 – 27 · House in Valbonne</div>
       </div>
     </div>
   </div>
@@ -313,7 +313,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   <div id="valbonne-section">
     <div class="section-label"><span class="dot"></span>Flying to Nice</div>
     <div class="form-card">
-      <h3>âï¸ Bruges â Nice â Jun 22</h3>
+      <h3>✈️ Bruges → Nice – Jun 22</h3>
       <div class="form-grid">
         <div class="field">
           <label>Flight Number</label>
@@ -321,7 +321,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="field" style="margin:0">
               <input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')">
             </div>
-            <button class="btn-lookup" onclick="lookupFlight('dep')">ð Look up â</button>
+            <button class="btn-lookup" onclick="lookupFlight('dep')">🔍 Look up →</button>
           </div>
           <div class="lookup-result" id="dep-lookup-result"></div>
         </div>
@@ -333,7 +333,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div class="toggle-row" onclick="toggleRental(event)">
         <input type="checkbox" id="hasRental" onclick="event.stopPropagation();syncRental()">
         <div>
-          <label for="hasRental">I have a rental car in Valbonne ð</label>
+          <label for="hasRental">I have a rental car in Valbonne 🚗</label>
           <div class="sub">Your itinerary will show self-drive notes instead of group transfers</div>
         </div>
       </div>
@@ -348,7 +348,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 
     <div class="section-label"><span class="dot"></span>Flying Home</div>
     <div class="form-card">
-      <h3>ð  Return from Nice</h3>
+      <h3>🏠 Return from Nice</h3>
       <div class="form-grid">
         <div class="field">
           <label>Flight Number</label>
@@ -356,7 +356,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
             <div class="field" style="margin:0">
               <input type="text" id="retFlight" placeholder="e.g. BA 2744" oninput="scheduleFlightLookup('ret')">
             </div>
-            <button class="btn-lookup" onclick="lookupFlight('ret')">ð Look up â</button>
+            <button class="btn-lookup" onclick="lookupFlight('ret')">🔍 Look up →</button>
           </div>
           <div class="lookup-result" id="ret-lookup-result"></div>
         </div>
@@ -368,17 +368,17 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   </div>
 
   <div class="form-card">
-    <h3>ð Notes for the organiser</h3>
-    <div class="field"><label>Dietary needs, late arrivals, anything elseâ¦</label><textarea id="notes" placeholder="e.g. vegetarian, nut allergy, arriving late on Jun 19â¦"></textarea></div>
+    <h3>📝 Notes for the organiser</h3>
+    <div class="field"><label>Dietary needs, late arrivals, anything else…</label><textarea id="notes" placeholder="e.g. vegetarian, nut allergy, arriving late on Jun 19…"></textarea></div>
   </div>
-  <button class="btn btn-primary" onclick="submitAndGenerate()">ð Generate My Itinerary & Submit</button>
+  <button class="btn btn-primary" onclick="submitAndGenerate()">🎉 Generate My Itinerary & Submit</button>
 </div>
 
-<!-- ââ ORGANISER ââ -->
+<!-- ══ ORGANISER ══ -->
 <div class="page" id="page-organiser">
   <div id="login-panel">
     <div class="login-wrap">
-      <div style="font-size:3rem;text-align:center;margin-bottom:1rem">ð</div>
+      <div style="font-size:3rem;text-align:center;margin-bottom:1rem">🔐</div>
       <div class="section-label" style="justify-content:center"><span class="dot"></span>Organiser Access</div>
       <div class="form-card">
         <div class="field"><label>Password</label>
@@ -393,9 +393,9 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
   <div id="dashboard-panel" style="display:none">
     <div class="section-label"><span class="dot"></span>Organiser Dashboard</div>
     <div class="sub-tab-bar">
-      <button class="sub-tab active" onclick="showOrgTab('guests',this)">ð¥ Guests</button>
-      <button class="sub-tab" onclick="showOrgTab('activities',this)">ð Edit Schedule</button>
-      <button class="sub-tab" onclick="showOrgTab('push',this)">ð Push Alerts</button>
+      <button class="sub-tab active" onclick="showOrgTab('guests',this)">👥 Guests</button>
+      <button class="sub-tab" onclick="showOrgTab('activities',this)">📋 Edit Schedule</button>
+      <button class="sub-tab" onclick="showOrgTab('push',this)">🔔 Push Alerts</button>
     </div>
 
     <!-- GUESTS TAB -->
@@ -403,9 +403,9 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div class="dash-header">
         <div style="font-size:.9rem;font-weight:600">All Submissions</div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-          <button class="btn btn-secondary btn-sm" onclick="exportCSV()">â¬ CSV</button>
-          <button class="btn btn-secondary btn-sm" onclick="renderGuestDashboard()">â» Refresh</button>
-          <button class="btn btn-danger btn-sm" onclick="clearAllGuests()">ð Clear all</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="renderGuestDashboard()">↻ Refresh</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllGuests()">🗑 Clear all</button>
         </div>
       </div>
       <div class="stat-strip" id="stat-strip"></div>
@@ -419,32 +419,32 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
           <div style="font-size:.75rem;opacity:.55;margin-top:.15rem">Changes publish instantly to all guests</div></div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" onclick="addActivity()">+ Add</button>
-          <button class="btn btn-secondary btn-sm" onclick="resetActivities()">â© Defaults</button>
-          <button class="btn btn-gold btn-sm" onclick="saveActivities()" id="save-act-btn">ð¾ Save & Publish</button>
+          <button class="btn btn-secondary btn-sm" onclick="resetActivities()">↩ Defaults</button>
+          <button class="btn btn-gold btn-sm" onclick="saveActivities()" id="save-act-btn">💾 Save & Publish</button>
         </div>
       </div>
-      <div id="unsaved-notice" style="display:none" class="notice notice-warn">â ï¸ Unsaved changes â click <strong>Save & Publish</strong> to push to all guests.</div>
+      <div id="unsaved-notice" style="display:none" class="notice notice-warn">⚠️ Unsaved changes — click <strong>Save & Publish</strong> to push to all guests.</div>
       <div id="act-editor-list"></div>
     </div>
 
     <!-- PUSH TAB -->
     <div class="org-tab" id="org-tab-push">
       <div class="push-org-card">
-        <h4>ð£ Send a Push Notification</h4>
+        <h4>📣 Send a Push Notification</h4>
         <p style="font-size:.82rem;opacity:.6;margin-bottom:1rem">Send a reminder to all guests who have enabled notifications.</p>
         <div class="form-grid" style="margin-bottom:.9rem">
           <div class="field"><label>Title</label><input type="text" id="push-title" placeholder="e.g. Reminder"></div>
           <div class="field"><label>Message</label><input type="text" id="push-body" placeholder="e.g. Dinner at Zuma at 7pm tonight!"></div>
         </div>
-        <button class="btn btn-gold" onclick="sendPushNotification()" style="width:auto">ð£ Send to All Guests</button>
+        <button class="btn btn-gold" onclick="sendPushNotification()" style="width:auto">📣 Send to All Guests</button>
         <div id="push-send-result" style="margin-top:.8rem;font-size:.82rem"></div>
       </div>
       <div class="push-org-card">
-        <h4>âï¸ Auto Flight Lookup</h4>
+        <h4>✈️ Auto Flight Lookup</h4>
         <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">
           Guests type their flight number and times fill in automatically. Requires a free
           <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month).<br>
-          Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com â AeroDataBox â Subscribe Free</a>
+          Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com → AeroDataBox → Subscribe Free</a>
         </p>
         <div class="field">
           <label>RapidAPI Key</label>
@@ -467,11 +467,11 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 <!-- ITINERARY MODAL -->
 <div id="modal-overlay">
   <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">â</button>
+    <button class="modal-close" onclick="closeModal()">✕</button>
     <div id="modal-itinerary"></div>
     <div class="modal-actions">
-      <button class="print-btn" onclick="window.print()">ð¨ï¸ Print / Save as PDF</button>
-      <button class="print-btn" onclick="closeModal()">â Edit Details</button>
+      <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="print-btn" onclick="closeModal()">← Edit Details</button>
     </div>
   </div>
 </div>
@@ -484,20 +484,20 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     <div class="form-grid" style="margin-bottom:.9rem">
       <div class="field"><label>Day</label>
         <select id="act-day">
-          <option value="0">Day 0 â Jun 19 (Arrival)</option>
-          <option value="1">Day 1 â Jun 20 (Bikes/Damme)</option>
-          <option value="2">Day 2 â Jun 21 (Ypres)</option>
-          <option value="3">Day 3 â Jun 22 (Travel)</option>
-          <option value="4">Day 4 â Jun 23 (Valbonne)</option>
-          <option value="5">Day 5 â Jun 24 (Zuma)</option>
-          <option value="6">Day 6 â Jun 25 (Free)</option>
-          <option value="7">Day 7 â Jun 26 (Medusa)</option>
-          <option value="8">Day 8 â Jun 27 (Chef)</option>
+          <option value="0">Day 0 – Jun 19 (Arrival)</option>
+          <option value="1">Day 1 – Jun 20 (Bikes/Damme)</option>
+          <option value="2">Day 2 – Jun 21 (Ypres)</option>
+          <option value="3">Day 3 – Jun 22 (Travel)</option>
+          <option value="4">Day 4 – Jun 23 (Valbonne)</option>
+          <option value="5">Day 5 – Jun 24 (Zuma)</option>
+          <option value="6">Day 6 – Jun 25 (Free)</option>
+          <option value="7">Day 7 – Jun 26 (Medusa)</option>
+          <option value="8">Day 8 – Jun 27 (Chef)</option>
         </select>
       </div>
       <div class="field"><label>Time (HH:MM or CHECK_ARR / CHECK_OUT / CHECK_DEP / NICE_ARR / FREE / EVENING)</label>
         <input type="text" id="act-time" placeholder="e.g. 19:00 or FREE"></div>
-      <div class="field"><label>Icon (emoji)</label><input type="text" id="act-icon" placeholder="ð½ï¸" maxlength="4"></div>
+      <div class="field"><label>Icon (emoji)</label><input type="text" id="act-icon" placeholder="🍽️" maxlength="4"></div>
       <div class="field"><label>Type</label>
         <select id="act-type">
           <option value="activity">Activity</option>
@@ -510,7 +510,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
     </div>
     <div class="field" style="margin-bottom:.9rem"><label>Title</label><input type="text" id="act-title" placeholder="e.g. Dinner at Zuma"></div>
-    <div class="field" style="margin-bottom:.9rem"><label>Description</label><textarea id="act-note" placeholder="Details for guestsâ¦"></textarea></div>
+    <div class="field" style="margin-bottom:.9rem"><label>Description</label><textarea id="act-note" placeholder="Details for guests…"></textarea></div>
     <div class="field" style="margin-bottom:.9rem"><label>Address (adds a Maps link)</label><input type="text" id="act-address" placeholder="e.g. Langestraat 11, 8000 Bruges"></div>
     <div class="field" style="margin-bottom:1.2rem"><label>Show for</label>
       <div class="tag-checkboxes">
@@ -522,7 +522,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       </div>
     </div>
     <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="saveActivityEdit()">ð¾ Save Activity</button>
+      <button class="btn btn-gold" onclick="saveActivityEdit()">💾 Save Activity</button>
       <button class="btn btn-secondary" onclick="closeActModal()">Cancel</button>
     </div>
   </div>
@@ -531,17 +531,17 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 <!-- PICKUP ASSIGNMENT MODAL -->
 <div id="pickup-modal-overlay">
   <div class="act-modal">
-    <h3>ð Assign Pickup â <span id="pickup-guest-name-display" style="color:var(--gold)"></span></h3>
+    <h3>🚗 Assign Pickup — <span id="pickup-guest-name-display" style="color:var(--gold)"></span></h3>
     <input type="hidden" id="pickup-guest-key">
     <input type="hidden" id="pickup-edit-index">
     <div class="form-grid" style="margin-bottom:.9rem">
       <div class="field"><label>Day</label>
         <select id="pickup-day">
-          <option value="0">Jun 19 â Arrival day</option>
+          <option value="0">Jun 19 – Arrival day</option>
           <option value="1">Jun 20</option>
-          <option value="2">Jun 21 â Ypres</option>
-          <option value="3">Jun 22 â Travel day</option>
-          <option value="4">Jun 23 â Valbonne</option>
+          <option value="2">Jun 21 – Ypres</option>
+          <option value="3">Jun 22 – Travel day</option>
+          <option value="4">Jun 23 – Valbonne</option>
           <option value="5">Jun 24</option>
           <option value="6">Jun 25</option>
           <option value="7">Jun 26</option>
@@ -549,24 +549,24 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
         </select>
       </div>
       <div class="field"><label>Pickup Time</label><input type="time" id="pickup-time"></div>
-      <div class="field"><label>Vehicle / Driver</label><input type="text" id="pickup-vehicle" placeholder="e.g. Car 1 â James Â· White Mercedes"></div>
+      <div class="field"><label>Vehicle / Driver</label><input type="text" id="pickup-vehicle" placeholder="e.g. Car 1 – James · White Mercedes"></div>
       <div class="field"><label>Meeting Point</label><input type="text" id="pickup-location" placeholder="e.g. Hotel De Tuilerieen entrance"></div>
     </div>
     <div class="field" style="margin-bottom:1.2rem">
       <label>Note for guest</label>
-      <textarea id="pickup-note" placeholder="e.g. White Mercedes, plate ABC 123. James' number: +32 â¦"></textarea>
+      <textarea id="pickup-note" placeholder="e.g. White Mercedes, plate ABC 123. James' number: +32 …"></textarea>
     </div>
     <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="savePickup()">ð¾ Save Pickup</button>
+      <button class="btn btn-gold" onclick="savePickup()">💾 Save Pickup</button>
       <button class="btn btn-secondary" onclick="closePickupModal()">Cancel</button>
     </div>
   </div>
 </div>
 
 <script>
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // CONFIGURATION
-// ââââââââââââââââââââââââ
+// ════════════════════════
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyDZbzqN5H26wyem0TxljF_smRuAur5tg2o",
   authDomain:        "vv-birthday-bash.firebaseapp.com",
@@ -578,53 +578,53 @@ const FIREBASE_CONFIG = {
 };
 let ONESIGNAL_APP_ID  = "";
 let ONESIGNAL_API_KEY = "";
-let RAPIDAPI_KEY      = ""; // â Add your RapidAPI key here for auto flight lookup (Organiser â Settings)
+let RAPIDAPI_KEY      = ""; // ← Add your RapidAPI key here for auto flight lookup (Organiser → Settings)
 const ORG_PASSWORD = 'vvbash2026';
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // DEFAULT ACTIVITIES
-// ââââââââââââââââââââââââ
+// ════════════════════════
 const DEFAULT_ACTIVITIES = [
-  {day:0,time:'CHECK_ARR',title:'Arrive & check in â De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'ð¨',tags:[]},
-  {day:0,time:'14:30',title:'Group Pickup',note:'Meet in the hotel lobby at 14:30.',type:'transport',icon:'ð',tags:[]},
-  {day:0,time:'15:30',title:'Shoe Factory Visit',note:'Behind-the-scenes tour. Comfortable shoes advised!',type:'activity',icon:'ð',tags:[]},
-  {day:0,time:'16:30',title:'ApÃ©ro',note:'Drinks & nibbles after the tour. Cheers! ð»',type:'food',icon:'ð¥',tags:[]},
-  {day:0,time:'19:00',title:'Transfer back to hotel',note:'Transfer departs at 19:00 sharp.',type:'transport',icon:'ð',tags:[]},
-  {day:1,time:'13:30',title:'Meet at Bike Rental',note:'Meet the group at the bike rental. Helmets available.',type:'transport',icon:'ð²',tags:[]},
-  {day:1,time:'13:45',title:'Bike Ride to Damme',note:'Scenic 7 km ride along the canal. Easy, flat route.',type:'activity',icon:'ð¾',tags:[]},
-  {day:1,time:'16:00',title:'Beer Tasting',note:"Sample Belgium's finest brews.",type:'food',icon:'ðº',tags:[]},
-  {day:1,time:'19:00',title:"Dinner at Zet'joe",note:"Langestraat 11, 8000 Bruges. Michelin â â Chef Geert Van Hecke.",address:'Langestraat 11, 8000 Bruges, Belgium',type:'food',icon:'ð½ï¸',tags:[]},
-  {day:1,time:'22:00',title:'Drinks at Oswald',note:'Great cocktails. Bruges city centre.',type:'activity',icon:'ð¸',tags:[]},
-  {day:2,time:'09:00',title:'Coach to Ypres',note:'Departs hotel. Bring comfortable shoes and a jacket.',type:'transport',icon:'ð',tags:[]},
-  {day:2,time:'10:30',title:'Day Trip â Ypres (Ieper)',note:'In Flanders Fields Museum: Grote Markt 34. Menin Gate: Menenstraat.',address:'Grote Markt 34, 8900 Ieper, Belgium',type:'activity',icon:'ðï¸',tags:[]},
-  {day:2,time:'13:00',title:'Lunch in Ypres',note:'Free time for lunch in the market square.',type:'food',icon:'ð¥',tags:[]},
-  {day:2,time:'20:00',title:'Last Post Ceremony',note:'Optional: Menin Gate, nightly at 20:00.',address:'Menenstraat, 8900 Ieper, Belgium',type:'activity',icon:'ðº',tags:[]},
-  {day:2,time:'21:00',title:'Return to Bruges',note:'Transfer back to De Tuilerieen.',type:'transport',icon:'ð',tags:[]},
-  {day:3,time:'CHECK_OUT',title:'Check out â De Tuilerieen',note:'By 11:00. Luggage storage available.',type:'hotel',icon:'ð¨',tags:[]},
-  {day:3,time:'CHECK_DEP',title:'Depart â {depFlight}',note:'Transfer to airport ~3 hrs before your flight ({depTime}).',type:'flight',icon:'âï¸',tags:['valbonne']},
-  {day:3,time:'NICE_ARR',title:'Arrive Nice',note:'Landing at {niceArrTime}. Clear customs and collect bags.',type:'flight',icon:'âï¸',tags:['valbonne']},
-  {day:3,time:'NICE_ARR',title:'Pick up rental â {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'ð',tags:['rental']},
-  {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'ð',tags:['valbonne','no-rental']},
-  {day:3,time:'EVENING',title:'Settle in â House in Valbonne',note:"Get settled and relax. âï¸ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'ð¡',tags:['valbonne']},
-  {day:3,time:'CHECK_DEP',title:'Depart â {depFlight}',note:"Safe travels home! Flight {depFlight} at {depTime}.",type:'flight',icon:'âï¸',tags:['bruges-only']},
-  {day:4,time:'FREE',title:'Free Day â Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'ð´',tags:['valbonne']},
-  {day:5,time:'FREE',title:'Free Day',note:'Beach, pool, or explore at your own pace.',type:'free',icon:'ðï¸',tags:['valbonne']},
-  {day:5,time:'18:30',title:'Drive to Cannes',note:'~25 min. Parking near Palais des Festivals.',type:'transport',icon:'ð',tags:['rental']},
-  {day:5,time:'18:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'ð',tags:['valbonne','no-rental']},
-  {day:5,time:'19:00',title:'Dinner at Zuma, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Modern Japanese. Smart dress.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'ð£',tags:['valbonne']},
-  {day:6,time:'FREE',title:'Free Day',note:'Antibes, Nice, Monaco â or stay by the pool.',type:'free',icon:'ð',tags:['valbonne']},
-  {day:7,time:'FREE',title:'Free Day',note:"Last full free day. Soak it all in.",type:'free',icon:'ð',tags:['valbonne']},
-  {day:7,time:'20:30',title:'Drive to Cannes',note:'~25 min. Dinner at 21:00.',type:'transport',icon:'ð',tags:['rental']},
-  {day:7,time:'20:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'ð',tags:['valbonne','no-rental']},
-  {day:7,time:'21:00',title:'Dinner at Medusa, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Cabaret & dining.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'ð¦',tags:['valbonne']},
-  {day:8,time:'19:00',title:'Private Chef Dinner at the House',note:'A private chef cooks for the whole group tonight. ð',type:'food',icon:'ð¨âð³',tags:['valbonne']},
+  {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
+  {day:0,time:'14:30',title:'Group Pickup',note:'Meet in the hotel lobby at 14:30.',type:'transport',icon:'🚌',tags:[]},
+  {day:0,time:'15:30',title:'Shoe Factory Visit',note:'Behind-the-scenes tour. Comfortable shoes advised!',type:'activity',icon:'👟',tags:[]},
+  {day:0,time:'16:30',title:'Apéro',note:'Drinks & nibbles after the tour. Cheers! 🍻',type:'food',icon:'🥂',tags:[]},
+  {day:0,time:'19:00',title:'Transfer back to hotel',note:'Transfer departs at 19:00 sharp.',type:'transport',icon:'🚌',tags:[]},
+  {day:1,time:'13:30',title:'Meet at Bike Rental',note:'Meet the group at the bike rental. Helmets available.',type:'transport',icon:'🚲',tags:[]},
+  {day:1,time:'13:45',title:'Bike Ride to Damme',note:'Scenic 7 km ride along the canal. Easy, flat route.',type:'activity',icon:'🌾',tags:[]},
+  {day:1,time:'16:00',title:'Beer Tasting',note:"Sample Belgium's finest brews.",type:'food',icon:'🍺',tags:[]},
+  {day:1,time:'19:00',title:"Dinner at Zet'joe",note:"Langestraat 11, 8000 Bruges. Michelin ★ — Chef Geert Van Hecke.",address:'Langestraat 11, 8000 Bruges, Belgium',type:'food',icon:'🍽️',tags:[]},
+  {day:1,time:'22:00',title:'Drinks at Oswald',note:'Great cocktails. Bruges city centre.',type:'activity',icon:'🍸',tags:[]},
+  {day:2,time:'09:00',title:'Coach to Ypres',note:'Departs hotel. Bring comfortable shoes and a jacket.',type:'transport',icon:'🚌',tags:[]},
+  {day:2,time:'10:30',title:'Day Trip – Ypres (Ieper)',note:'In Flanders Fields Museum: Grote Markt 34. Menin Gate: Menenstraat.',address:'Grote Markt 34, 8900 Ieper, Belgium',type:'activity',icon:'🏛️',tags:[]},
+  {day:2,time:'13:00',title:'Lunch in Ypres',note:'Free time for lunch in the market square.',type:'food',icon:'🥗',tags:[]},
+  {day:2,time:'20:00',title:'Last Post Ceremony',note:'Optional: Menin Gate, nightly at 20:00.',address:'Menenstraat, 8900 Ieper, Belgium',type:'activity',icon:'🎺',tags:[]},
+  {day:2,time:'21:00',title:'Return to Bruges',note:'Transfer back to De Tuilerieen.',type:'transport',icon:'🚌',tags:[]},
+  {day:3,time:'CHECK_OUT',title:'Check out – De Tuilerieen',note:'By 11:00. Luggage storage available.',type:'hotel',icon:'🏨',tags:[]},
+  {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:'Transfer to airport ~3 hrs before your flight ({depTime}).',type:'flight',icon:'✈️',tags:['valbonne']},
+  {day:3,time:'NICE_ARR',title:'Arrive Nice',note:'Landing at {niceArrTime}. Clear customs and collect bags.',type:'flight',icon:'✈️',tags:['valbonne']},
+  {day:3,time:'NICE_ARR',title:'Pick up rental – {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'🚗',tags:['rental']},
+  {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'🚐',tags:['valbonne','no-rental']},
+  {day:3,time:'EVENING',title:'Settle in – House in Valbonne',note:"Get settled and relax. ☀️ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'🏡',tags:['valbonne']},
+  {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:"Safe travels home! Flight {depFlight} at {depTime}.",type:'flight',icon:'✈️',tags:['bruges-only']},
+  {day:4,time:'FREE',title:'Free Day – Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'🌴',tags:['valbonne']},
+  {day:5,time:'FREE',title:'Free Day',note:'Beach, pool, or explore at your own pace.',type:'free',icon:'🏖️',tags:['valbonne']},
+  {day:5,time:'18:30',title:'Drive to Cannes',note:'~25 min. Parking near Palais des Festivals.',type:'transport',icon:'🚗',tags:['rental']},
+  {day:5,time:'18:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'🚕',tags:['valbonne','no-rental']},
+  {day:5,time:'19:00',title:'Dinner at Zuma, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Modern Japanese. Smart dress.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'🍣',tags:['valbonne']},
+  {day:6,time:'FREE',title:'Free Day',note:'Antibes, Nice, Monaco — or stay by the pool.',type:'free',icon:'🌞',tags:['valbonne']},
+  {day:7,time:'FREE',title:'Free Day',note:"Last full free day. Soak it all in.",type:'free',icon:'🏊',tags:['valbonne']},
+  {day:7,time:'20:30',title:'Drive to Cannes',note:'~25 min. Dinner at 21:00.',type:'transport',icon:'🚗',tags:['rental']},
+  {day:7,time:'20:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'🚕',tags:['valbonne','no-rental']},
+  {day:7,time:'21:00',title:'Dinner at Medusa, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Cabaret & dining.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'🦑',tags:['valbonne']},
+  {day:8,time:'19:00',title:'Private Chef Dinner at the House',note:'A private chef cooks for the whole group tonight. 🎉',type:'food',icon:'👨‍🍳',tags:['valbonne']},
 ];
 
-const DAY_LABELS=['Day 1 â Arrival Â· Bruges','Day 2 â Bruges','Day 3 â Ypres',"Day 4 â Travel to CÃ´te d'Azur",'Day 5 â Valbonne','Day 6 â Valbonne','Day 7 â Valbonne','Day 8 â Valbonne','Day 9 â Last Night Â· Valbonne','Day 10 â Departures'];
+const DAY_LABELS=['Day 1 – Arrival · Bruges','Day 2 – Bruges','Day 3 – Ypres',"Day 4 – Travel to Côte d'Azur",'Day 5 – Valbonne','Day 6 – Valbonne','Day 7 – Valbonne','Day 8 – Valbonne','Day 9 – Last Night · Valbonne','Day 10 – Departures'];
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // STATE
-// ââââââââââââââââââââââââ
+// ════════════════════════
 let LIVE_ACTIVITIES = JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));
 let EDITED_ACTIVITIES = null;
 let db = null;
@@ -634,9 +634,9 @@ let deferredInstallPrompt = null;
 let currentArrMode = 'flight';
 let currentDepMode = 'flight'; // always flight for Nice leg
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // FIREBASE
-// ââââââââââââââââââââââââ
+// ════════════════════════
 function initFirebase() {
   if (!FIREBASE_CONFIG.apiKey) { showFirebaseBar('offline'); return; }
   try {
@@ -657,7 +657,7 @@ function initFirebase() {
 function showFirebaseBar(s) {
   const b = document.getElementById('firebase-bar');
   b.className = s === 'connected' ? 'fb-connected' : 'fb-offline';
-  b.textContent = s === 'connected' ? 'ð¥ Firebase connected â live updates enabled' : 'â ï¸ Running offline â Firebase not configured (see setup.md)';
+  b.textContent = s === 'connected' ? '🔥 Firebase connected — live updates enabled' : '⚠️ Running offline — Firebase not configured (see setup.md)';
   b.style.display = 'block';
   if (s === 'connected') setTimeout(() => b.style.display = 'none', 4000);
 }
@@ -666,9 +666,9 @@ async function fbPush(path, data) { if(!firebaseReady)return false; try{await db
 async function fbGet(path) { if(!firebaseReady)return null; try{const s=await db.ref(path).once('value');return s.val();}catch(e){return null;} }
 async function fbUpdate(path, data) { if(!firebaseReady)return false; try{await db.ref(path).update(data);return true;}catch(e){return false;} }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // FLIGHT LOOKUP (Claude API + web search)
-// ââââââââââââââââââââââââ
+// ════════════════════════
 const LOOKUP_MAP = {
   arr:   { flightId:'arrFlight',   dateId:'arrDate',      timeOutId:'arrTime',      arrTimeId:null,          fromId:'arrFrom',     toId:null,    mode:'flight' },
   dep:   { flightId:'depFlight',   dateId:'depDate',      timeOutId:'depTime',      arrTimeId:'niceArrTime', fromId:null,          toId:null,    mode:'flight' },
@@ -676,11 +676,11 @@ const LOOKUP_MAP = {
   train: { flightId:'arrTrainNum', dateId:'arrDateTrain', timeOutId:'arrTimeTrain', arrTimeId:null,          fromId:'arrTrainFrom',toId:null,    mode:'train'  },
 };
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // FLIGHT / TRAIN AUTO-LOOKUP
 // Uses AeroDataBox via RapidAPI (free 500/month)
 // Falls back to Flightradar24 link if no API key set
-// ââââââââââââââââââââââââ
+// ════════════════════════
 const lookupTimers = {};
 
 function scheduleFlightLookup(key) {
@@ -693,7 +693,7 @@ function scheduleFlightLookup(key) {
 
   if (RAPIDAPI_KEY) {
     // Auto-lookup after 1.5s pause
-    showLookup(resEl, 'ð Looking upâ¦', null);
+    showLookup(resEl, '🔍 Looking up…', null);
     lookupTimers[key] = setTimeout(() => autoLookupFlight(key), 1500);
   }
   // If no API key, button is still shown for manual Flightradar24 lookup
@@ -736,22 +736,22 @@ async function autoLookupFlight(key) {
     if (map.fromId    && depName)  document.getElementById(map.fromId).value    = depName;
     if (map.toId      && arrName)  document.getElementById(map.toId).value      = arrName;
 
-    const note = arrName.toLowerCase().includes('brussels') ? ' Â· Train to Bruges from Brussels-Midi (~1h)' : '';
-    showLookup(resEl, `â ${depName} ${depTime||''} â ${arrName} ${arrTime||''}${note}`.trim(), true);
+    const note = arrName.toLowerCase().includes('brussels') ? ' · Train to Bruges from Brussels-Midi (~1h)' : '';
+    showLookup(resEl, `✅ ${depName} ${depTime||''} → ${arrName} ${arrTime||''}${note}`.trim(), true);
 
   } catch(e) {
-    showLookup(resEl, 'â Not found â enter times manually or use the Look up button.', false);
+    showLookup(resEl, '❓ Not found — enter times manually or use the Look up button.', false);
   }
 }
 
-// Manual fallback â opens Flightradar24 or Google in new tab
+// Manual fallback — opens Flightradar24 or Google in new tab
 function lookupFlight(key) {
   const map = LOOKUP_MAP[key];
   const num = document.getElementById(map.flightId).value.trim();
   const resEl = document.getElementById(key + '-lookup-result');
   const isTrain = map.mode === 'train';
 
-  if (!num) { showLookup(resEl, isTrain ? 'â ï¸ Enter a train number first.' : 'â ï¸ Enter a flight number first.', false); return; }
+  if (!num) { showLookup(resEl, isTrain ? '⚠️ Enter a train number first.' : '⚠️ Enter a flight number first.', false); return; }
 
   const url = isTrain
     ? `https://www.google.com/search?q=${encodeURIComponent(num + ' train times arrival departure')}`
@@ -759,8 +759,8 @@ function lookupFlight(key) {
 
   window.open(url, '_blank');
   showLookup(resEl, isTrain
-    ? `ð Opened search for ${num} â enter times below once you find them.`
-    : `ð Opened Flightradar24 for ${num} â enter times below once you find them.`, true);
+    ? `🔎 Opened search for ${num} — enter times below once you find them.`
+    : `🔎 Opened Flightradar24 for ${num} — enter times below once you find them.`, true);
 }
 
 function showLookup(el, msg, ok) {
@@ -770,9 +770,9 @@ function showLookup(el, msg, ok) {
 }
 function clearLookup(key) { const el=document.getElementById(key+'-lookup-result'); if(el){el.style.display='none';} }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // ARRIVAL MODE
-// ââââââââââââââââââââââââ
+// ════════════════════════
 function setMode(prefix, mode, btn) {
   document.querySelectorAll(`#${prefix}-flight,#${prefix}-train,#${prefix}-car`).forEach(el => { el.classList.remove('active'); });
   document.getElementById(`${prefix}-${mode}`).classList.add('active');
@@ -781,9 +781,9 @@ function setMode(prefix, mode, btn) {
   if (prefix === 'arr') currentArrMode = mode;
 }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // GUEST STORAGE
-// ââââââââââââââââââââââââ
+// ════════════════════════
 async function saveGuest(g) {
   if (firebaseReady) return fbPush('guests', g);
   try { const a=JSON.parse(localStorage.getItem('vv_guests')||'[]'); a.push(g); localStorage.setItem('vv_guests',JSON.stringify(a)); return true; } catch(e){return false;}
@@ -802,9 +802,9 @@ async function deleteGuest(key) {
   renderGuestDashboard();
 }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // PICKUP MANAGEMENT
-// ââââââââââââââââââââââââ
+// ════════════════════════
 async function getPickups(guestKey) {
   if (!firebaseReady) return [];
   const d = await fbGet('guests/' + guestKey + '/pickups');
@@ -854,14 +854,14 @@ async function deletePickup(guestKey, pickupIdx) {
 
 function closePickupModal() { document.getElementById('pickup-modal-overlay').style.display = 'none'; }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // SUBMIT
-// ââââââââââââââââââââââââ
+// ════════════════════════
 async function submitAndGenerate() {
   // Collect arrival details based on mode
-  let arrFlight='â', arrDate='', arrTime='', arrFrom='';
+  let arrFlight='—', arrDate='', arrTime='', arrFrom='';
   if (currentArrMode === 'flight') {
-    arrFlight = document.getElementById('arrFlight').value.trim()||'â';
+    arrFlight = document.getElementById('arrFlight').value.trim()||'—';
     arrDate   = document.getElementById('arrDate').value;
     arrTime   = document.getElementById('arrTime').value;
     arrFrom   = document.getElementById('arrFrom').value.trim();
@@ -879,14 +879,14 @@ async function submitAndGenerate() {
     arrFlight, arrDate, arrTime, arrFrom,
     goingValbonne: document.getElementById('goingValbonne').checked,
     hasRental:     document.getElementById('hasRental').checked,
-    depFlight:     document.getElementById('depFlight').value.trim()||'â',
+    depFlight:     document.getElementById('depFlight').value.trim()||'—',
     depDate:       document.getElementById('depDate').value,
     depTime:       document.getElementById('depTime').value,
     niceArrTime:   document.getElementById('niceArrTime').value,
     rentalCo:      document.getElementById('rentalCo').value.trim()||'rental company',
     rentalPickup:  document.getElementById('rentalPickup').value.trim()||'Nice Airport',
     rentalReturn:  document.getElementById('rentalReturn').value,
-    retFlight:     document.getElementById('retFlight').value.trim()||'â',
+    retFlight:     document.getElementById('retFlight').value.trim()||'—',
     retDate:       document.getElementById('retDate').value,
     retTime:       document.getElementById('retTime').value,
     retTo:         document.getElementById('retTo').value.trim(),
@@ -895,11 +895,11 @@ async function submitAndGenerate() {
   };
 
   const ni = document.getElementById('form-notice');
-  if (!g.name) { showNotice(ni,'â ï¸ Please enter your name.','warn'); return; }
-  if (!g.arrDate) { showNotice(ni,'â ï¸ Please enter your arrival date.','warn'); return; }
+  if (!g.name) { showNotice(ni,'⚠️ Please enter your name.','warn'); return; }
+  if (!g.arrDate) { showNotice(ni,'⚠️ Please enter your arrival date.','warn'); return; }
 
   const saved = await saveGuest(g);
-  showNotice(ni, saved ? 'â Details saved! Your itinerary is below.' : 'â¹ï¸ Your itinerary is below.', saved ? 'success' : 'info');
+  showNotice(ni, saved ? '✅ Details saved! Your itinerary is below.' : 'ℹ️ Your itinerary is below.', saved ? 'success' : 'info');
 
   lastGeneratedGuest = g;
   document.getElementById('update-banner').style.display = 'none';
@@ -916,20 +916,20 @@ async function refreshItinerary() {
   document.body.style.overflow = 'hidden';
 }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // BUILD ITINERARY
-// ââââââââââââââââââââââââ
+// ════════════════════════
 async function buildItinerary(g) {
   const arrival = new Date(g.arrDate + 'T12:00:00');
   const acts = LIVE_ACTIVITIES;
   const fill = s => String(s||'')
-    .replace(/{depFlight}/g, g.depFlight||'â')
+    .replace(/{depFlight}/g, g.depFlight||'—')
     .replace(/{depTime}/g, fmt12(g.depTime))
     .replace(/{niceArrTime}/g, g.niceArrTime ? fmt12(g.niceArrTime) : 'TBC')
     .replace(/{rentalCo}/g, g.rentalCo||'rental company')
     .replace(/{rentalPickup}/g, g.rentalPickup||'Nice Airport')
     .replace(/{rentalReturn}/g, g.rentalReturn ? fmtDate(g.rentalReturn) : '28 Jun')
-    .replace(/{retFlight}/g, g.retFlight||'â')
+    .replace(/{retFlight}/g, g.retFlight||'—')
     .replace(/{retTime}/g, fmt12(g.retTime));
 
   const filtered = acts.filter(a => {
@@ -956,7 +956,7 @@ async function buildItinerary(g) {
           const pickups = Array.isArray(match[1].pickups) ? match[1].pickups : Object.values(match[1].pickups);
           pickups.forEach(p => {
             if (!byDay[p.day]) byDay[p.day] = [];
-            byDay[p.day].push({ day:p.day, time:p.time||'TBC', title:'Your Pickup â ' + (p.vehicle||'Car'), note:(p.location?'Meet at: '+p.location:'') + (p.note?' Â· '+p.note:''), type:'transport', icon:'ð', personal:true });
+            byDay[p.day].push({ day:p.day, time:p.time||'TBC', title:'Your Pickup – ' + (p.vehicle||'Car'), note:(p.location?'Meet at: '+p.location:'') + (p.note?' · '+p.note:''), type:'transport', icon:'🚗', personal:true });
           });
           // Re-sort each day
           Object.keys(byDay).forEach(d => byDay[d].sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
@@ -966,19 +966,19 @@ async function buildItinerary(g) {
   }
 
   // Arrival mode label
-  const arrModeLabel = g.arrMode === 'train' ? 'ð ' + (g.arrFlight||'Train') : g.arrMode === 'car' ? 'ð ' + (g.arrFrom||'By car') : 'âï¸ ' + (g.arrFlight||'â');
+  const arrModeLabel = g.arrMode === 'train' ? '🚂 ' + (g.arrFlight||'Train') : g.arrMode === 'car' ? '🚗 ' + (g.arrFrom||'By car') : '✈️ ' + (g.arrFlight||'—');
   const tagPills = [];
-  if (g.goingValbonne) tagPills.push(`<span class="tag-pill tag-valbonne">ð«ð· Valbonne</span>`);
-  else tagPills.push(`<span class="tag-pill tag-bruges">ð§ðª Bruges only</span>`);
-  if (g.hasRental) tagPills.push(`<span class="tag-pill tag-rental">ð Rental car</span>`);
+  if (g.goingValbonne) tagPills.push(`<span class="tag-pill tag-valbonne">🇫🇷 Valbonne</span>`);
+  else tagPills.push(`<span class="tag-pill tag-bruges">🇧🇪 Bruges only</span>`);
+  if (g.hasRental) tagPills.push(`<span class="tag-pill tag-rental">🚗 Rental car</span>`);
 
   let html = `<div class="traveler-banner">
     <div><div class="t-meta">Itinerary for</div><div class="t-name">${esc(g.name)}</div>${g.email?`<div style="font-size:.73rem;opacity:.38">${esc(g.email)}</div>`:''}</div>
     <div style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center">${tagPills.join('')}</div>
     <div style="display:flex;flex-wrap:wrap;gap:.35rem">
-      <span class="flight-pill">${esc(arrModeLabel)}${g.arrFrom?' Â· '+esc(g.arrFrom):''}</span>
-      ${g.goingValbonne&&g.depFlight!=='â'?`<span class="flight-pill">âï¸ ${esc(g.depFlight)} â NCE</span>`:''}
-      ${g.retFlight&&g.retFlight!=='â'?`<span class="flight-pill">ð  ${esc(g.retFlight)}${g.retTo?' â '+esc(g.retTo):''}</span>`:''}
+      <span class="flight-pill">${esc(arrModeLabel)}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>
+      ${g.goingValbonne&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''}
+      ${g.retFlight&&g.retFlight!=='—'?`<span class="flight-pill">🏠 ${esc(g.retFlight)}${g.retTo?' → '+esc(g.retTo):''}</span>`:''}
     </div>
   </div>`;
 
@@ -991,7 +991,7 @@ async function buildItinerary(g) {
     html += `<div class="day-block"><div class="day-header"><span class="day-chip${isNice?' nice':''}">${esc(label)}</span><span class="day-date">${esc(dateStr)}</span></div><div class="events">`;
     const events = byDay[d]||[];
     if (!events.length) {
-      html += `<div class="event"><div class="event-time">â</div><div class="event-icon">ð</div><div class="event-body"><div class="event-title">Free day</div></div></div>`;
+      html += `<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>`;
     } else {
       events.forEach(ev => {
         const tl = ev.time==='CHECK_ARR'?(g.arrTime?fmt12(g.arrTime):'On arrival')
@@ -1002,11 +1002,11 @@ async function buildItinerary(g) {
         const bc='badge-'+(ev.type||'activity');
         const bl=(ev.type||'activity')[0].toUpperCase()+(ev.type||'activity').slice(1);
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
-        const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">ð Maps</a>`:'';
+        const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
         const personalBadge=ev.personal?`<span class="personal-label">Your Pickup</span>`:'';
         html+=`<div class="event${ev.personal?' personal':''}">
           <div class="event-time">${esc(tl)}</div>
-          <div class="event-icon">${ev.icon||'ð'}</div>
+          <div class="event-icon">${ev.icon||'📌'}</div>
           <div class="event-body">
             <div class="event-title">${esc(fill(ev.title))}${personalBadge}<span class="badge ${bc}">${bl}</span></div>
             <div class="event-note">${esc(fill(ev.note||''))}${mapsBtn}</div>
@@ -1015,21 +1015,21 @@ async function buildItinerary(g) {
     }
     html += `</div></div>`;
   }
-  if (g.goingValbonne && g.retFlight && g.retFlight!=='â') {
+  if (g.goingValbonne && g.retFlight && g.retFlight!=='—') {
     const rd=new Date(g.retDate+'T12:00:00');
     html+=`<div class="day-block"><div class="day-header"><span class="day-chip nice">Departure Day</span><span class="day-date">${esc(rd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</span></div>
-    <div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">âï¸</div>
-    <div class="event-body"><div class="event-title">Fly home â ${esc(g.retFlight)}${g.retTo?' to '+esc(g.retTo):''}<span class="badge badge-flight">Flight</span></div>
+    <div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">✈️</div>
+    <div class="event-body"><div class="event-title">Fly home – ${esc(g.retFlight)}${g.retTo?' to '+esc(g.retTo):''}<span class="badge badge-flight">Flight</span></div>
     <div class="event-note">${g.hasRental?'Return rental at '+esc(g.rentalPickup)+' before check-in.':'Allow ~45 min transfer from Valbonne to Nice Airport.'}</div>
     </div></div></div></div>`;
   }
-  if (g.notes) html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">ð Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
+  if (g.notes) html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">📝 Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
   return html;
 }
 
-// ââââââââââââââââââââââââ
-// ORGANISER â GUESTS
-// ââââââââââââââââââââââââ
+// ════════════════════════
+// ORGANISER — GUESTS
+// ════════════════════════
 function orgLogin() {
   if (document.getElementById('orgPassword').value === ORG_PASSWORD) {
     document.getElementById('login-panel').style.display = 'none';
@@ -1041,7 +1041,7 @@ function orgLogin() {
     document.getElementById('os-api-key').value = ONESIGNAL_API_KEY;
     // Load RapidAPI key
     const rk = localStorage.getItem('rapidapi_key');
-    if (rk) { RAPIDAPI_KEY = rk; document.getElementById('rapidapi-key').value = rk; document.getElementById('rapidapi-status').textContent = 'â Auto-lookup enabled.'; document.getElementById('rapidapi-status').style.color='#065f46'; }
+    if (rk) { RAPIDAPI_KEY = rk; document.getElementById('rapidapi-key').value = rk; document.getElementById('rapidapi-status').textContent = '✅ Auto-lookup enabled.'; document.getElementById('rapidapi-status').style.color='#065f46'; }
   } else { alert('Incorrect password.'); }
 }
 
@@ -1052,7 +1052,7 @@ async function renderGuestDashboard() {
   const nBO=guests.filter(g=>!g.goingValbonne).length;
   document.getElementById('stat-strip').innerHTML=`
     <div class="stat-box"><div class="num">${guests.length}</div><div class="lbl">Total guests</div></div>
-    <div class="stat-box"><div class="num">${nV}</div><div class="lbl">â Valbonne</div></div>
+    <div class="stat-box"><div class="num">${nV}</div><div class="lbl">→ Valbonne</div></div>
     <div class="stat-box"><div class="num">${nBO}</div><div class="lbl">Bruges only</div></div>
     <div class="stat-box"><div class="num">${nR}</div><div class="lbl">Rental car</div></div>`;
 
@@ -1062,29 +1062,29 @@ async function renderGuestDashboard() {
   const rows = guests.map(g => {
     const pickups = Array.isArray(g.pickups) ? g.pickups : (g.pickups ? Object.values(g.pickups) : []);
     const pickupBadge = pickups.length ? `<span class="pickup-badge">${pickups.length} pickup${pickups.length>1?'s':''}</span>` : '';
-    const pickupList = pickups.map((p,i)=>`<div class="pickup-item">ð Jun ${19+p.day} ${p.time?fmt12(p.time):''} Â· ${esc(p.vehicle||'')}${p.location?' @ '+esc(p.location):''}<button onclick="editPickupInline('${esc(g.key)}','${esc(g.name)}',${i})" title="Edit">âï¸</button><button onclick="deletePickup('${esc(g.key)}',${i})" title="Delete">â</button></div>`).join('');
-    const arrDisplay = g.arrMode==='train' ? `ð ${esc(g.arrFlight||'Train')}` : g.arrMode==='car' ? `ð By car` : `âï¸ ${esc(g.arrFlight||'â')}`;
+    const pickupList = pickups.map((p,i)=>`<div class="pickup-item">🚗 Jun ${19+p.day} ${p.time?fmt12(p.time):''} · ${esc(p.vehicle||'')}${p.location?' @ '+esc(p.location):''}<button onclick="editPickupInline('${esc(g.key)}','${esc(g.name)}',${i})" title="Edit">✏️</button><button onclick="deletePickup('${esc(g.key)}',${i})" title="Delete">✕</button></div>`).join('');
+    const arrDisplay = g.arrMode==='train' ? `🚂 ${esc(g.arrFlight||'Train')}` : g.arrMode==='car' ? `🚗 By car` : `✈️ ${esc(g.arrFlight||'—')}`;
     return `<tr>
-      <td><strong>${esc(g.name||'â')}</strong>${pickupBadge}${g.email?`<div class="sub-text">${esc(g.email)}</div>`:''}
+      <td><strong>${esc(g.name||'—')}</strong>${pickupBadge}${g.email?`<div class="sub-text">${esc(g.email)}</div>`:''}
           <div class="pickup-list">${pickupList}</div>
           <button class="btn btn-gold btn-sm" style="margin-top:.4rem" onclick="openPickupModal('${esc(g.key)}','${esc(g.name)}')">+ Assign Pickup</button>
       </td>
       <td><div>${arrDisplay} ${g.arrDate?fmtDate(g.arrDate):''}</div><div class="sub-text">${g.arrTime?fmt12(g.arrTime):''} ${g.arrFrom?'from '+esc(g.arrFrom):''}</div></td>
       <td>${g.goingValbonne
-        ?`<div>âï¸ ${esc(g.depFlight||'â')} ${g.depDate?fmtDate(g.depDate):''}</div><div class="sub-text">${g.depTime?fmt12(g.depTime):''} â NCE ${g.niceArrTime?fmt12(g.niceArrTime):''}</div>`
+        ?`<div>✈️ ${esc(g.depFlight||'—')} ${g.depDate?fmtDate(g.depDate):''}</div><div class="sub-text">${g.depTime?fmt12(g.depTime):''} → NCE ${g.niceArrTime?fmt12(g.niceArrTime):''}</div>`
         :`<span class="tag-pill tag-bruges" style="font-size:.68rem">Bruges only</span>`}</td>
       <td>${g.goingValbonne
-        ?`<div>${esc(g.retFlight||'â')} ${g.retDate?fmtDate(g.retDate):''}</div><div class="sub-text">${g.retTime?fmt12(g.retTime):''} ${g.retTo?'â '+esc(g.retTo):''}</div>`
-        :'â'}</td>
-      <td style="text-align:center">${g.goingValbonne?'<span class="tag-pill tag-valbonne">â</span>':'â'}</td>
-      <td style="text-align:center">${g.hasRental?`<span class="tag-pill tag-rental">ð ${esc(g.rentalCo||'')}</span>`:'â'}</td>
-      <td><div class="sub-text">${g.notes?esc(g.notes.slice(0,50))+(g.notes.length>50?'â¦':''):'â'}</div><div class="sub-text">${g.submittedAt?new Date(g.submittedAt).toLocaleDateString('en-GB'):''}</div></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteGuest('${esc(g.key||'')}')">â</button></td>
+        ?`<div>${esc(g.retFlight||'—')} ${g.retDate?fmtDate(g.retDate):''}</div><div class="sub-text">${g.retTime?fmt12(g.retTime):''} ${g.retTo?'→ '+esc(g.retTo):''}</div>`
+        :'—'}</td>
+      <td style="text-align:center">${g.goingValbonne?'<span class="tag-pill tag-valbonne">✓</span>':'—'}</td>
+      <td style="text-align:center">${g.hasRental?`<span class="tag-pill tag-rental">🚗 ${esc(g.rentalCo||'')}</span>`:'—'}</td>
+      <td><div class="sub-text">${g.notes?esc(g.notes.slice(0,50))+(g.notes.length>50?'…':''):'—'}</div><div class="sub-text">${g.submittedAt?new Date(g.submittedAt).toLocaleDateString('en-GB'):''}</div></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteGuest('${esc(g.key||'')}')">✕</button></td>
     </tr>`;
   }).join('');
 
   wrap.innerHTML=`<div style="overflow-x:auto"><table class="guest-table">
-    <thead><tr><th>Name & Pickups</th><th>Arrival</th><th>â Nice</th><th>Return</th><th>Valbonne</th><th>Rental</th><th>Notes</th><th></th></tr></thead>
+    <thead><tr><th>Name & Pickups</th><th>Arrival</th><th>→ Nice</th><th>Return</th><th>Valbonne</th><th>Rental</th><th>Notes</th><th></th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
 
@@ -1109,9 +1109,9 @@ async function exportCSV() {
   a.download='vv-birthday-bash-guests.csv'; a.click();
 }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // ACTIVITY EDITOR
-// ââââââââââââââââââââââââ
+// ════════════════════════
 function renderActivityEditor() {
   const acts = EDITED_ACTIVITIES || LIVE_ACTIVITIES;
   const groups = {};
@@ -1121,7 +1121,7 @@ function renderActivityEditor() {
     html+=`<div class="act-day-group"><div class="act-day-label">${esc(DAY_LABELS[+day]||'Day '+(+day+1))} <span>Jun ${19+parseInt(day)}</span></div><div class="act-list">`;
     groups[day].forEach(a => {
       const tc=(a.tags||[]).length?(a.tags||[]).map(t=>`<span class="tag-chip ${t==='valbonne'?'vv':t==='rental'||t==='no-rental'?'rr':t==='bruges-only'?'bb':''}">${esc(t)}</span>`).join(''):'<span class="tag-chip">all</span>';
-      html+=`<div class="act-row"><div class="act-time-chip">${esc(a.time||'')}</div><div class="act-icon-cell">${a.icon||'ð'}</div><div class="act-title-cell">${esc(a.title||'')}${a.address?` <span style="font-size:.7rem;opacity:.5">ð</span>`:''}</div><div class="act-tag-cell">${tc}</div><div class="act-actions"><button class="btn btn-secondary btn-sm" onclick="editActivity(${a._i})">âï¸</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a._i})">ð</button></div></div>`;
+      html+=`<div class="act-row"><div class="act-time-chip">${esc(a.time||'')}</div><div class="act-icon-cell">${a.icon||'📌'}</div><div class="act-title-cell">${esc(a.title||'')}${a.address?` <span style="font-size:.7rem;opacity:.5">📍</span>`:''}</div><div class="act-tag-cell">${tc}</div><div class="act-actions"><button class="btn btn-secondary btn-sm" onclick="editActivity(${a._i})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a._i})">🗑</button></div></div>`;
     });
     html+=`</div></div>`;
   });
@@ -1136,7 +1136,7 @@ function openActModal(i,a) {
   document.getElementById('act-edit-index').value=i;
   document.getElementById('act-day').value=a?.day??0;
   document.getElementById('act-time').value=a?.time||'';
-  document.getElementById('act-icon').value=a?.icon||'ð';
+  document.getElementById('act-icon').value=a?.icon||'📌';
   document.getElementById('act-type').value=a?.type||'activity';
   document.getElementById('act-title').value=a?.title||'';
   document.getElementById('act-note').value=a?.note||'';
@@ -1152,7 +1152,7 @@ function saveActivityEdit() {
   const idx=parseInt(document.getElementById('act-edit-index').value);
   const tags=[];
   if(!document.getElementById('tag-all').checked)['valbonne','bruges-only','rental','no-rental'].forEach(t=>{if(document.getElementById('tag-'+t).checked)tags.push(t);});
-  const a={day:parseInt(document.getElementById('act-day').value),time:document.getElementById('act-time').value.trim(),icon:document.getElementById('act-icon').value.trim()||'ð',type:document.getElementById('act-type').value,title:document.getElementById('act-title').value.trim(),note:document.getElementById('act-note').value.trim(),address:document.getElementById('act-address').value.trim(),tags};
+  const a={day:parseInt(document.getElementById('act-day').value),time:document.getElementById('act-time').value.trim(),icon:document.getElementById('act-icon').value.trim()||'📌',type:document.getElementById('act-type').value,title:document.getElementById('act-title').value.trim(),note:document.getElementById('act-note').value.trim(),address:document.getElementById('act-address').value.trim(),tags};
   if(!a.title){alert('Title is required.');return;}
   if(idx===-1)EDITED_ACTIVITIES.push(a); else EDITED_ACTIVITIES[idx]=a;
   EDITED_ACTIVITIES.sort((x,y)=>x.day!==y.day?x.day-y.day:(x.time||'').localeCompare(y.time||''));
@@ -1163,23 +1163,23 @@ function closeActModal(){document.getElementById('act-modal-overlay').style.disp
 async function saveActivities() {
   const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES;
   const btn=document.getElementById('save-act-btn');
-  btn.textContent='â³ Savingâ¦';
+  btn.textContent='⏳ Saving…';
   const ok=await fbSave('activities',acts);
-  if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='â Published!';setTimeout(()=>btn.textContent='ð¾ Save & Publish',2500);}
-  else{btn.textContent='â Error';setTimeout(()=>btn.textContent='ð¾ Save & Publish',2500);}
+  if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='✅ Published!';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);}
+  else{btn.textContent='❌ Error';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);}
 }
 function resetActivities(){if(!confirm('Reset to the original default schedule?'))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';renderActivityEditor();}
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // PUSH NOTIFICATIONS
-// ââââââââââââââââââââââââ
+// ════════════════════════
 async function requestPush() {
   const btn=document.getElementById('push-optin-btn');
-  btn.textContent='Enablingâ¦';btn.disabled=true;
+  btn.textContent='Enabling…';btn.disabled=true;
   try {
     const perm=await Notification.requestPermission();
     if(perm!=='granted'){btn.textContent='Blocked';return;}
-    btn.textContent='â Alerts enabled!';
+    btn.textContent='✅ Alerts enabled!';
     document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';
   }catch(e){btn.textContent='Error';btn.disabled=false;}
 }
@@ -1187,10 +1187,10 @@ async function sendPushNotification() {
   const title=document.getElementById('push-title').value.trim();
   const body=document.getElementById('push-body').value.trim();
   const res=document.getElementById('push-send-result');
-  if(!title||!body){res.textContent='â ï¸ Enter a title and message.';return;}
-  if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='â ï¸ OneSignal not configured yet.';return;}
-  res.textContent='Sendingâ¦';
-  try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`â Sent to ~${d.recipients||'all'} guests!`:'â '+JSON.stringify(d.errors||d);}catch(e){res.textContent='â '+e.message;}
+  if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}
+  if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}
+  res.textContent='Sending…';
+  try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}
 }
 function saveOneSignalConfig(){ONESIGNAL_APP_ID=document.getElementById('os-app-id').value.trim();ONESIGNAL_API_KEY=document.getElementById('os-api-key').value.trim();localStorage.setItem('os_config',JSON.stringify({appId:ONESIGNAL_APP_ID,apiKey:ONESIGNAL_API_KEY}));alert('Saved.');}
 
@@ -1200,25 +1200,25 @@ function saveRapidAPIKey() {
   localStorage.setItem('rapidapi_key', key);
   const status = document.getElementById('rapidapi-status');
   if (key) {
-    status.textContent = 'â Auto-lookup enabled â guests\' flight times will fill in automatically.';
+    status.textContent = '✅ Auto-lookup enabled — guests\' flight times will fill in automatically.';
     status.style.color = '#065f46';
   } else {
-    status.textContent = 'Key cleared â guests will use the manual lookup button.';
+    status.textContent = 'Key cleared — guests will use the manual lookup button.';
     status.style.color = '';
   }
 }
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // PWA
-// ââââââââââââââââââââââââ
+// ════════════════════════
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;document.getElementById('install-prompt').style.display='flex';});
 async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();const{outcome}=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(outcome==='accepted')document.getElementById('install-prompt').style.display='none';}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission==='default')document.getElementById('push-optin-card').style.display='flex';});
 
-// ââââââââââââââââââââââââ
+// ════════════════════════
 // UI HELPERS
-// ââââââââââââââââââââââââ
+// ════════════════════════
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();}
 function showOrgTab(t,btn){document.querySelectorAll('.org-tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.sub-tab').forEach(e=>e.classList.remove('active'));document.getElementById('org-tab-'+t).classList.add('active');btn.classList.add('active');if(t==='activities')renderActivityEditor();if(t==='guests')renderGuestDashboard();}
 function toggleValbonne(e){const cb=document.getElementById('goingValbonne');if(e.target!==cb)cb.checked=!cb.checked;syncValbonne();}
