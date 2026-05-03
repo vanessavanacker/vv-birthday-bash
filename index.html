@@ -66,9 +66,6 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .mode-section{display:none;}.mode-section.active{display:block;}
 
 /* LOOKUP BUTTON */
-.btn-lookup{padding:.58rem .9rem;background:var(--gold);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s;flex-shrink:0;}
-.btn-lookup:hover{opacity:.85;}
-.btn-lookup:disabled{opacity:.5;cursor:default;}
 .lookup-result{font-size:.75rem;margin-top:.3rem;padding:.3rem .6rem;border-radius:5px;display:none;}
 .lookup-ok{background:#d1fae5;color:#065f46;}
 .lookup-err{background:#fee2e2;color:#991b1b;}
@@ -265,12 +262,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div class="form-grid">
         <div class="field">
           <label>Flight Number</label>
-          <div class="input-row">
-            <div class="field" style="margin:0">
-              <input type="text" id="arrFlight" placeholder="e.g. BA 256" oninput="scheduleFlightLookup('arr')">
-            </div>
-            <button class="btn-lookup" onclick="lookupFlight('arr')">🔍 Look up →</button>
-          </div>
+          <input type="text" id="arrFlight" placeholder="e.g. BA 256" oninput="scheduleFlightLookup('arr')">
           <div class="lookup-result" id="arr-lookup-result"></div>
         </div>
         <div class="field"><label>Flying From</label><input type="text" id="arrFrom" placeholder="e.g. London Heathrow"></div>
@@ -284,12 +276,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div class="form-grid">
         <div class="field">
           <label>Train Number (optional)</label>
-          <div class="input-row">
-            <div class="field" style="margin:0">
-              <input type="text" id="arrTrainNum" placeholder="e.g. Eurostar 9114" oninput="scheduleFlightLookup('train')">
-            </div>
-            <button class="btn-lookup" onclick="lookupFlight('train')">🔍 Look up →</button>
-          </div>
+          <input type="text" id="arrTrainNum" placeholder="e.g. Eurostar 9114" oninput="scheduleFlightLookup('train')">
           <div class="lookup-result" id="train-lookup-result"></div>
         </div>
         <div class="field"><label>Departing From</label><input type="text" id="arrTrainFrom" placeholder="e.g. London St Pancras"></div>
@@ -317,12 +304,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div class="form-grid">
         <div class="field">
           <label>Flight Number</label>
-          <div class="input-row">
-            <div class="field" style="margin:0">
-              <input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')">
-            </div>
-            <button class="btn-lookup" onclick="lookupFlight('dep')">🔍 Look up →</button>
-          </div>
+          <input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')">
           <div class="lookup-result" id="dep-lookup-result"></div>
         </div>
         <div class="field"><label>Departure Date</label><input type="date" id="depDate" value="2026-06-22"></div>
@@ -352,12 +334,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <div class="form-grid">
         <div class="field">
           <label>Flight Number</label>
-          <div class="input-row">
-            <div class="field" style="margin:0">
-              <input type="text" id="retFlight" placeholder="e.g. BA 2744" oninput="scheduleFlightLookup('ret')">
-            </div>
-            <button class="btn-lookup" onclick="lookupFlight('ret')">🔍 Look up →</button>
-          </div>
+          <input type="text" id="retFlight" placeholder="e.g. BA 2744" oninput="scheduleFlightLookup('ret')">
           <div class="lookup-result" id="ret-lookup-result"></div>
         </div>
         <div class="field"><label>Flying To</label><input type="text" id="retTo" placeholder="e.g. London Gatwick"></div>
@@ -740,7 +717,7 @@ async function autoLookupFlight(key) {
     showLookup(resEl, `✅ ${depName} ${depTime||''} → ${arrName} ${arrTime||''}${note}`.trim(), true);
 
   } catch(e) {
-    showLookup(resEl, '❓ Not found — enter times manually or use the Look up button.', false);
+    showLookup(resEl, '❓ Flight not found — please enter your arrival time manually below.', false);
   }
 }
 
