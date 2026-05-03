@@ -1163,11 +1163,23 @@ async function buildItinerary(g) {
             if (!byDay[p.day]) byDay[p.day] = [];
             byDay[p.day].push({ day:p.day, time:p.time||'TBC', title:'Your Pickup – ' + (p.vehicle||'Car'), note:(p.location?'Meet at: '+p.location:'') + (p.note?' · '+p.note:''), type:'transport', icon:'🚗', personal:true });
           });
-          Object.keys(byDay).forEach(d => byDay[d].sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
         }
       }
     } catch(e){}
   }
+
+  // Sort every day chronologically — special tokens get fixed sort positions
+  const timeSortKey = t => {
+    if (!t || t === 'FREE')      return '00:01';
+    if (t === 'CHECK_ARR')       return '00:02';
+    if (t === 'CHECK_OUT')       return '10:30';
+    if (t === 'NICE_ARR')        return '15:00';
+    if (t === 'EVENING')         return '19:00';
+    if (t === 'CHECK_DEP')       return '23:58';
+    if (t === 'TBC')             return '23:59';
+    return t;
+  };
+  Object.keys(byDay).forEach(d => byDay[d].sort((a,b) => timeSortKey(a.time).localeCompare(timeSortKey(b.time))));
 
   // Tag pills
   const tagPills = [];
