@@ -243,6 +243,18 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 
 <!-- ══ GUEST FORM ══ -->
 <div class="page active" id="page-form">
+  <!-- RETURNING GUEST BANNER -->
+  <div id="returning-banner" style="display:none;background:var(--ink);color:var(--sand);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1.2rem;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+    <div>
+      <div style="font-size:.75rem;opacity:.5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem">Welcome back</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700" id="rb-name"></div>
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+      <button onclick="viewReturningItinerary()" style="background:var(--gold);color:#fff;border:none;padding:.55rem 1.1rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer">View my itinerary →</button>
+      <button onclick="dismissReturning()" style="background:rgba(255,255,255,.12);color:var(--sand);border:none;padding:.55rem 1.1rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer">Update details</button>
+    </div>
+  </div>
+
   <div id="form-notice"></div>
   <div class="push-card" id="push-optin-card" style="display:none">
     <div style="font-size:2rem">🔔</div>
@@ -374,6 +386,15 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
     <h3>📝 Notes for the organiser</h3>
     <div class="field"><label>Dietary needs, late arrivals, anything else…</label><textarea id="notes" placeholder="e.g. vegetarian, nut allergy, arriving late on Jun 19…"></textarea></div>
   </div>
+
+  <!-- PERSONAL LINK CARD — shown after first submit -->
+  <div id="personal-link-card" style="display:none;background:var(--ink);color:var(--sand);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.2rem">
+    <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.4rem">📎 Your personal link</div>
+    <p style="font-size:.82rem;opacity:.6;margin-bottom:.9rem;line-height:1.5">Save or bookmark this link. Opening it on any device instantly shows your itinerary — no re-entry needed.</p>
+    <button onclick="copyPersonalLink()" style="background:var(--gold);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;width:100%">📋 Copy my personal link</button>
+    <div id="link-copied" style="display:none;font-size:.78rem;color:#6ee7b7;margin-top:.5rem;text-align:center">✅ Copied! Paste it into Notes, WhatsApp, or your browser bookmarks.</div>
+  </div>
+
   <button class="btn btn-primary" onclick="submitAndGenerate()">🎉 Generate My Itinerary & Submit</button>
 </div>
 
@@ -925,7 +946,9 @@ async function submitAndGenerate() {
   if (!g.name) { showNotice(ni,'⚠️ Please enter your name.','warn'); return; }
 
   const saved = await saveGuest(g);
+  saveGuestLocally(g);
   showNotice(ni, saved ? '✅ Details saved! Your itinerary is below.' : 'ℹ️ Your itinerary is below.', saved ? 'success' : 'info');
+  document.getElementById('personal-link-card').style.display = 'block';
 
   lastGeneratedGuest = g;
   document.getElementById('update-banner').style.display = 'none';
@@ -1282,10 +1305,144 @@ function fmt12(t){if(!t)return'';const[h,m]=t.split(':').map(Number);if(isNaN(h)
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// ════════════════════════
+// RETURNING GUEST — save, load, prefill, personal link
+// ════════════════════════
+function saveGuestLocally(g) {
+  try { localStorage.setItem('vv_my_profile', JSON.stringify(g)); } catch(e) {}
+}
+
+function loadGuestLocally() {
+  try { const s = localStorage.getItem('vv_my_profile'); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+}
+
+function prefillForm(g) {
+  if (!g) return;
+  // Trip section
+  currentTripSection = g.tripSection || (g.goingValbonne ? 'both' : 'bruges');
+  document.querySelectorAll('.trip-btn').forEach((b,i) => {
+    const sections = ['both','bruges','valbonne'];
+    b.classList.toggle('active', sections[i] === currentTripSection);
+  });
+  document.getElementById('bruges-arrival-section').style.display = currentTripSection === 'valbonne' ? 'none' : '';
+  document.getElementById('valbonne-section').style.display       = currentTripSection === 'bruges'   ? 'none' : '';
+  const isVOnly = currentTripSection === 'valbonne';
+  document.getElementById('nice-card-title').textContent    = isVOnly ? '✈️ Flying to Nice – Jun 22' : '✈️ Bruges → Nice – Jun 22';
+  document.getElementById('nice-section-label').textContent = isVOnly ? 'Arriving in Nice' : 'Flying to Nice';
+  document.getElementById('dep-from-field').style.display   = isVOnly ? '' : 'none';
+
+  // Fields
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  set('name',           g.name);
+  set('email',          g.email);
+  set('arrFlight',      g.arrFlight);
+  set('arrFrom',        g.arrFrom);
+  set('arrDate',        g.arrDate);
+  set('arrTime',        g.arrTime);
+  set('arrTrainNum',    g.arrFlight === 'Train' ? g.arrFlight : '');
+  set('arrTrainFrom',   g.arrFrom);
+  set('arrDateTrain',   g.arrDate);
+  set('arrTimeTrain',   g.arrTime);
+  set('depFlight',      g.depFlight);
+  set('depFrom',        g.depFrom);
+  set('depDate',        g.depDate);
+  set('depTime',        g.depTime);
+  set('niceArrTime',    g.niceArrTime);
+  set('rentalCo',       g.rentalCo);
+  set('rentalPickup',   g.rentalPickup);
+  set('rentalReturn',   g.rentalReturn);
+  set('retFlight',      g.retFlight);
+  set('retTo',          g.retTo);
+  set('retDate',        g.retDate);
+  set('retTime',        g.retTime);
+  set('notes',          g.notes);
+  if (g.hasRental) { document.getElementById('hasRental').checked = true; syncRental(); }
+  if (g.arrMode === 'train') setMode('arr', 'train', document.querySelector('.mode-btn:nth-child(2)') || document.querySelectorAll('.mode-btn')[1]);
+}
+
+function encodeGuest(g) {
+  try {
+    const json = JSON.stringify(g);
+    const bytes = new TextEncoder().encode(json);
+    let binary = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary);
+  } catch(e) { return null; }
+}
+
+function decodeGuest(b64) {
+  try {
+    const binary = atob(b64);
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+  } catch(e) { return null; }
+}
+
+function generatePersonalLink(g) {
+  const encoded = encodeGuest(g);
+  if (!encoded) return window.location.href;
+  return window.location.origin + window.location.pathname + '#guest=' + encoded;
+}
+
+function copyPersonalLink() {
+  const g = loadGuestLocally();
+  if (!g) return;
+  const link = generatePersonalLink(g);
+  navigator.clipboard.writeText(link).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = link; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  document.getElementById('link-copied').style.display = 'block';
+}
+
+async function viewReturningItinerary() {
+  const g = loadGuestLocally();
+  if (!g) return;
+  prefillForm(g);
+  document.getElementById('returning-banner').style.display = 'none';
+  document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
+  document.getElementById('modal-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function dismissReturning() {
+  document.getElementById('returning-banner').style.display = 'none';
+  const g = loadGuestLocally();
+  if (g) prefillForm(g);
+}
+
+function checkOnLoad() {
+  // 1. Check URL hash for personal link
+  if (window.location.hash.startsWith('#guest=')) {
+    const g = decodeGuest(window.location.hash.slice(7));
+    if (g && g.name) {
+      saveGuestLocally(g);
+      prefillForm(g);
+      // Auto-show itinerary
+      buildItinerary(g).then(html => {
+        document.getElementById('modal-itinerary').innerHTML = html;
+        document.getElementById('modal-overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      });
+      return;
+    }
+  }
+  // 2. Check localStorage
+  const g = loadGuestLocally();
+  if (g && g.name) {
+    document.getElementById('rb-name').textContent = g.name;
+    document.getElementById('returning-banner').style.display = 'flex';
+  }
+}
+
 initFirebase();
-// Load saved RapidAPI key so auto-lookup works for guests
+// Load saved RapidAPI key
 const _rk = localStorage.getItem('rapidapi_key');
 if (_rk) RAPIDAPI_KEY = _rk;
+// Check for returning guest (after short delay so Firebase can init)
+setTimeout(checkOnLoad, 300);
 </script>
 </body>
 </html>
