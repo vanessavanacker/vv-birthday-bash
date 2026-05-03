@@ -1621,6 +1621,7 @@ function stationToHotelMins(station) {
   }
   return 10; // default — assume arriving in Bruges area
 }
+function airportDriveMins(airport) {
   if (!airport) return 90;
   const a = airport.toLowerCase();
   for (const [key, mins] of Object.entries(AIRPORT_DRIVE_MINS)) {
