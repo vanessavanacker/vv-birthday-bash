@@ -976,7 +976,126 @@ async function deleteGuest(key) {
   else { try{const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');const i=a.findIndex(g=>g.key===key);if(i>-1){a.splice(i,1);localStorage.setItem('vv_guests',JSON.stringify(a));}}catch(e){} }
   renderGuestDashboard();
 }
+async function lookupReturningGuest() {
+  const nameInput = document.getElementById('lookup-name');
+  const name = nameInput.value.trim();
+  const statusEl = document.getElementById('lookup-status');
+  
+  if (!name) {
+    statusEl.textContent = '⚠️ Please enter your name.';
+    return;
+  }
+  
+  statusEl.textContent = '🔍 Looking for your details...';
+  
+  try {
+    // Load all guests from Firebase or localStorage
+    const guests = await loadGuests();
+    
+    // Find guest by name (case-insensitive)
+    const foundGuest = guests.find(g => (g.name || '').toLowerCase() === name.toLowerCase());
+    
+    if (!foundGuest) {
+      statusEl.innerHTML = '❌ No record found. You can submit a new itinerary below.';
+      statusEl.style.color = '#991b1b';
+      document.getElementById('returning-lookup-card').style.display = 'none';
+      return;
+    }
+    
+    // Load the guest's data into the form
+    loadGuestIntoForm(foundGuest);
+    
+    // Show the returning banner
+    showReturningBanner(foundGuest);
+    
+    // Hide the lookup card
+    document.getElementById('returning-lookup-card').style.display = 'none';
+    
+    statusEl.innerHTML = '✅ Found! Your details are loaded below.';
+    statusEl.style.color = '#065f46';
+    
+  } catch (e) {
+    console.error('Lookup error:', e);
+    statusEl.innerHTML = '⚠️ Error loading your details. Please try again.';
+    statusEl.style.color = '#854d0e';
+  }
+}
 
+function loadGuestIntoForm(guest) {
+  // Load all the form fields with guest data
+  if (guest.name) document.getElementById('name').value = guest.name;
+  if (guest.email) document.getElementById('email').value = guest.email;
+  if (guest.tripSection) {
+    const btn = document.querySelector(`[onclick="setTripSection('${guest.tripSection}',this)"]`);
+    if (btn) setTripSection(guest.tripSection, btn);
+  }
+  
+  // Bruges arrival
+  if (guest.arrFlight) document.getElementById('arrFlight').value = guest.arrFlight;
+  if (guest.arrFrom) document.getElementById('arrFrom').value = guest.arrFrom;
+  if (guest.arrTo) document.getElementById('arrTo').value = guest.arrTo;
+  if (guest.arrDate) document.getElementById('arrDate').value = guest.arrDate;
+  if (guest.arrTime) document.getElementById('arrTime').value = guest.arrTime;
+  
+  // Train arrival
+  if (guest.arrTrainNum) document.getElementById('arrTrainNum').value = guest.arrTrainNum;
+  if (guest.arrTrainFrom) document.getElementById('arrTrainFrom').value = guest.arrTrainFrom;
+  if (guest.arrTrainTo) document.getElementById('arrTrainTo').value = guest.arrTrainTo;
+  if (guest.arrDateTrain) document.getElementById('arrDateTrain').value = guest.arrDateTrain;
+  if (guest.arrTimeTrain) document.getElementById('arrTimeTrain').value = guest.arrTimeTrain;
+  
+  // Bruges departure
+  if (guest.bdepFlight) document.getElementById('bdepFlight').value = guest.bdepFlight;
+  if (guest.bdepTo) document.getElementById('bdepTo').value = guest.bdepTo;
+  if (guest.bdepFromAirport) document.getElementById('bdepFromAirport').value = guest.bdepFromAirport;
+  if (guest.bdepDate) document.getElementById('bdepDate').value = guest.bdepDate;
+  if (guest.bdepTime) document.getElementById('bdepTime').value = guest.bdepTime;
+  
+  // Nice flights
+  if (guest.depFlight) document.getElementById('depFlight').value = guest.depFlight;
+  if (guest.depFrom) document.getElementById('depFrom').value = guest.depFrom;
+  if (guest.depDate) document.getElementById('depDate').value = guest.depDate;
+  if (guest.depTime) document.getElementById('depTime').value = guest.depTime;
+  if (guest.niceArrTime) document.getElementById('niceArrTime').value = guest.niceArrTime;
+  
+  // Rental car
+  if (guest.hasRental) {
+    document.getElementById('hasRental').checked = guest.hasRental;
+    syncRental();
+  }
+  if (guest.rentalCo) document.getElementById('rentalCo').value = guest.rentalCo;
+  if (guest.rentalPickup) document.getElementById('rentalPickup').value = guest.rentalPickup;
+  if (guest.rentalReturn) document.getElementById('rentalReturn').value = guest.rentalReturn;
+  
+  // Return flight
+  if (guest.retFlight) document.getElementById('retFlight').value = guest.retFlight;
+  if (guest.retTo) document.getElementById('retTo').value = guest.retTo;
+  if (guest.retDate) document.getElementById('retDate').value = guest.retDate;
+  if (guest.retTime) document.getElementById('retTime').value = guest.retTime;
+  
+  // Notes
+  if (guest.notes) document.getElementById('notes').value = guest.notes;
+  
+  // Store reference to loaded guest
+  lastGeneratedGuest = guest;
+}
+
+function showReturningBanner(guest) {
+  document.getElementById('rb-name').textContent = guest.name || 'Guest';
+  document.getElementById('returning-banner').style.display = 'flex';
+}
+
+function viewReturningItinerary() {
+  if (lastGeneratedGuest) {
+    submitAndGenerate();
+  }
+}
+
+function dismissReturning() {
+  document.getElementById('returning-banner').style.display = 'none';
+  lastGeneratedGuest = null;
+  document.getElementById('lookup-name').value = '';
+}
 // ════════════════════════
 // PICKUP MANAGEMENT
 // ════════════════════════
