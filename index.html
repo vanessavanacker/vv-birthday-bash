@@ -714,8 +714,7 @@ async function autoLookupFlight(key) {
     if (map.fromId    && depName)  document.getElementById(map.fromId).value    = depName;
     if (map.toId      && arrName)  document.getElementById(map.toId).value      = arrName;
 
-    const note = arrName.toLowerCase().includes('brussels') ? ' · Train to Bruges from Brussels-Midi (~1h)' : '';
-    showLookup(resEl, `✅ ${depName} ${depTime||''} → ${arrName} ${arrTime||''}${note}`.trim(), true);
+    showLookup(resEl, `✅ ${depName} ${depTime||''} → ${arrName} ${arrTime||''}`.trim(), true);
 
   } catch(e) {
     showLookup(resEl, '❓ Flight not found — please enter your arrival time manually below.', false);
