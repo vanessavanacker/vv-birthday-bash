@@ -1108,9 +1108,14 @@ async function submitAndGenerate() {
 
   lastGeneratedGuest = g;
   document.getElementById('update-banner').style.display = 'none';
-  document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
-  document.getElementById('modal-overlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
+  try {
+    document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
+    document.getElementById('modal-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  } catch(e) {
+    console.error('buildItinerary error:', e);
+    showNotice(ni, '⚠️ Itinerary error — please try again.', 'warn');
+  }
 }
 
 async function refreshItinerary() {
@@ -1868,28 +1873,20 @@ function copyPersonalLink() {
 }
 
 async function viewReturningItinerary() {
-  let g = loadGuestLocally();
+  const g = loadGuestLocally();
   if (!g) return;
   prefillForm(g);
   document.getElementById('returning-banner').style.display = 'none';
-
-  // Silently refresh missing flight data in background
-  refreshGuestFlightData(g).then(async updated => {
-    const changed = updated.arrTo !== g.arrTo || updated.arrTime !== g.arrTime;
-    if (changed) {
-      saveGuestLocally(updated);
-      if (firebaseReady && updated.key) await fbSave('guests/' + updated.key, updated);
-      g = updated;
-    }
+  try {
     document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
     document.getElementById('modal-overlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
-  });
-
-  // Show itinerary immediately with current data while refresh runs
-  document.getElementById('modal-itinerary').innerHTML = await buildItinerary(g);
-  document.getElementById('modal-overlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
+  } catch(e) {
+    console.error('buildItinerary error:', e);
+    document.getElementById('modal-itinerary').innerHTML = `<div style="padding:2rem;color:#c0392b">⚠️ Couldn't load itinerary. Please tap "Update details" and re-submit.</div>`;
+    document.getElementById('modal-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 function dismissReturning() {
