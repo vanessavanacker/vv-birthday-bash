@@ -1,6 +1,6 @@
-// VV Birthday Bash 2026 — Service Worker v3
-const CACHE = ‘vv-bash-v3’;
-const PRECACHE = [’./’, ‘./index.html’, ‘./manifest.json’, ‘./icons/icon-192.png’];
+// VV Birthday Bash 2026 — Service Worker v4
+const CACHE = ‘vv-bash-v4’;
+const PRECACHE = [’./’, ‘./index.html’, ‘./manifest.json’, ‘./icons/icon-192.png’, ‘./icons/icon-512.png’];
 
 self.addEventListener(‘install’, e => {
 e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
