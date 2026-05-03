@@ -211,6 +211,16 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .push-org-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1rem;}
 .push-org-card h4{font-family:'Playfair Display',serif;font-weight:700;margin-bottom:.8rem;}
 
+/* iOS install banner */
+#ios-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:#fff;border-radius:20px 20px 0 0;padding:1.2rem 1.5rem 2.4rem;box-shadow:0 -6px 40px rgba(0,0,0,.18);animation:slideUp .35s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.ios-arrow{position:absolute;top:-11px;right:28px;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:11px solid #fff;}
+.ios-step{display:flex;align-items:center;gap:.75rem;font-size:.88rem;color:#333;padding:.5rem 0;border-bottom:1px solid #f0f0f0;}
+.ios-step:last-child{border-bottom:none;}
+.ios-step-num{width:26px;height:26px;background:#f2f2f7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#1a1208;flex-shrink:0;}
+.ios-share-pill{display:inline-flex;align-items:center;gap:3px;background:#007aff;color:#fff;border-radius:5px;padding:2px 7px;font-size:.78rem;font-weight:700;vertical-align:middle;margin:0 2px;}
+@media print{#ios-banner{display:none!important;}}
+
 @media print{
   header,.form-card,.print-btn,#page-form,.modal-actions,.modal-close,#install-prompt,#firebase-bar,#update-banner{display:none!important;}
   #modal-overlay{position:static!important;background:none!important;padding:0!important;display:block!important;}
@@ -627,6 +637,39 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
       <button class="btn btn-gold" onclick="savePickup()">💾 Save Pickup</button>
       <button class="btn btn-secondary" onclick="closePickupModal()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- iOS ADD TO HOME SCREEN BANNER -->
+<div id="ios-banner">
+  <div class="ios-arrow"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:.8rem;">
+      <img src="icons/icon-192.png" style="width:46px;height:46px;border-radius:11px;box-shadow:0 2px 8px rgba(0,0,0,.15)" onerror="this.style.display='none'">
+      <div>
+        <div style="font-weight:700;font-size:1rem;color:#1a1208">Add to your Home Screen</div>
+        <div style="font-size:.78rem;color:#888;margin-top:.1rem">Install the VV Birthday Bash app</div>
+      </div>
+    </div>
+    <button onclick="dismissIOSBanner(true)" style="background:none;border:none;font-size:1.5rem;color:#bbb;cursor:pointer;line-height:1;padding:.2rem">&#215;</button>
+  </div>
+  <div style="background:#f9f9f9;border-radius:12px;padding:.3rem .8rem;">
+    <div class="ios-step">
+      <div class="ios-step-num">1</div>
+      <div>Tap the <span class="ios-share-pill">&#11014; Share</span> button at the <strong>top of Safari</strong></div>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">2</div>
+      <div>Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">3</div>
+      <div>Tap <strong>"Add"</strong> in the top right &mdash; done! &#127881;</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:.7rem;margin-top:1rem;">
+    <button onclick="dismissIOSBanner(false)" style="flex:1;padding:.65rem;background:#f2f2f7;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;color:#1a1208;cursor:pointer;">Maybe later</button>
+    <button onclick="dismissIOSBanner(true)" style="flex:1;padding:.65rem;background:#1a1208;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;color:#fff;cursor:pointer;">Got it &#10003;</button>
   </div>
 </div>
 
@@ -1478,6 +1521,7 @@ function dismissReturning() {
 }
 
 function checkOnLoad() {
+  checkIOSInstall();
   // 1. Check URL hash for personal link
   if (window.location.hash.startsWith('#guest=')) {
     const g = decodeGuest(window.location.hash.slice(7));
@@ -1499,6 +1543,25 @@ function checkOnLoad() {
     document.getElementById('rb-name').textContent = g.name;
     document.getElementById('returning-banner').style.display = 'flex';
   }
+}
+
+// ════════════════════════
+// iOS INSTALL BANNER
+// ════════════════════════
+function checkIOSInstall() {
+  const isIOS        = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari     = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isInstalled  = window.navigator.standalone === true;
+  const dismissed    = localStorage.getItem('ios_banner_ok');
+  if (isIOS && isSafari && !isInstalled && !dismissed) {
+    setTimeout(() => {
+      document.getElementById('ios-banner').style.display = 'block';
+    }, 2500);
+  }
+}
+function dismissIOSBanner(permanent) {
+  document.getElementById('ios-banner').style.display = 'none';
+  if (permanent) localStorage.setItem('ios_banner_ok', '1');
 }
 
 initFirebase();
