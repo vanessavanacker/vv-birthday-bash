@@ -1129,11 +1129,22 @@ async function buildItinerary(g) {
   const filtered = acts.filter(a => {
     const t = a.tags||[];
     if (!t.length) return true;
-    if (t.includes('bruges-only') && g.goingValbonne) return false;
-    if (t.includes('bruges-only') && !g.goingValbonne) return true;
-    if (t.includes('valbonne') && !g.goingValbonne) return false;
+
+    if (t.includes('bruges-only')) {
+      // Valbonne-only guests never see Bruges activities
+      if (g.tripSection === 'valbonne') return false;
+      // Both guests see all Bruges activities EXCEPT the departure home (they fly to Nice instead)
+      if (g.tripSection === 'both' && a.time === 'CHECK_DEP') return false;
+      return true;
+    }
+
+    // Valbonne activities hidden from Bruges-only guests
+    if (t.includes('valbonne') && g.tripSection === 'bruges') return false;
+
+    // Rental / no-rental
     if (t.includes('rental') && !g.hasRental) return false;
     if (t.includes('no-rental') && g.hasRental) return false;
+
     return true;
   });
 
