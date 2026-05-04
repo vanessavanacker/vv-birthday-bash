@@ -8,13 +8,15 @@
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "36342552-993e-4f14-82b1-309357852169",
-      serviceWorkerPath: "sw.js",
-      serviceWorkerParam: { scope: "/vv-birthday-bash/" },
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-    });
+    try {
+      await OneSignal.init({
+        appId: "36342552-993e-4f14-82b1-309357852169",
+        serviceWorkerPath: "/vv-birthday-bash/sw.js",
+        serviceWorkerParam: { scope: "/vv-birthday-bash/" },
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: true,
+      });
+    } catch(e) { console.warn("OneSignal init failed:", e); }
   });
 </script>
 <link rel="manifest" href="manifest.json">
