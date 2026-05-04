@@ -276,6 +276,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <div style="font-size:2rem">🔔</div>
     <div class="push-text" style="flex:1"><h4>Get day-of reminders</h4><p>Allow notifications and we'll ping you before dinners, transfers and activities.</p></div>
     <button class="btn-push" id="push-optin-btn" onclick="requestPush()">Enable Alerts</button>
+    <button onclick="dismissPush()" style="background:none;border:none;color:inherit;opacity:.5;font-size:.78rem;cursor:pointer;margin-top:.3rem;padding:.2rem .5rem">Not now</button>
   </div>
   <div class="section-label"><span class="dot"></span>Your Details</div>
   <div class="form-card">
@@ -1052,8 +1053,42 @@ function closeActModal(){document.getElementById('act-modal-overlay').style.disp
 async function saveActivities(){const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES,btn=document.getElementById('save-act-btn');btn.textContent='⏳ Saving…';const ok=await fbSave('activities',acts);if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='✅ Published!';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);// Reschedule reminders with updated activities
     scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}else{btn.textContent='❌ Error';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);}}
 function resetActivities(){if(!confirm('Reset to the original default schedule?'))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';renderActivityEditor();}
-async function requestPush(){const btn=document.getElementById('push-optin-btn');btn.textContent='Enabling…';btn.disabled=true;try{const perm=await Notification.requestPermission();if(perm!=='granted'){btn.textContent='Blocked';btn.disabled=false;return;}btn.textContent='✅ Reminders on!';document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';// Schedule 30-min reminders for today's activities
-    scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}catch(e){btn.textContent='Error';btn.disabled=false;}}
+async async function requestPush(){
+  const btn=document.getElementById('push-optin-btn');
+  btn.textContent='Enabling…';btn.disabled=true;
+  localStorage.removeItem('push_asked_at'); // they clicked — clear snooze
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){
+      btn.textContent='Blocked';btn.disabled=false;
+      // Store that they blocked so we don't keep asking
+      localStorage.setItem('push_asked_at', Date.now()+'|blocked');
+      return;
+    }
+    btn.textContent='✅ Reminders on!';
+    document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';
+    setTimeout(()=>document.getElementById('push-optin-card').style.display='none',2000);
+    scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());
+  }catch(e){btn.textContent='Error';btn.disabled=false;}
+}
+
+function dismissPush(){
+  // Store snooze timestamp — will re-ask after 7 days
+  localStorage.setItem('push_asked_at', Date.now()+'|snoozed');
+  document.getElementById('push-optin-card').style.display='none';
+}
+
+function shouldShowPushCard(){
+  if(!('Notification' in window)) return false;
+  if(Notification.permission==='granted') return false;
+  if(Notification.permission==='denied') return false;
+  const stored=localStorage.getItem('push_asked_at');
+  if(!stored) return true; // never asked
+  const [ts, reason]=stored.split('|');
+  if(reason==='blocked') return false; // they explicitly blocked, respect it
+  // Re-ask after 7 days
+  return (Date.now()-parseInt(ts)) > 7*24*60*60*1000;
+}
 async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
 function saveOneSignalConfig(){ONESIGNAL_APP_ID=document.getElementById('os-app-id').value.trim();ONESIGNAL_API_KEY=document.getElementById('os-api-key').value.trim();localStorage.setItem('os_config',JSON.stringify({appId:ONESIGNAL_APP_ID,apiKey:ONESIGNAL_API_KEY}));alert('Saved.');}
 function saveRapidAPIKey(){const key=document.getElementById('rapidapi-key').value.trim();RAPIDAPI_KEY=key;localStorage.setItem('rapidapi_key',key);const status=document.getElementById('rapidapi-status');if(key){status.textContent='✅ Auto-lookup enabled — guests\' flight times will fill in automatically.';status.style.color='#065f46';}else{status.textContent='Key cleared.';status.style.color='';}}
@@ -1064,7 +1099,7 @@ function dismissAndroidBanner(permanent){document.getElementById('android-banner
 function isIOS(){return/iphone|ipad|ipod/i.test(navigator.userAgent);}
 function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=sessionStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission==='default')document.getElementById('push-optin-card').style.display='flex';});
+document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&NotificatioshouldShowPushCard())document.getElementById('push-optin-card').style.display='flex';});
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();}
 function showOrgTab(t,btn){document.querySelectorAll('.org-tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.sub-tab').forEach(e=>e.classList.remove('active'));document.getElementById('org-tab-'+t).classList.add('active');btn.classList.add('active');if(t==='activities')renderActivityEditor();if(t==='guests')renderGuestDashboard();}
 let activityFilter='all';
@@ -1159,7 +1194,7 @@ function checkOnLoad(){
     document.getElementById('returning-banner').style.display='flex';
     scheduleActivityReminders(g);
     // Show push optin for returning users who haven't granted yet
-    if('Notification' in window && Notification.permission==='default'){
+    if(shouldShowPushCard()){
       setTimeout(()=>document.getElementById('push-optin-card').style.display='flex', 1500);
     }
   }else{document.getElementById('returning-lookup-card').style.display='block';}
@@ -1473,7 +1508,7 @@ function onItineraryModalOpen(){
   document.getElementById('install-hint').style.display='none';
   document.getElementById('cal-options').style.display='none';
   // Re-show push optin if not yet granted
-  if('Notification' in window && Notification.permission==='default'){
+  if(shouldShowPushCard()){
     document.getElementById('push-optin-card').style.display='flex';
   }
 }
