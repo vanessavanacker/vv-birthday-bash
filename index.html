@@ -1591,7 +1591,7 @@ function saveActivityEdit(){markEdited();const idx=parseInt(document.getElementB
 function syncAllTag(){if(document.getElementById(‘tag-all’).checked){document.getElementById(‘tag-valbonne’).checked=false;document.getElementById(‘tag-bruges-only’).checked=false;document.getElementById(‘tag-rental’).checked=false;document.getElementById(‘tag-no-rental’).checked=false;}}
 [‘tag-valbonne’,‘tag-bruges-only’,‘tag-rental’,‘tag-no-rental’].forEach(id=>document.addEventListener(‘DOMContentLoaded’,()=>{const el=document.getElementById(id);if(el)el.addEventListener(‘change’,()=>{if(el.checked)document.getElementById(‘tag-all’).checked=false;});}));
 function closeActModal(){document.getElementById(‘act-modal-overlay’).style.display=‘none’;}
-async function saveActivities(){if(!EDITED_ACTIVITIES){alert(‘No changes to save.’);return;}if(firebaseReady){const ok=await fbSave(‘activities’,EDITED_ACTIVITIES);if(ok){LIVE_ACTIVITIES=EDITED_ACTIVITIES;EDITED_ACTIVITIES=null;document.getElementById(‘unsaved-notice’).style.display=‘none’;alert(‘✅ Saved! Guests will see the update on their next refresh.’);rescheduleAllGuests();}else{alert(‘⚠️ Save failed.’);}}else{LIVE_ACTIVITIES=EDITED_ACTIVITIES;EDITED_ACTIVITIES=null;document.getElementById(‘unsaved-notice’).style.display=‘none’;localStorage.setItem(‘vv_activities’,JSON.stringify(LIVE_ACTIVITIES));alert(‘Saved locally (no Firebase).’);}}
+async function saveActivities(){if(!EDITED_ACTIVITIES){alert(‘No changes to save.’);return;}if(firebaseReady){const ok=await fbSave(‘activities’,EDITED_ACTIVITIES);if(ok){LIVE_ACTIVITIES=EDITED_ACTIVITIES;EDITED_ACTIVITIES=null;document.getElementById(‘unsaved-notice’).style.display=‘none’;alert(‘✅ Saved! Guests will see the update on their next refresh.’);}else{alert(‘⚠️ Save failed.’);}}else{LIVE_ACTIVITIES=EDITED_ACTIVITIES;EDITED_ACTIVITIES=null;document.getElementById(‘unsaved-notice’).style.display=‘none’;localStorage.setItem(‘vv_activities’,JSON.stringify(LIVE_ACTIVITIES));alert(‘Saved locally (no Firebase).’);}}
 async function resetActivities(){if(!confirm(‘Reset to defaults?’))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));renderActivityEditor();document.getElementById(‘unsaved-notice’).style.display=‘block’;}
 
 // === PUSH NOTIFICATIONS ===
@@ -1625,8 +1625,6 @@ await OneSignal.Notifications.requestPermission();
 if(OneSignal.Notifications.permission){
 btn.textContent=‘✓ Enabled’;
 localStorage.setItem(‘vv_push_dismissed’,‘enabled’);
-// Now that push is enabled, schedule activity reminders
-const _g=loadGuestLocally();if(_g)setTimeout(()=>scheduleActivityReminders(_g),1500);
 setTimeout(()=>document.getElementById(‘push-optin-card’).style.display=‘none’,1500);
 }else{
 btn.textContent=‘Enable Alerts’;btn.disabled=false;
@@ -1864,94 +1862,33 @@ setTimeout(()=>document.getElementById(‘link-copied’).style.display=‘none�
 
 // === ACTIVITY REMINDERS (LOCAL setTimeout-based; will be upgraded to scheduled push) ===
 let _notifyTimers=[];
-function clearReminders(){_notifyTimers.forEach(t=>clearTimeout(t));*notifyTimers=[];}
-// === SCHEDULED PUSH NOTIFICATIONS (work even when app is closed) ===
-// Uses OneSignal REST API with send_after — pushes are queued on OneSignal’s servers
-// and delivered via Apple/Google push services at the scheduled time.
-async function scheduleActivityReminders(g){
+function clearReminders(){_notifyTimers.forEach(t=>clearTimeout(t));_notifyTimers=[];}
+function scheduleActivityReminders(g){
 clearReminders();
-if(!g||!g.name)return;
-if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){console.warn(‘OneSignal not configured — skipping scheduled push’);return;}
-if(!(‘Notification’ in window)||Notification.permission!==‘granted’)return;
-// Cancel any previously scheduled pushes for this guest before scheduling new ones
-await cancelScheduledPushes(g);
-const externalId=g.name.toLowerCase().replace(/\s+/g,’*’);
+if(!g||!(‘Notification’ in window)||Notification.permission!==‘granted’)return;
 const startISO=g.tripSection===‘valbonne’?(g.depDate||‘2026-06-22’):(g.arrDate||‘2026-06-19’);
 const tripStart=new Date(startISO);
 const days=g.tripSection===‘bruges’?4:(g.tripSection===‘valbonne’?6:9);
 const now=Date.now();
-const scheduledIds=[];
 for(let dayIdx=0;dayIdx<days;dayIdx++){
 let actDayIdx=dayIdx;if(g.tripSection===‘valbonne’)actDayIdx=dayIdx+3;
 const events=LIVE_ACTIVITIES.filter(a=>a.day===actDayIdx&&/^\d\d:\d\d$/.test(a.time||’’));
-for(const ev of events){
+events.forEach(ev=>{
 const tags=ev.tags||[];
-if(tags.includes(‘valbonne’)&&g.tripSection===‘bruges’)continue;
-if(tags.includes(‘bruges-only’)&&g.tripSection!==‘bruges’)continue;
-if(tags.includes(‘rental’)&&!g.hasRental)continue;
-if(tags.includes(‘no-rental’)&&g.hasRental)continue;
+if(tags.includes(‘valbonne’)&&g.tripSection===‘bruges’)return;
+if(tags.includes(‘bruges-only’)&&g.tripSection!==‘bruges’)return;
+if(tags.includes(‘rental’)&&!g.hasRental)return;
+if(tags.includes(‘no-rental’)&&g.hasRental)return;
 const d=new Date(tripStart);d.setDate(tripStart.getDate()+dayIdx);
 const[h,m]=ev.time.split(’:’).map(Number);d.setHours(h,m,0,0);
-// Schedule push 30 minutes before
-const sendAt=new Date(d.getTime()-30*60000);
-if(sendAt.getTime()<=now)continue;
-try{
-const resp=await fetch(‘https://onesignal.com/api/v1/notifications’,{
-method:‘POST’,
-headers:{‘Content-Type’:‘application/json’,‘Authorization’:’Basic ’+ONESIGNAL_API_KEY},
-body:JSON.stringify({
-app_id:ONESIGNAL_APP_ID,
-include_external_user_ids:[externalId],
-channel_for_external_user_ids:‘push’,
-headings:{en:’⏰ ’+ev.title},
-contents:{en:‘Coming up at ‘+fmt12(ev.time)+(ev.note?’ — ‘+ev.note.slice(0,140):’’)},
-send_after:sendAt.toUTCString()
-})
+const fireAt=d.getTime()-30*60000;
+if(fireAt>now){
+const delay=fireAt-now;
+const t=setTimeout(()=>{try{new Notification(’⏰ ’+ev.title,{body:‘Coming up at ‘+fmt12(ev.time)+(ev.note?’ — ‘+ev.note:’’)});}catch(e){}},delay);
+_notifyTimers.push(t);
+}
 });
-const data=await resp.json();
-if(data.id)scheduledIds.push(data.id);
-else console.warn(‘OneSignal schedule error for’,ev.title,data);
-}catch(e){console.warn(‘Schedule failed for’,ev.title,e);}
 }
-}
-// Persist scheduled IDs so we can cancel them when schedule changes
-if(g.key&&firebaseReady&&scheduledIds.length){
-try{await fbUpdate(‘guests/’+g.key,{scheduledPushIds:scheduledIds,scheduledAt:new Date().toISOString()});}catch(e){}
-}
-console.log(’Scheduled ‘+scheduledIds.length+’ push notifications for ’+g.name);
-}
-
-// Cancel previously scheduled pushes for a guest (called before re-scheduling)
-async function cancelScheduledPushes(g){
-if(!g||!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY)return;
-let ids=[];
-if(g.key&&firebaseReady){
-try{const stored=await fbGet(‘guests/’+g.key+’/scheduledPushIds’);if(stored)ids=Array.isArray(stored)?stored:Object.values(stored);}catch(e){}
-}
-for(const id of ids){
-try{
-await fetch(‘https://onesignal.com/api/v1/notifications/’+id+’?app_id=’+ONESIGNAL_APP_ID,{
-method:‘DELETE’,
-headers:{‘Authorization’:’Basic ’+ONESIGNAL_API_KEY}
-});
-}catch(e){}
-}
-if(g.key&&firebaseReady){try{await fbUpdate(‘guests/’+g.key,{scheduledPushIds:null});}catch(e){}}
-}
-
-// When organiser publishes new activities, re-schedule pushes for ALL guests with notifications enabled
-async function rescheduleAllGuests(){
-if(!firebaseReady)return;
-const guests=await loadGuests();
-let count=0;
-for(const g of guests){
-if(g.scheduledPushIds&&Object.keys(g.scheduledPushIds||{}).length){
-await scheduleActivityReminders(g);
-count++;
-}
-}
-console.log(‘Rescheduled push notifications for ‘+count+’ guests’);
-return count;
 }
 
 // === TRANSPORT OVERRIDE ===
