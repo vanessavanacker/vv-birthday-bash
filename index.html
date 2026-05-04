@@ -4,21 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VV Birthday Bash · 2026</title>
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    try {
-      await OneSignal.init({
-        appId: "36342552-993e-4f14-82b1-309357852169",
-        serviceWorkerPath: "/vv-birthday-bash/sw.js",
-        serviceWorkerParam: { scope: "/vv-birthday-bash/" },
-        notifyButton: { enable: false },
-        allowLocalhostAsSecureOrigin: true,
-      });
-    } catch(e) { console.warn("OneSignal init failed:", e); }
-  });
-</script>
+<!-- OneSignal loaded on-demand -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1208">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1071,20 +1057,60 @@ function resetActivities(){if(!confirm('Reset to the original default schedule?'
 async async function requestPush(){
   const btn=document.getElementById('push-optin-btn');
   btn.textContent='Enabling…';btn.disabled=true;
-  localStorage.removeItem('push_asked_at'); // they clicked — clear snooze
+  localStorage.removeItem('push_asked_at');
   try{
+    // Load OneSignal SDK on-demand if not already loaded
+    if(!window.OneSignal){
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+        s.onload=resolve; s.onerror=reject;
+        document.head.appendChild(s);
+      });
+      window.OneSignalDeferred=window.OneSignalDeferred||[];
+      await new Promise(resolve=>{
+        window.OneSignalDeferred.push(async function(OneSignal){
+          try{
+            await OneSignal.init({
+              appId:'36342552-993e-4f14-82b1-309357852169',
+              serviceWorkerPath:'/vv-birthday-bash/sw.js',
+              serviceWorkerParam:{scope:'/vv-birthday-bash/'},
+              notifyButton:{enable:false},
+            });
+          }catch(e){console.warn('OneSignal init:',e);}
+          resolve();
+        });
+      });
+    }
+    // Request browser permission
     const perm=await Notification.requestPermission();
     if(perm!=='granted'){
       btn.textContent='Blocked';btn.disabled=false;
-      // Store that they blocked so we don't keep asking
-      localStorage.setItem('push_asked_at', Date.now()+'|blocked');
+      localStorage.setItem('push_asked_at',Date.now()+'|blocked');
       return;
+    }
+    // Try to subscribe via OneSignal
+    if(window.OneSignal){
+      try{ await window.OneSignal.Notifications.requestPermission(); }catch(e){}
     }
     btn.textContent='✅ Reminders on!';
     document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';
     setTimeout(()=>document.getElementById('push-optin-card').style.display='none',2000);
     scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());
-  }catch(e){btn.textContent='Error';btn.disabled=false;}
+  }catch(e){
+    console.warn('Push setup error:',e);
+    // Fall back to plain browser permission even if OneSignal failed
+    try{
+      const perm=await Notification.requestPermission();
+      if(perm==='granted'){
+        btn.textContent='✅ Reminders on!';
+        setTimeout(()=>document.getElementById('push-optin-card').style.display='none',2000);
+        scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());
+        return;
+      }
+    }catch(e2){}
+    btn.textContent='Error – try again';btn.disabled=false;
+  }
 }
 
 function dismissPush(){
