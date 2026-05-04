@@ -870,23 +870,39 @@ function setMode(prefix,mode,btn){
 }
 async function saveGuest(g){
   if(firebaseReady){
+    // If we already have a key (same device), update directly
     if(g.key){
-      // Existing guest — update in place, don't create duplicate
-      const ok=await fbUpdate('guests/'+g.key,g);
-      return ok;
-    } else {
-      // New guest — push and capture the generated key
-      try{
-        const ref=await db.ref('guests').push(g);
-        g.key=ref.key;
-        return true;
-      }catch(e){return false;}
+      await fbUpdate('guests/'+g.key, g);
+      return true;
     }
+    // Cross-device: search Firebase for existing guest with same name
+    try{
+      const all = await fbGet('guests');
+      if(all){
+        const match = Object.entries(all).find(([k,v])=>
+          v.name && g.name && v.name.trim().toLowerCase()===g.name.trim().toLowerCase()
+        );
+        if(match){
+          g.key = match[0]; // attach key so localStorage saves it
+          await fbUpdate('guests/'+g.key, g);
+          return true;
+        }
+      }
+    }catch(e){/* fall through to push */}
+    // Genuinely new guest — push and capture key
+    try{
+      const ref = await db.ref('guests').push(g);
+      g.key = ref.key;
+      return true;
+    }catch(e){return false;}
   }
-  try{const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');
-    const idx=a.findIndex(x=>x.name===g.name&&x.email===g.email);
+  // Offline fallback
+  try{
+    const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');
+    const idx=a.findIndex(x=>x.name===g.name);
     if(idx>=0)a[idx]=g;else a.push(g);
-    localStorage.setItem('vv_guests',JSON.stringify(a));return true;
+    localStorage.setItem('vv_guests',JSON.stringify(a));
+    return true;
   }catch(e){return false;}
 }
 async function loadGuests(){if(firebaseReady){const d=await fbGet('guests');if(!d)return[];return Object.entries(d).map(([k,v])=>({key:k,...v})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));}try{return JSON.parse(localStorage.getItem('vv_guests')||'[]');}catch(e){return[];}}
@@ -901,7 +917,8 @@ async function submitAndGenerate(){
   if(currentTripSection!=='valbonne'){if(currentArrMode==='flight'){arrFlight=document.getElementById('arrFlight').value.trim()||'—';arrDate=document.getElementById('arrDate').value;arrTime=document.getElementById('arrTime').value;arrFrom=document.getElementById('arrFrom').value.trim();g_arrTo=document.getElementById('arrTo').value.trim();}else if(currentArrMode==='train'){arrFlight=document.getElementById('arrTrainNum').value.trim()||'Train';arrDate=document.getElementById('arrDateTrain').value;arrTime=document.getElementById('arrTimeTrain').value;arrFrom=document.getElementById('arrTrainFrom').value.trim();arrTrainTo=document.getElementById('arrTrainTo').value.trim();}}else{arrDate=document.getElementById('depDate').value||'2026-06-22';}
   let brugesDepMode='flight',brugesDepRef='—',brugesDepTime='',brugesDepTo='',brugesDepDate='',g_bdepFromAirport='';
   if(currentTripSection==='bruges'){brugesDepMode=currentBrugesDepMode;if(brugesDepMode==='train'){brugesDepRef=document.getElementById('bdepTrainNum').value.trim()||'Train';brugesDepTo=document.getElementById('bdepTrainTo').value.trim();brugesDepDate=document.getElementById('bdepTrainDate').value;brugesDepTime=document.getElementById('bdepTrainTime').value;}else{brugesDepRef=document.getElementById('bdepFlight').value.trim()||'—';brugesDepTo=document.getElementById('bdepTo').value.trim();brugesDepDate=document.getElementById('bdepDate').value;brugesDepTime=document.getElementById('bdepTime').value;g_bdepFromAirport=document.getElementById('bdepFromAirport').value.trim();}}
-  const g={name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),tripSection:currentTripSection,goingValbonne:currentTripSection!=='bruges',arrMode:currentTripSection==='valbonne'?'none':currentArrMode,arrFlight,arrDate,arrTime,arrFrom,arrTrainTo,arrTo:g_arrTo,brugesDepMode,brugesDepRef,brugesDepTime,brugesDepTo,brugesDepDate,bdepFromAirport:g_bdepFromAirport,hasRental:document.getElementById('hasRental').checked,depFlight:document.getElementById('depFlight').value.trim()||'—',depFrom:document.getElementById('depFrom').value.trim(),depDate:document.getElementById('depDate').value,depTime:document.getElementById('depTime').value,niceArrTime:document.getElementById('niceArrTime').value,rentalCo:document.getElementById('rentalCo').value.trim()||'rental company',rentalPickup:document.getElementById('rentalPickup').value.trim()||'Nice Airport',rentalReturn:document.getElementById('rentalReturn').value,retFlight:document.getElementById('retFlight').value.trim()||'—',retDate:document.getElementById('retDate').value,retTime:document.getElementById('retTime').value,retTo:document.getElementById('retTo').value.trim(),notes:document.getElementById('notes').value.trim(),
+  const _existing=loadGuestLocally();
+  const g={key:_existing?.key||null,name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),tripSection:currentTripSection,goingValbonne:currentTripSection!=='bruges',arrMode:currentTripSection==='valbonne'?'none':currentArrMode,arrFlight,arrDate,arrTime,arrFrom,arrTrainTo,arrTo:g_arrTo,brugesDepMode,brugesDepRef,brugesDepTime,brugesDepTo,brugesDepDate,bdepFromAirport:g_bdepFromAirport,hasRental:document.getElementById('hasRental').checked,depFlight:document.getElementById('depFlight').value.trim()||'—',depFrom:document.getElementById('depFrom').value.trim(),depDate:document.getElementById('depDate').value,depTime:document.getElementById('depTime').value,niceArrTime:document.getElementById('niceArrTime').value,rentalCo:document.getElementById('rentalCo').value.trim()||'rental company',rentalPickup:document.getElementById('rentalPickup').value.trim()||'Nice Airport',rentalReturn:document.getElementById('rentalReturn').value,retFlight:document.getElementById('retFlight').value.trim()||'—',retDate:document.getElementById('retDate').value,retTime:document.getElementById('retTime').value,retTo:document.getElementById('retTo').value.trim(),notes:document.getElementById('notes').value.trim(),
     arrTransport:document.getElementById('arrTransport')?.value.trim()||'',
     depTransport:document.getElementById('depTransport')?.value.trim()||'',
     niceArrTransport:document.getElementById('niceArrTransport')?.value.trim()||'',
