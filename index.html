@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VV Birthday Bash · 2026</title>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "36342552-993e-4f14-82b1-309357852169",
+      serviceWorkerPath: "sw.js",
+      serviceWorkerParam: { scope: "/vv-birthday-bash/" },
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+    });
+  });
+</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1208">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -652,7 +665,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId:"1059674504740",
   appId:"1:1059674504740:web:52a72648449694ec37e2b1"
 };
-let ONESIGNAL_APP_ID="",ONESIGNAL_API_KEY="",RAPIDAPI_KEY="b9b85d5f5emsh733671e02d9f752p13fdd5jsn8e77ebe35575";
+let ONESIGNAL_APP_ID="36342552-993e-4f14-82b1-309357852169",ONESIGNAL_API_KEY="os_v2_app_gy2ckuuzhzhrjavrgcjvpbjbnfauufpgpaaubtmot6duccfbbq64jgk42nkfyi6sc6w6jgme62cr6mtonvn7d7ixsm6q2bmxx6ouowq",RAPIDAPI_KEY="b9b85d5f5emsh733671e02d9f752p13fdd5jsn8e77ebe35575";
 const ORG_PASSWORD='vvbash2026';
 const DEFAULT_ACTIVITIES=[
   {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
