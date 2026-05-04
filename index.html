@@ -840,9 +840,16 @@ async function buildItinerary(g){
           // note already contains checkoutNote via {checkoutNote} fill — append hotel reminder
           evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
         }
-        // CHECK_DEP icon: ✈️ for flight, 🚂 for train (bruges-only guests)
+        // CHECK_DEP: full override for bruges-only guests based on departure mode
         if(ev.time==='CHECK_DEP' && (ev.tags||[]).includes('bruges-only')){
-          evIcon = g.brugesDepMode==='train' ? '🚂' : '✈️';
+          const isTrain = g.brugesDepMode==='train';
+          evIcon  = isTrain ? '🚂' : '✈️';
+          evType  = isTrain ? 'transport' : 'flight';
+          const ref  = g.brugesDepRef&&g.brugesDepRef!=='\u2014'&&g.brugesDepRef!=='-' ? ` \u2013 ${g.brugesDepRef}` : '';
+          const dest = g.brugesDepTo ? ` to ${g.brugesDepTo}` : '';
+          const dtime = g.brugesDepTime ? ` at ${fmt12(g.brugesDepTime)}` : '';
+          evTitle = isTrain ? `Train home${ref}` : `Flight home${ref}`;
+          evNote  = `Safe travels home! ${isTrain?'Train':'Flight'} departs${dtime}${dest}.`;
         }
         const bc='badge-'+evType,bl=evType[0].toUpperCase()+evType.slice(1);
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
