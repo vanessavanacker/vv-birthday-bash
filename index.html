@@ -651,7 +651,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId:"1059674504740",
   appId:"1:1059674504740:web:52a72648449694ec37e2b1"
 };
-let ONESIGNAL_APP_ID="",ONESIGNAL_API_KEY="",RAPIDAPI_KEY="";
+let ONESIGNAL_APP_ID="",ONESIGNAL_API_KEY="",RAPIDAPI_KEY="b9b85d5f5emsh733671e02d9f752p13fdd5jsn8e77ebe35575";
 const ORG_PASSWORD='vvbash2026';
 const DEFAULT_ACTIVITIES=[
   {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
@@ -719,7 +719,130 @@ async function fbGet(p){if(!firebaseReady)return null;try{const s=await db.ref(p
 async function fbUpdate(p,d){if(!firebaseReady)return false;try{await db.ref(p).update(d);return true;}catch(e){return false;}}
 const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrTimeId:'arrTime',fromId:'arrFrom',toId:'arrTo',mode:'flight'},dep:{flightId:'depFlight',dateId:'depDate',depTimeId:'depTime',arrTimeId:'niceArrTime',fromId:null,toId:null,mode:'flight'},ret:{flightId:'retFlight',dateId:'retDate',depTimeId:'retTime',arrTimeId:null,fromId:null,toId:'retTo',mode:'flight'},train:{flightId:'arrTrainNum',dateId:'arrDateTrain',depTimeId:null,arrTimeId:'arrTimeTrain',fromId:'arrTrainFrom',toId:'arrTrainTo',mode:'train'},bdep:{flightId:'bdepFlight',dateId:'bdepDate',depTimeId:'bdepTime',arrTimeId:null,fromId:null,toId:'bdepTo',mode:'flight'},bdeptrain:{flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,fromId:null,toId:'bdepTrainTo',mode:'train'}};
 const lookupTimers={};
-function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<4){if(resEl)resEl.style.display='none';return;}if(RAPIDAPI_KEY){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupFlight(key),1500);}}
+function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<3){if(resEl)resEl.style.display='none';return;}
+  if(map.mode==='train'){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupTrain(key),1200);return;}
+  if(RAPIDAPI_KEY){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupFlight(key),1500);}}
+// ── iRail train lookup (Belgian trains — free, no key needed) ───────────────
+const IRAIL_STATION_MAP = {
+  'bruges':'Bruges','brugge':'Bruges',
+  'brussels':'Brussels-Central','brussels-central':'Brussels-Central',
+  'brussels-south':'Brussels-South','brussel-south':'Brussels-South','brussels midi':'Brussels-South','bruxelles-midi':'Brussels-South',
+  'brussels-north':'Brussels-North','brussel-north':'Brussels-North','brussels nord':'Brussels-North',
+  'ghent':'Ghent-Sint-Pieters','gent':'Ghent-Sint-Pieters','gent-sint-pieters':'Ghent-Sint-Pieters',
+  'antwerp':'Antwerp-Central','antwerpen':'Antwerp-Central','antwerp central':'Antwerp-Central',
+  'liege':'Liege-Guillemins','liège':'Liege-Guillemins',
+  'ypres':'Ieper','ieper':'Ieper',
+};
+function normaliseStation(s){return IRAIL_STATION_MAP[s.toLowerCase().trim()]||s.trim();}
+function normaliseTrainNum(s){return s.toUpperCase().replace(/\s+/g,'');}
+
+// Eurostar static timetable (Brussels-Midi → London St Pancras)
+// Source: Eurostar published timetable — last verified Jun 2025
+// Format: train number → [dep BRU, arr LON]
+const EUROSTAR_BRU_LON = {
+  '9114':['06:52','08:01'],'9116':['08:52','10:01'],'9118':['10:52','12:01'],
+  '9120':['12:52','14:01'],'9122':['14:52','16:01'],'9124':['16:52','18:01'],
+  '9126':['18:52','20:01'],'9026':['08:52','10:01'],'9028':['10:52','12:01'],
+  '9030':['12:52','14:01'],'9032':['14:52','16:01'],'9034':['16:52','18:01'],
+  '9036':['18:52','20:01'],'9038':['20:52','22:01'],
+};
+const EUROSTAR_LON_BRU = {
+  '9107':['07:31','11:05'],'9109':['09:01','12:35'],'9111':['10:01','13:35'],
+  '9113':['11:31','15:05'],'9115':['13:01','16:35'],'9117':['14:01','17:35'],
+  '9119':['15:31','19:05'],'9121':['17:01','20:35'],'9123':['18:01','21:35'],
+  '9125':['19:01','22:35'],
+};
+
+function isEurostar(num){return /^(ES|EUROSTAR)?\d{4}$/.test(num.replace(/\s/g,''))&&parseInt(num.replace(/\D/g,''))>=9000;}
+
+async function autoLookupTrain(key){
+  const map=LOOKUP_MAP[key];
+  const rawNum=document.getElementById(map.flightId).value.trim();
+  const date=document.getElementById(map.dateId)?.value||'2026-06-19';
+  const resEl=document.getElementById(key+'-lookup-result');
+  if(!rawNum||rawNum.length<3)return;
+  showLookup(resEl,'🔍 Looking up train…',null);
+
+  const cleanNum=normaliseTrainNum(rawNum).replace(/^EUROSTAR/,'').replace(/^ES/,'');
+
+  // ── Eurostar path ──
+  if(isEurostar(rawNum)){
+    // 1. Try AeroDataBox (Eurostar IATA code = ES)
+    if(RAPIDAPI_KEY){
+      try{
+        const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/ES${cleanNum}/${date}`,{
+          method:'GET',mode:'cors',credentials:'omit',
+          headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}
+        });
+        if(resp.ok){
+          const data=await resp.json();
+          if(data&&data.length){
+            const t=data[0],parseT=s=>{const m=s?.match(/[\sT](\d{2}:\d{2})/);return m?m[1]:null;};
+            const dep=parseT(t.departure?.scheduledTime?.local||t.departure?.scheduledTime?.utc);
+            const arr=parseT(t.arrival?.scheduledTime?.local||t.arrival?.scheduledTime?.utc);
+            const from=t.departure?.airport?.name||t.departure?.airport?.iata||'';
+            const to=t.arrival?.airport?.name||t.arrival?.airport?.iata||'';
+            if(dep&&map.depTimeId)document.getElementById(map.depTimeId).value=dep;
+            if(arr&&map.arrTimeId)document.getElementById(map.arrTimeId).value=arr;
+            if(from&&map.fromId&&!document.getElementById(map.fromId).value)document.getElementById(map.fromId).value=from;
+            if(to&&map.toId)document.getElementById(map.toId).value=to;
+            showLookup(resEl,`🚄 Eurostar ${cleanNum}: departs ${from||'?'} ${dep||'?'} · arrives ${to||'?'} ${arr||'?'}`,'success');
+            return;
+          }
+        }
+      }catch(e){/* fall through to static */}
+    }
+    // 2. Static timetable fallback
+    const staticBL=EUROSTAR_BRU_LON[cleanNum],staticLB=EUROSTAR_LON_BRU[cleanNum];
+    const staticData=staticBL||staticLB;
+    if(staticData){
+      const [dep,arr]=staticData;
+      const from=staticBL?'Brussels-Midi':'London St Pancras';
+      const to=staticBL?'London St Pancras':'Brussels-Midi';
+      if(dep&&map.depTimeId)document.getElementById(map.depTimeId).value=dep;
+      if(arr&&map.arrTimeId)document.getElementById(map.arrTimeId).value=arr;
+      if(map.fromId&&!document.getElementById(map.fromId).value)document.getElementById(map.fromId).value=from;
+      if(map.toId)document.getElementById(map.toId).value=to;
+      showLookup(resEl,`🚄 Eurostar ${cleanNum} (static timetable): ${from} ${dep} → ${to} ${arr} · <a href="https://www.eurostar.com/uk-en/travel-info/timetable" target="_blank" style="color:var(--gold)">Verify on eurostar.com ↗</a>`,'success');
+      return;
+    }
+    // 3. Link fallback
+    showLookup(resEl,`🚄 Eurostar ${cleanNum} not in static timetable. <a href="https://www.eurostar.com/uk-en/travel-info/service-information" target="_blank" style="color:var(--gold)">Check live times on eurostar.com ↗</a>`,'warn');
+    return;
+  }
+
+  // ── Belgian iRail path ──
+  try{
+    const d=new Date(date);
+    const ddmmyy=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+String(d.getFullYear()).slice(2);
+    const url=`https://api.irail.be/vehicle/?id=BE.NMBS.${cleanNum}&date=${ddmmyy}&format=json&lang=en`;
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('not_found');
+    const data=await resp.json();
+    const stops=(data.stops?.stop)||[];
+    if(!stops.length)throw new Error('no_stops');
+    const fromRaw=map.fromId?document.getElementById(map.fromId)?.value.trim():'';
+    const toRaw=map.toId?document.getElementById(map.toId)?.value.trim():'';
+    const fromNorm=normaliseStation(fromRaw||'Bruges');
+    const toNorm=normaliseStation(toRaw||'');
+    const fmtUnix=ts=>{const t=new Date(ts*1000);return String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');};
+    const findStop=name=>stops.find(s=>s.station?.toLowerCase().includes(name.toLowerCase().split('-')[0]));
+    const depStop=findStop(fromNorm)||stops[0];
+    const arrStop=toNorm?findStop(toNorm)||stops[stops.length-1]:stops[stops.length-1];
+    const depTime=fmtUnix(depStop.scheduledDepartureTime||depStop.time);
+    const arrTime=fmtUnix(arrStop.time);
+    const fromName=depStop.station||fromNorm;
+    const toName=arrStop.station||toNorm||'destination';
+    if(map.fromId&&!fromRaw)document.getElementById(map.fromId).value=fromName;
+    if(map.toId)document.getElementById(map.toId).value=toName;
+    if(map.arrTimeId){document.getElementById(map.arrTimeId).value=arrTime;document.getElementById(map.arrTimeId).dispatchEvent(new Event('change'));}
+    if(map.depTimeId){document.getElementById(map.depTimeId).value=depTime;document.getElementById(map.depTimeId).dispatchEvent(new Event('change'));}
+    showLookup(resEl,`🚂 ${cleanNum}: departs ${fromName} ${depTime} · arrives ${toName} ${arrTime}`,'success');
+  }catch(e){
+    showLookup(resEl,'⚠️ Train not found. Belgian trains: use IC537, S12401 etc. Eurostar: use 4-digit number like 9114.','warn');
+  }
+}
+
 async function autoLookupFlight(key){
   const map=LOOKUP_MAP[key],num=document.getElementById(map.flightId).value.trim().replace(/\s+/g,''),date=document.getElementById(map.dateId)?.value||'2026-06-19',resEl=document.getElementById(key+'-lookup-result');
   try{const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});
@@ -745,7 +868,27 @@ function setMode(prefix,mode,btn){
   if(prefix==='arr')currentArrMode=mode;
   if(prefix==='bdep')currentBrugesDepMode=mode;
 }
-async function saveGuest(g){if(firebaseReady)return fbPush('guests',g);try{const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');a.push(g);localStorage.setItem('vv_guests',JSON.stringify(a));return true;}catch(e){return false;}}
+async function saveGuest(g){
+  if(firebaseReady){
+    if(g.key){
+      // Existing guest — update in place, don't create duplicate
+      const ok=await fbUpdate('guests/'+g.key,g);
+      return ok;
+    } else {
+      // New guest — push and capture the generated key
+      try{
+        const ref=await db.ref('guests').push(g);
+        g.key=ref.key;
+        return true;
+      }catch(e){return false;}
+    }
+  }
+  try{const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');
+    const idx=a.findIndex(x=>x.name===g.name&&x.email===g.email);
+    if(idx>=0)a[idx]=g;else a.push(g);
+    localStorage.setItem('vv_guests',JSON.stringify(a));return true;
+  }catch(e){return false;}
+}
 async function loadGuests(){if(firebaseReady){const d=await fbGet('guests');if(!d)return[];return Object.entries(d).map(([k,v])=>({key:k,...v})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));}try{return JSON.parse(localStorage.getItem('vv_guests')||'[]');}catch(e){return[];}}
 async function deleteGuest(key){if(firebaseReady){try{await db.ref('guests/'+key).remove();}catch(e){}}else{try{const a=JSON.parse(localStorage.getItem('vv_guests')||'[]');const i=a.findIndex(g=>g.key===key);if(i>-1){a.splice(i,1);localStorage.setItem('vv_guests',JSON.stringify(a));}}catch(e){}}renderGuestDashboard();}
 async function getPickups(guestKey){if(!firebaseReady)return[];const d=await fbGet('guests/'+guestKey+'/pickups');if(!d)return[];return Array.isArray(d)?d:Object.values(d);}
@@ -766,7 +909,7 @@ async function submitAndGenerate(){
     submittedAt:new Date().toISOString()};
   const ni=document.getElementById('form-notice');
   if(!g.name){showNotice(ni,'⚠️ Please enter your name.','warn');return;}
-  const saved=await saveGuest(g);saveGuestLocally(g);
+  const saved=await saveGuest(g);saveGuestLocally(g); // g.key now set if new guest
   showNotice(ni,saved?'✅ Details saved! Your itinerary is below.':'ℹ️ Your itinerary is below.',saved?'success':'info');
   document.getElementById('personal-link-card').style.display='block';
   lastGeneratedGuest=g;document.getElementById('update-banner').style.display='none';
@@ -873,7 +1016,7 @@ async function buildItinerary(g){
   if(g.notes)html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">📝 Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
   return html;
 }
-function orgLogin(){if(document.getElementById('orgPassword').value===ORG_PASSWORD){document.getElementById('login-panel').style.display='none';document.getElementById('dashboard-panel').style.display='block';renderGuestDashboard();const os=localStorage.getItem('os_config');if(os){const c=JSON.parse(os);ONESIGNAL_APP_ID=c.appId||'';ONESIGNAL_API_KEY=c.apiKey||'';}document.getElementById('os-app-id').value=ONESIGNAL_APP_ID;document.getElementById('os-api-key').value=ONESIGNAL_API_KEY;const rk=localStorage.getItem('rapidapi_key');if(rk){RAPIDAPI_KEY=rk;document.getElementById('rapidapi-key').value=rk;document.getElementById('rapidapi-status').textContent='✅ Auto-lookup enabled.';document.getElementById('rapidapi-status').style.color='#065f46';}}else{alert('Incorrect password.');}}
+function orgLogin(){if(document.getElementById('orgPassword').value===ORG_PASSWORD){document.getElementById('login-panel').style.display='none';document.getElementById('dashboard-panel').style.display='block';renderGuestDashboard();const os=localStorage.getItem('os_config');if(os){const c=JSON.parse(os);ONESIGNAL_APP_ID=c.appId||'';ONESIGNAL_API_KEY=c.apiKey||'';}document.getElementById('os-app-id').value=ONESIGNAL_APP_ID;document.getElementById('os-api-key').value=ONESIGNAL_API_KEY;const rk=localStorage.getItem('rapidapi_key');const _hk=typeof RAPIDAPI_KEY_HARDCODED!=='undefined'?RAPIDAPI_KEY_HARDCODED:'';if(_hk){RAPIDAPI_KEY=_hk;}else if(rk){RAPIDAPI_KEY=rk;}const _rk_display=RAPIDAPI_KEY||rk||'';if(_rk_display){document.getElementById('rapidapi-key').value=_rk_display;document.getElementById('rapidapi-status').textContent='✅ Auto-lookup enabled.';document.getElementById('rapidapi-status').style.color='#065f46';}}else{alert('Incorrect password.');}}
 async function renderGuestDashboard(){const guests=await loadGuests();const nR=guests.filter(g=>g.hasRental).length,nBO=guests.filter(g=>g.tripSection==='bruges'||(!g.goingValbonne&&g.tripSection!=='valbonne')).length,nBoth=guests.filter(g=>g.tripSection==='both'||(g.goingValbonne&&g.tripSection!=='valbonne')).length;document.getElementById('stat-strip').innerHTML=`<div class="stat-box"><div class="num">${guests.length}</div><div class="lbl">Total guests</div></div><div class="stat-box"><div class="num">${nBoth}</div><div class="lbl">Full trip</div></div><div class="stat-box"><div class="num">${nBO}</div><div class="lbl">Bruges only</div></div><div class="stat-box"><div class="num">${guests.filter(g=>g.tripSection==='valbonne').length}</div><div class="lbl">Valbonne only</div></div><div class="stat-box"><div class="num">${nR}</div><div class="lbl">Rental car</div></div>`;const wrap=document.getElementById('guest-table-wrap');if(!guests.length){wrap.innerHTML='<div class="empty-state">No guests yet. Share the link and check back!</div>';return;}const rows=guests.map(g=>{_guestsMap[g.key||g.name]=g;const pickups=Array.isArray(g.pickups)?g.pickups:(g.pickups?Object.values(g.pickups):[]);const pickupBadge=pickups.length?`<span class="pickup-badge">${pickups.length} pickup${pickups.length>1?'s':''}</span>`:'';const pickupList=pickups.map((p,i)=>`<div class="pickup-item">🚗 Jun ${19+p.day} ${p.time?fmt12(p.time):''} · ${esc(p.vehicle||'')}${p.location?' @ '+esc(p.location):''}<button onclick="editPickupInline('${esc(g.key)}','${esc(g.name)}',${i})" title="Edit">✏️</button><button onclick="deletePickup('${esc(g.key)}',${i})" title="Delete">✕</button></div>`).join('');const arrDisplay=g.arrMode==='train'?`🚂 ${esc(g.arrFlight||'Train')}`:g.arrMode==='car'?`🚗 By car`:`✈️ ${esc(g.arrFlight||'—')}`;return`<tr><td><strong>${esc(g.name||'—')}</strong>${pickupBadge}${g.email?`<div class="sub-text">${esc(g.email)}</div>`:''}<div class="pickup-list">${pickupList}</div><button class="btn btn-gold btn-sm" style="margin-top:.4rem" onclick="openPickupModal('${esc(g.key)}','${esc(g.name)}')">+ Assign Pickup</button>
         <button class="btn btn-secondary btn-sm" style="margin-top:.3rem" onclick="openTransportModal('${esc(g.key)}','${esc(g.name)}',${JSON.stringify({arr:g.transportOrg?.arr||'',dep:g.transportOrg?.dep||'',nice:g.transportOrg?.nice||'',ret:g.transportOrg?.ret||''}).replace(/"/g,'&quot;')})">🚗 Transport</button>
       </td><td><div>${arrDisplay} ${g.arrDate?fmtDate(g.arrDate):''}</div><div class="sub-text">${g.arrTime?fmt12(g.arrTime):''} ${g.arrFrom?'from '+esc(g.arrFrom):''}</div></td><td>${g.goingValbonne?`<div>✈️ ${esc(g.depFlight||'—')} ${g.depDate?fmtDate(g.depDate):''}</div><div class="sub-text">${g.depTime?fmt12(g.depTime):''} → NCE ${g.niceArrTime?fmt12(g.niceArrTime):''}</div>`:'<span class="tag-pill tag-bruges" style="font-size:.68rem">Bruges only</span>'}</td><td>${g.goingValbonne?`<div>${esc(g.retFlight||'—')} ${g.retDate?fmtDate(g.retDate):''}</div><div class="sub-text">${g.retTime?fmt12(g.retTime):''} ${g.retTo?'→ '+esc(g.retTo):''}</div>`:'—'}</td><td style="text-align:center">${g.goingValbonne?'<span class="tag-pill tag-valbonne">✓</span>':'—'}</td><td style="text-align:center">${g.hasRental?`<span class="tag-pill tag-rental">🚗 ${esc(g.rentalCo||'')}</span>`:'—'}</td><td><div class="sub-text">${g.notes?esc(g.notes.slice(0,50))+(g.notes.length>50?'…':''):'—'}</div><div class="sub-text">${g.submittedAt?new Date(g.submittedAt).toLocaleDateString('en-GB'):''}</div></td><td><button class="btn btn-secondary btn-sm" title="View itinerary" onclick="viewGuestItinerary('${esc(g.key||'')}')">&#128065; View</button> <button class="btn btn-danger btn-sm" onclick="deleteGuest('${esc(g.key||'')}')">&#10005;</button></td></tr>`;}).join('');wrap.innerHTML=`<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Name & Pickups</th><th>Arrival</th><th>→ Nice</th><th>Return</th><th>Valbonne</th><th>Rental</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;}
@@ -1164,13 +1307,17 @@ function _buildCalEvents(g) {
 
   const pad = n => String(n).padStart(2,'0');
   const toDate = (day, hhmm) => {
+    if(!hhmm||!String(hhmm).includes(':')) return null;
     const d = new Date(TRIP_BASE);
     d.setDate(d.getDate() + day);
-    const [h,m] = hhmm.split(':').map(Number);
+    const [h,m] = String(hhmm).split(':').map(Number);
+    if(isNaN(h)||isNaN(m)) return null;
     return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(h)}${pad(m)}00`;
   };
   const addH = (hhmm, hours) => {
-    const [h,m] = hhmm.split(':').map(Number);
+    if(!hhmm||!String(hhmm).includes(':')) return '00:00';
+    const [h,m] = String(hhmm).split(':').map(Number);
+    if(isNaN(h)||isNaN(m)) return '00:00';
     const t = h*60+m + hours*60;
     return `${pad(Math.floor(t/60)%24)}:${pad(t%60)}`;
   };
@@ -1191,13 +1338,14 @@ function _buildCalEvents(g) {
     const endHHMM = addH(startHHMM, dur);
     const day = a.day;
 
-    events.push({
+    const _ds=toDate(day,startHHMM),_de=toDate(day,endHHMM);
+    if(_ds&&_de) events.push({
       uid: `vvbb-${day}-${idx}-${g.name.replace(/\s/g,'')}`,
       summary: fillT(a.title),
       description: fillT(a.note||''),
       location: a.address || '',
-      dtstart: toDate(day, startHHMM),
-      dtend: toDate(day, endHHMM),
+      dtstart: _ds,
+      dtend: _de,
       day, startHHMM
     });
   });
@@ -1207,12 +1355,12 @@ function _buildCalEvents(g) {
   const tNoteDep = g.depTransport||(g.transportOrg?.dep)||'';
   const tNoteNice = g.niceArrTransport||(g.transportOrg?.nice)||'';
   if(g.tripSection!=='valbonne' && g.arrTime) {
-    if(tNoteArr) events.push({uid:`vvbb-0-arr-xfer`,summary:'Transfer to hotel',description:tNoteArr,location:'',dtstart:toDate(0,g.arrTime),dtend:toDate(0,addH(g.arrTime,0.5)),day:0,startHHMM:g.arrTime});
+    if(tNoteArr) {const _ds=toDate(0,g.arrTime),_de=toDate(0,addH(g.arrTime,0.5));if(_ds&&_de&&tNoteArr) events.push({uid:`vvbb-0-arr-xfer`,summary:'Transfer to hotel',description:tNoteArr,location:'',dtstart:_ds,dtend:_de,day:0,startHHMM:g.arrTime||'12:00'});}
   }
   if(g.tripSection!=='bruges' && g.retFlight && g.retFlight!=='—' && g.retTime && g.retDate) {
     const rd = Math.floor((new Date(g.retDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000);
     const tNoteRet = g.retTransport||(g.transportOrg?.ret)||'';
-    if(tNoteRet) events.push({uid:`vvbb-ret-xfer`,summary:'Transfer to Nice Airport',description:tNoteRet,location:'',dtstart:toDate(rd,addH(g.retTime,-1.5)),dtend:toDate(rd,g.retTime),day:rd,startHHMM:g.retTime});
+    if(tNoteRet) {const _ds=toDate(rd,addH(g.retTime,-1.5)),_de=toDate(rd,g.retTime);if(_ds&&_de&&tNoteRet) events.push({uid:`vvbb-ret-xfer`,summary:'Transfer to Nice Airport',description:tNoteRet,location:'',dtstart:_ds,dtend:_de,day:rd,startHHMM:g.retTime||'12:00'});}
     events.push({uid:`vvbb-ret-flight`,summary:`Fly home – ${g.retFlight}${g.retTo?' to '+g.retTo:''}`,description:'',location:'Nice Côte d\'Azur Airport (NCE)',dtstart:toDate(rd,g.retTime),dtend:toDate(rd,addH(g.retTime,2.5)),day:rd,startHHMM:g.retTime});
   }
 
