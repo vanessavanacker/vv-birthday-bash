@@ -773,7 +773,7 @@ async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElem
 async function buildItinerary(g){
   const TRIP_BASE=new Date('2026-06-19T12:00:00'),acts=LIVE_ACTIVITIES,isVOnly=g.tripSection==='valbonne',isBOnly=g.tripSection==='bruges';
   const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'—').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'—').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'—').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
-  const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&a.time==='CHECK_DEP')return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
+  const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
   const byDay={};filtered.forEach(a=>{if(!byDay[a.day])byDay[a.day]=[];byDay[a.day].push({...a});});
   if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
   // ── Personal transport notes — appended to relevant existing events in renderer ──
@@ -842,6 +842,8 @@ async function buildItinerary(g){
         }
         // CHECK_DEP: full override for bruges-only guests based on departure mode
         if(ev.time==='CHECK_DEP' && (ev.tags||[]).includes('bruges-only')){
+          // Safety net: skip entirely for non-bruges guests (in case filter missed it)
+          if(g.tripSection!=='bruges') return '';
           const isTrain = g.brugesDepMode==='train';
           evIcon  = isTrain ? '🚂' : '✈️';
           evType  = isTrain ? 'transport' : 'flight';
@@ -1020,7 +1022,7 @@ function scheduleActivityReminders(g){
     if(a.day!==todayTripDay) return false;
     const t=a.tags||[];
     if(!t.length) return true;
-    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&a.time==='CHECK_DEP')return false;return true;}
+    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
     if(t.includes('valbonne')&&g.tripSection==='bruges') return false;
     if(t.includes('rental')&&!g.hasRental) return false;
     if(t.includes('no-rental')&&g.hasRental) return false;
@@ -1146,7 +1148,7 @@ function _buildCalEvents(g) {
   const filtered = LIVE_ACTIVITIES.filter(a => {
     const t = a.tags||[];
     if(!t.length) return true;
-    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&a.time==='CHECK_DEP')return false;return true;}
+    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
     if(t.includes('valbonne')&&g.tripSection==='bruges') return false;
     if(t.includes('rental')&&!g.hasRental) return false;
     if(t.includes('no-rental')&&g.hasRental) return false;
