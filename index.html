@@ -1361,22 +1361,15 @@ hint.style.display=‘block’;hint.innerHTML=‘📲 <strong>Android:</strong> 
 }
 function onItineraryModalOpen(){document.getElementById(‘install-hint’).style.display=‘none’;}
 
-initFirebase();
-const _rk=localStorage.getItem(‘rapidapi_key’);if(_rk)RAPIDAPI_KEY=_rk;
-setTimeout(checkOnLoad,300);
-</script>
-
-</body>
-</html>
 async function buildItinerary(g){
-  const startISO=g.tripSection==='valbonne'?(g.depDate||'2026-06-22'):(g.arrDate||'2026-06-19');
-  const tripStart=new Date(startISO);
-  const days=g.tripSection==='bruges'?4:(g.tripSection==='valbonne'?6:9);
-  const today=new Date();today.setHours(0,0,0,0);
-  const nowMins=new Date().getHours()*60+new Date().getMinutes();
-  const todayStr=today.toISOString().slice(0,10);
-  const checkoutTime=calcCheckoutTime(g);
-  const cn=checkoutNote(g);
+const startISO=g.tripSection===‘valbonne’?(g.depDate||‘2026-06-22’):(g.arrDate||‘2026-06-19’);
+const tripStart=new Date(startISO);
+const days=g.tripSection===‘bruges’?4:(g.tripSection===‘valbonne’?6:9);
+const today=new Date();today.setHours(0,0,0,0);
+const nowMins=new Date().getHours()*60+new Date().getMinutes();
+const todayStr=today.toISOString().slice(0,10);
+const checkoutTime=calcCheckoutTime(g);
+const cn=checkoutNote(g);
 
 const fill=s=>(s||’’).replace(/{depFlight}/g,g.depFlight||’—’).replace(/{depTime}/g,fmt12(g.depTime)||’’).replace(/{niceArrTime}/g,fmt12(g.niceArrTime)||’’).replace(/{rentalCo}/g,g.rentalCo||‘rental’).replace(/{rentalPickup}/g,g.rentalPickup||‘Nice Airport’).replace(/{checkoutNote}/g,cn).replace(/{brugesDepRef}/g,g.brugesDepRef||‘departure’).replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)||’’).replace(/{brugesDepTo}/g,g.brugesDepTo||‘home’);
 
@@ -1538,7 +1531,7 @@ h+=’</tbody></table>’;
 wrap.innerHTML=h;
 }
 
-let _guestsMap={};
+_guestsMap={};
 async function viewGuestItinerary(key){
 const g=_guestsMap[key];if(!g)return;
 _itineraryGuest=g;
@@ -1756,8 +1749,6 @@ function closeModal(){document.getElementById(‘modal-overlay’).style.display
 function showNotice(el,msg,type){const cls=type===‘success’?‘notice-success’:type===‘warn’?‘notice-warn’:‘notice-info’;el.innerHTML=`<div class="notice ${cls}">${msg}</div>`;}
 function fmt12(t){if(!t||!/^\d\d:\d\d/.test(t))return t||’’;const[h,m]=t.split(’:’).map(Number);const ap=h>=12?‘pm’:‘am’;const h12=((h+11)%12)+1;return`${h12}:${String(m).padStart(2,'0')}${ap}`;}
 function addMins(t,n){const[h,m]=t.split(’:’).map(Number);const total=h*60+m+n;return`${String(Math.floor(total/60)%24).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}
-const AIRPORT_DRIVE_MINS={‘BRU’:75,‘CRL’:90,‘AMS’:180,‘CDG’:280,‘LHR’:480};
-const STATION_TO_HOTEL_MINS={‘Bruges’:10,‘Brussels-South’:75,‘Brussels-Central’:80,‘Brussels-Midi’:75,‘Antwerp-Central’:95,‘Ghent-Sint-Pieters’:45,‘Lille-Europe’:75};
 function stationToHotelMins(g){if(g.arrMode===‘train’&&g.arrTrainTo){const k=Object.keys(STATION_TO_HOTEL_MINS).find(s=>g.arrTrainTo.toLowerCase().includes(s.toLowerCase().split(’-’)[0]));if(k)return STATION_TO_HOTEL_MINS[k];}return airportDriveMins(g);}
 function airportDriveMins(g){if(!g.arrTo)return 75;const t=g.arrTo.toLowerCase();if(t.includes(‘charleroi’)||t.includes(‘crl’))return 90;if(t.includes(‘antwerp’))return 95;if(t.includes(‘amsterdam’))return 180;if(t.includes(‘paris’)||t.includes(‘cdg’))return 280;return 75;}
 function calcCheckoutTime(g){
@@ -1861,7 +1852,7 @@ setTimeout(()=>document.getElementById(‘link-copied’).style.display=‘none�
 }
 
 // === ACTIVITY REMINDERS (LOCAL setTimeout-based; will be upgraded to scheduled push) ===
-let _notifyTimers=[];
+_notifyTimers=[];
 function clearReminders(){_notifyTimers.forEach(t=>clearTimeout(t));_notifyTimers=[];}
 function scheduleActivityReminders(g){
 clearReminders();
@@ -1929,7 +1920,7 @@ renderGuestDashboard();
 }
 
 // === CALENDAR EXPORT ===
-let _itineraryGuest=null;
+_itineraryGuest=null;
 function showCalendarOptions(){const opts=document.getElementById(‘cal-options’);opts.style.display=opts.style.display===‘block’?‘none’:‘block’;}
 function _buildCalEvents(g){
 if(!g)return[];
