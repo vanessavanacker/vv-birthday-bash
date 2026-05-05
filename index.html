@@ -774,6 +774,8 @@ function initFirebase(){
     db.ref('config/onesignal_app_id').on('value', snap => {
       const k = snap.val();
       ONESIGNAL_APP_ID = (typeof k === 'string') ? k : '';
+      // Initialize OneSignal SDK as soon as we have an App ID (idempotent — only runs once)
+      if(ONESIGNAL_APP_ID) initOneSignal(ONESIGNAL_APP_ID);
       const inputEl = document.getElementById('os-app-id');
       const dash = document.getElementById('dashboard-panel');
       if(inputEl && dash && dash.style.display !== 'none' && ONESIGNAL_APP_ID){
@@ -1771,8 +1773,60 @@ function onItineraryModalOpen(){
   }
 }
 
+// ── OneSignal init (Step 4) ──
+// Gated behind App ID — if no App ID, init never runs and the SDK sits idle.
+// Wrapped in deferred queue + try/catch so any failure stays contained.
+let _oneSignalInitDone = false;
+function initOneSignal(appId){
+  if(!appId || _oneSignalInitDone) return;
+  _oneSignalInitDone = true;
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async function(OneSignal){
+    try {
+      // Service worker path/scope/filename are configured in OneSignal dashboard,
+      // so we just pass the App ID and let the SDK pick them up.
+      await OneSignal.init({ appId });
+      console.log('✅ OneSignal initialized');
+      showPushStatusBadge('ready');
+    } catch(e) {
+      console.warn('OneSignal init failed:', e);
+      showPushStatusBadge('error');
+      _oneSignalInitDone = false; // allow retry on next config update
+    }
+  });
+}
+function showPushStatusBadge(state){
+  let el = document.getElementById('push-status-badge');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'push-status-badge';
+    el.style.cssText = 'position:fixed;bottom:1rem;left:1rem;padding:.4rem .85rem;border-radius:20px;font-size:.72rem;font-weight:600;z-index:10000;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;transition:opacity .35s;opacity:0';
+    el.onclick = () => el.remove();
+    document.body.appendChild(el);
+  }
+  if(state === 'ready'){
+    el.textContent = '🔔 Push system online';
+    el.style.background = '#065f46';
+  } else {
+    el.textContent = '⚠️ Push init failed (tap to dismiss)';
+    el.style.background = '#991b1b';
+  }
+  // fade in
+  requestAnimationFrame(() => { el.style.opacity = '1'; });
+  // auto-dismiss after 4s
+  setTimeout(() => {
+    if(el && el.parentNode){
+      el.style.opacity = '0';
+      setTimeout(() => { if(el && el.parentNode) el.remove(); }, 400);
+    }
+  }, 4000);
+}
+
 initFirebase();
 const _rk=localStorage.getItem('rapidapi_key');if(_rk)RAPIDAPI_KEY=_rk;
+// Init OneSignal from localStorage immediately (organiser device); Firebase listener will also init for guests
+const _osCfg=localStorage.getItem('os_config');
+if(_osCfg){try{const c=JSON.parse(_osCfg);if(c.apiKey)ONESIGNAL_API_KEY=c.apiKey;if(c.appId){ONESIGNAL_APP_ID=c.appId;initOneSignal(c.appId);}}catch(e){}}
 setTimeout(checkOnLoad,300);
 </script>
 </body>
