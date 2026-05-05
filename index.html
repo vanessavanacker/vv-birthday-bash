@@ -478,7 +478,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       </div>
       <div class="push-org-card">
         <h4>&#9992;&#65039; Auto Flight Lookup</h4>
-        <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Guests type their flight number and times fill in automatically. Requires a free <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month).<br>Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com &rarr; AeroDataBox &rarr; Subscribe Free</a></p>
+        <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Guests type their flight number and times fill in automatically. Requires a free <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month). <strong>Save once here</strong> &mdash; the key syncs via Firebase to every guest device automatically.<br>Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com &rarr; AeroDataBox &rarr; Subscribe Free</a></p>
         <div class="field"><label>RapidAPI Key</label><input type="text" id="rapidapi-key" placeholder="Paste your RapidAPI key here" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
         <button class="btn btn-secondary" style="margin-top:.6rem;width:auto;font-size:.8rem" onclick="saveRapidAPIKey()">Save &amp; Enable Auto-Lookup</button>
         <div id="rapidapi-status" style="font-size:.78rem;margin-top:.5rem;opacity:.6"></div>
@@ -717,6 +717,24 @@ function initFirebase(){
   try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();firebaseReady=true;showFirebaseBar('connected');
     db.ref('activities').on('value',snap=>{const data=snap.val();if(data){LIVE_ACTIVITIES=Array.isArray(data)?data:Object.values(data);if(lastGeneratedGuest)document.getElementById('update-banner').style.display='block';if(document.getElementById('org-tab-activities').classList.contains('active'))renderActivityEditor();
         scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}});
+    // Cross-device RapidAPI key sync — organiser saves once, all guest devices get it.
+    db.ref('config/rapidapi').on('value', snap => {
+      const k = snap.val();
+      RAPIDAPI_KEY = (typeof k === 'string') ? k : '';
+      // If the dashboard is open, reflect the synced value
+      const inputEl = document.getElementById('rapidapi-key');
+      const statusEl = document.getElementById('rapidapi-status');
+      const dash = document.getElementById('dashboard-panel');
+      if(inputEl && statusEl && dash && dash.style.display !== 'none'){
+        if(RAPIDAPI_KEY){
+          inputEl.value = RAPIDAPI_KEY;
+          statusEl.textContent = '✅ Auto-lookup enabled (synced across all devices).';
+          statusEl.style.color = '#065f46';
+        } else {
+          statusEl.textContent = '';
+        }
+      }
+    });
   }catch(e){console.warn('Firebase:',e);showFirebaseBar('offline');}
 }
 function showFirebaseBar(s){const b=document.getElementById('firebase-bar');b.className=s==='connected'?'fb-connected':'fb-offline';b.textContent=s==='connected'?'🔥 Firebase connected — live updates enabled':'⚠️ Running offline';b.style.display='block';if(s==='connected')setTimeout(()=>b.style.display='none',4000);}
@@ -728,7 +746,14 @@ const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrT
 const lookupTimers={};
 function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<3){if(resEl)resEl.style.display='none';return;}
   if(map.mode==='train'){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupTrain(key),1200);return;}
-  if(RAPIDAPI_KEY){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupFlight(key),1500);}}
+  // If key is set, lookup normally. If not, wait briefly — Firebase listener may still be delivering it.
+  if(RAPIDAPI_KEY){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupFlight(key),1500);return;}
+  showLookup(resEl,'⏳ Waiting for auto-lookup config…',null);
+  lookupTimers[key]=setTimeout(()=>{
+    if(RAPIDAPI_KEY){showLookup(resEl,'🔍 Looking up…',null);autoLookupFlight(key);}
+    else{showLookup(resEl,"ℹ️ Auto-lookup not configured yet. Enter times manually below — your itinerary will still work.",false);}
+  },2500);
+}
 
 const IRAIL_STATION_MAP = {
   'bruges':'Bruges','brugge':'Bruges',
@@ -1109,7 +1134,32 @@ function resetActivities(){if(!confirm('Reset to the original default schedule?'
 async function requestPush(){const btn=document.getElementById('push-optin-btn');btn.textContent='Enabling…';btn.disabled=true;try{const perm=await Notification.requestPermission();if(perm!=='granted'){btn.textContent='Blocked';btn.disabled=false;return;}btn.textContent='✅ Reminders on!';document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}catch(e){btn.textContent='Error';btn.disabled=false;}}
 async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
 function saveOneSignalConfig(){ONESIGNAL_APP_ID=document.getElementById('os-app-id').value.trim();ONESIGNAL_API_KEY=document.getElementById('os-api-key').value.trim();localStorage.setItem('os_config',JSON.stringify({appId:ONESIGNAL_APP_ID,apiKey:ONESIGNAL_API_KEY}));alert('Saved.');}
-function saveRapidAPIKey(){const key=document.getElementById('rapidapi-key').value.trim();RAPIDAPI_KEY=key;localStorage.setItem('rapidapi_key',key);const status=document.getElementById('rapidapi-status');if(key){status.textContent="✅ Auto-lookup enabled — guests' flight times will fill in automatically.";status.style.color='#065f46';}else{status.textContent='Key cleared.';status.style.color='';}}
+async function saveRapidAPIKey(){
+  const key = document.getElementById('rapidapi-key').value.trim();
+  RAPIDAPI_KEY = key;
+  localStorage.setItem('rapidapi_key', key); // fallback if Firebase ever offline
+  const status = document.getElementById('rapidapi-status');
+  if(!firebaseReady){
+    status.textContent = key
+      ? "⚠️ Saved locally only — Firebase not connected. Reload and try again so guest devices can sync."
+      : "Key cleared locally.";
+    status.style.color = '#854d0e';
+    return;
+  }
+  status.textContent = "⏳ Syncing to all devices…";
+  status.style.color = '';
+  // Empty string = remove from Firebase (Firebase treats null as deletion)
+  const ok = await fbSave('config/rapidapi', key || null);
+  if(ok){
+    status.textContent = key
+      ? "✅ Auto-lookup enabled — synced to all guest devices via Firebase."
+      : "Key cleared on all devices.";
+    status.style.color = key ? '#065f46' : '';
+  } else {
+    status.textContent = "❌ Firebase write failed. Check internet and try again.";
+    status.style.color = '#991b1b';
+  }
+}
 </script>
 <script>
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;if(!sessionStorage.getItem('android_banner_ok')&&!isIOS())setTimeout(()=>{document.getElementById('android-banner').style.display='block';},2500);});
