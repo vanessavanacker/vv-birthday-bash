@@ -362,6 +362,22 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <div class="section-label"><span class="dot"></span><span id="nice-section-label">Flying to Nice</span></div>
     <div class="form-card">
       <h3 id="nice-card-title">&#9992;&#65039; Bruges &rarr; Nice &ndash; Jun 22</h3>
+      <div id="both-leave-mode-wrapper" style="display:none">
+        <div style="font-size:.85rem;opacity:.7;margin-bottom:.4rem">How are you leaving Bruges on Jun 22?</div>
+        <div class="mode-selector">
+          <button class="mode-btn active" type="button" onclick="setMode('bothLeave','flight',this)">&#9992;&#65039; Flight</button>
+          <button class="mode-btn" type="button" onclick="setMode('bothLeave','train',this)">&#128642; Train (side trip)</button>
+        </div>
+      </div>
+      <div class="mode-section" id="bothLeave-train">
+        <div class="form-grid">
+          <div class="field"><label>Train Number</label><input type="text" id="bothLeaveTrainNum" placeholder="e.g. TGV 9241, ICE 11" oninput="scheduleFlightLookup('bothLeaveTrain')"><div class="lookup-result" id="bothLeaveTrain-lookup-result"></div></div>
+          <div class="field"><label>Travelling To</label><input type="text" id="bothLeaveTrainTo" placeholder="e.g. Paris Gare du Nord"></div>
+          <div class="field"><label>Departs Bruges At</label><input type="time" id="bothLeaveTrainTime"></div>
+        </div>
+        <hr class="divider">
+        <div style="font-size:.85rem;opacity:.8;margin:.4rem 0">Now your flight to Nice (probably a different day):</div>
+      </div>
       <div class="form-grid">
         <div class="field"><label>Flight Number</label><input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')"><div class="lookup-result" id="dep-lookup-result"></div></div>
         <div class="field" id="dep-from-field" style="display:none"><label id="dep-from-label">Flying From (airport)</label><input type="text" id="depFrom" placeholder="e.g. Brussels Airport, Charleroi"></div>
@@ -371,7 +387,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       </div>
       <hr class="divider">
       <div class="field" id="both-dep-transport-field" style="display:none">
-        <label>&#128663; How are you getting to the airport on Jun 22? (optional)</label>
+        <label id="both-dep-transport-label">&#128663; How are you getting to the airport on Jun 22? (optional)</label>
         <input type="text" id="bothDepTransport" placeholder="e.g. Group taxi &middot; Self-drive &middot; Hotel shuttle" autocorrect="off">
         <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure &mdash; organiser can fill this in for you</span>
       </div>
@@ -696,7 +712,7 @@ const DEFAULT_ACTIVITIES=[
 ];
 const DAY_LABELS=['Day 1 – Arrival · Bruges','Day 2 – Bruges','Day 3 – Ypres',"Day 4 – Travel to Côte d'Azur",'Day 5 – Valbonne','Day 6 – Valbonne','Day 7 – Valbonne','Day 8 – Valbonne','Day 9 – Last Night · Valbonne','Day 10 – Departures'];
 let LIVE_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES)),EDITED_ACTIVITIES=null,db=null,firebaseReady=false,lastGeneratedGuest=null,deferredInstallPrompt=null;
-let currentTripSection='both',currentArrMode='flight',currentDepMode='flight',currentBrugesDepMode='flight';
+let currentTripSection='both',currentArrMode='flight',currentDepMode='flight',currentBrugesDepMode='flight',currentBothLeaveMode='flight';
 let _itineraryGuest = null;
 let _guestsMap = {};
 let activityFilter='all';
@@ -719,6 +735,14 @@ function setTripSection(section,btn){
   document.getElementById('dep-from-label').textContent=isVOnly?'Flying From (airport)':'Departing From (Belgian airport)';
   // Both-trip guests need a "transfer to Brussels Airport" field; bruges-only guests use the one in bruges-dep-section
   document.getElementById('both-dep-transport-field').style.display=section==='both'?'':'none';
+  // Both-trip guests get a flight/train mode toggle (mirrors bruges-only's "Leaving Bruges" section)
+  document.getElementById('both-leave-mode-wrapper').style.display=section==='both'?'':'none';
+  // If they switch away from both-trip, force back to flight mode and hide the train fields
+  if(section!=='both'){
+    currentBothLeaveMode='flight';
+    const btTrain=document.getElementById('bothLeave-train');if(btTrain)btTrain.classList.remove('active');
+    document.querySelectorAll('#both-leave-mode-wrapper .mode-btn').forEach((b,i)=>b.classList.toggle('active', i===0));
+  }
 }
 function initFirebase(){
   if(!FIREBASE_CONFIG.apiKey){showFirebaseBar('offline');return;}
@@ -750,7 +774,7 @@ async function fbSave(p,d){if(!firebaseReady)return false;try{await db.ref(p).se
 async function fbPush(p,d){if(!firebaseReady)return false;try{await db.ref(p).push(d);return true;}catch(e){return false;}}
 async function fbGet(p){if(!firebaseReady)return null;try{const s=await db.ref(p).once('value');return s.val();}catch(e){return null;}}
 async function fbUpdate(p,d){if(!firebaseReady)return false;try{await db.ref(p).update(d);return true;}catch(e){return false;}}
-const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrTimeId:'arrTime',fromId:'arrFrom',toId:'arrTo',mode:'flight'},dep:{flightId:'depFlight',dateId:'depDate',depTimeId:'depTime',arrTimeId:'niceArrTime',fromId:'depFrom',toId:null,mode:'flight'},ret:{flightId:'retFlight',dateId:'retDate',depTimeId:'retTime',arrTimeId:null,fromId:null,toId:'retTo',mode:'flight'},train:{flightId:'arrTrainNum',dateId:'arrDateTrain',depTimeId:null,arrTimeId:'arrTimeTrain',fromId:'arrTrainFrom',toId:'arrTrainTo',mode:'train'},bdep:{flightId:'bdepFlight',dateId:'bdepDate',depTimeId:'bdepTime',arrTimeId:null,fromId:null,toId:'bdepTo',mode:'flight'},bdeptrain:{flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,fromId:null,toId:'bdepTrainTo',mode:'train'}};
+const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrTimeId:'arrTime',fromId:'arrFrom',toId:'arrTo',mode:'flight'},dep:{flightId:'depFlight',dateId:'depDate',depTimeId:'depTime',arrTimeId:'niceArrTime',fromId:'depFrom',toId:null,mode:'flight'},ret:{flightId:'retFlight',dateId:'retDate',depTimeId:'retTime',arrTimeId:null,fromId:null,toId:'retTo',mode:'flight'},train:{flightId:'arrTrainNum',dateId:'arrDateTrain',depTimeId:null,arrTimeId:'arrTimeTrain',fromId:'arrTrainFrom',toId:'arrTrainTo',mode:'train'},bdep:{flightId:'bdepFlight',dateId:'bdepDate',depTimeId:'bdepTime',arrTimeId:null,fromId:null,toId:'bdepTo',mode:'flight'},bdeptrain:{flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,fromId:null,toId:'bdepTrainTo',mode:'train'},bothLeaveTrain:{flightId:'bothLeaveTrainNum',dateId:null,depTimeId:'bothLeaveTrainTime',arrTimeId:null,fromId:null,toId:'bothLeaveTrainTo',mode:'train'}};
 const lookupTimers={};
 function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<3){if(resEl)resEl.style.display='none';return;}
   if(map.mode==='train'){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupTrain(key),1200);return;}
@@ -908,6 +932,13 @@ function setMode(prefix,mode,btn){
   if(btn){btn.closest('.mode-selector').querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
   if(prefix==='arr')currentArrMode=mode;
   if(prefix==='bdep')currentBrugesDepMode=mode;
+  if(prefix==='bothLeave'){
+    currentBothLeaveMode=mode;
+    const lbl = document.getElementById('both-dep-transport-label');
+    if(lbl) lbl.innerHTML = mode === 'train'
+      ? '\u{1F683} How are you getting to Bruges Station on Jun 22? (optional)'
+      : '\u{1F697} How are you getting to the airport on Jun 22? (optional)';
+  }
 }
 
 // FIX #5: offline guests now get a stable local key, so deleteGuest works
@@ -973,6 +1004,10 @@ async function submitAndGenerate(){
     depTransport:(currentTripSection==='both'?document.getElementById('bothDepTransport')?.value.trim():document.getElementById('depTransport')?.value.trim())||'',
     niceArrTransport:document.getElementById('niceArrTransport')?.value.trim()||'',
     retTransport:document.getElementById('retTransport')?.value.trim()||'',
+    bothLeaveMode: currentTripSection==='both' ? currentBothLeaveMode : '',
+    bothLeaveTrainNum: document.getElementById('bothLeaveTrainNum')?.value.trim()||'',
+    bothLeaveTrainTo:  document.getElementById('bothLeaveTrainTo')?.value.trim()||'',
+    bothLeaveTrainTime:document.getElementById('bothLeaveTrainTime')?.value||'',
     submittedAt:new Date().toISOString()};
   const ni=document.getElementById('form-notice');
   if(!g.name){showNotice(ni,'⚠️ Please enter your name.','warn');return;}
@@ -998,7 +1033,17 @@ async function buildItinerary(g){
     : NICE_ARR_DEFAULT_DAY;
   const hasSideTrip = (g.tripSection !== 'bruges') && (niceArrDayIdx !== NICE_ARR_DEFAULT_DAY);
   const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'—').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'—').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'—').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
-  const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
+  const filtered=acts.filter(a=>{
+    // For side-trip "both" guests: hide default activities on the gap days (after Bruges checkout, before Nice arrival)
+    if(hasSideTrip && !isVOnly && a.day > NICE_ARR_DEFAULT_DAY && a.day < niceArrDayIdx) return false;
+    const t=a.tags||[];
+    if(!t.length)return true;
+    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
+    if(t.includes('valbonne')&&g.tripSection==='bruges')return false;
+    if(t.includes('rental')&&!g.hasRental)return false;
+    if(t.includes('no-rental')&&g.hasRental)return false;
+    return true;
+  });
   const byDay={};
   filtered.forEach(a=>{
     let dayKey = a.day;
@@ -1059,15 +1104,44 @@ async function buildItinerary(g){
   }
   // 2. Departure from Bruges — for Bruges-only AND Both-trip guests
   //    Bruges-only: Day 3, getting to Brussels Airport / Bruges Station to go home
-  //    Both-trip:   on the day they fly to Nice (niceArrDayIdx), default Jun 22 / Day 3
+  //    Both-trip flight mode: Day 3 (or niceArrDayIdx for side trip), transfer to airport for Nice flight
+  //    Both-trip train mode:  Day 3 transfer to Bruges Station, then a separate flight to Nice on niceArrDayIdx
+  const isBothTrainSideTrip = g.tripSection === 'both' && g.bothLeaveMode === 'train';
   if(g.tripSection === 'bruges'){
     const dTime = calcCheckoutTime(g) || g.brugesDepTime || 'TBC';
     const dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
     xferAdd(3, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
+  } else if(isBothTrainSideTrip){
+    // Both-trip via train: Day 3 transfer takes them to Bruges Station (not the airport)
+    const stationTime = g.bothLeaveTrainTime ? addMins(g.bothLeaveTrainTime, -25) : 'TBC';
+    xferAdd(3, stationTime, 'Transfer to Bruges Station', tNote(g.depTransport, g.transportOrg?.dep));
+    // The train event itself
+    if(g.bothLeaveTrainTime){
+      if(!byDay[3]) byDay[3] = [];
+      const trainRef = g.bothLeaveTrainNum ? ` – ${g.bothLeaveTrainNum}` : '';
+      const trainTo  = g.bothLeaveTrainTo  || 'your stopover';
+      byDay[3].push({
+        day: 3, time: g.bothLeaveTrainTime, title: `Train to ${trainTo}${trainRef}`,
+        note: `Departs Bruges at ${fmt12(g.bothLeaveTrainTime)}.`,
+        type: 'transport', icon: '🚂', personal: true, personalLabel: 'Your Train'
+      });
+    }
+    // Day-of-flight: transfer to airport for the eventual Nice flight
+    if(g.depTime){
+      if(!byDay[niceArrDayIdx]) byDay[niceArrDayIdx] = [];
+      const driveMins = airportDriveMins(g.depFrom || 'cdg');
+      const flyTransferTime = addMins(g.depTime, -(driveMins + 150));
+      const dest = g.depFrom || 'airport';
+      byDay[niceArrDayIdx].push({
+        day: niceArrDayIdx, time: flyTransferTime, title: `Transfer to ${dest}`,
+        note: `~${driveMins} min from your stopover + 2h30 check-in before ${fmt12(g.depTime)} flight`,
+        type: 'transport', icon: '🚗', personal: true, personalLabel: 'Your Transfer'
+      });
+    }
   } else if(g.tripSection === 'both'){
+    // Flight mode (default): one transfer to airport on the day they fly to Nice
     const dest = g.depFrom || 'Brussels Airport';
     const dTitle = `Transfer to ${dest}`;
-    // Compute transfer time directly from depTime (don't reuse calcCheckoutTime, which may return 11:00 for side-trip guests)
     const driveMins = airportDriveMins(g.depFrom || 'brussels');
     const dTime = g.depTime ? addMins(g.depTime, -(driveMins + 150)) : 'TBC';
     xferAdd(niceArrDayIdx, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
@@ -1128,7 +1202,7 @@ async function buildItinerary(g){
     // Re-sort the return day after pushing (the main sort happened earlier)
     byDay[retDayIdx].sort((a,b)=>eventSortKey(a).localeCompare(eventSortKey(b)));
   }
-  const startDay=isVOnly?3:0;
+  const startDay = isVOnly ? (hasSideTrip ? niceArrDayIdx : 3) : 0;
   let lastDay=isBOnly?4:Math.max(...acts.map(a=>a.day))+1;
   if(retDayIdx !== null && retDayIdx >= lastDay) lastDay = retDayIdx + 1;
   const valonlyLabels=['Arrival Day · Valbonne','Day 2 · Valbonne','Day 3 · Valbonne','Day 4 · Valbonne (Zuma)','Day 5 · Valbonne','Day 6 · Valbonne (Medusa)','Last Night · Valbonne'];
@@ -1139,9 +1213,11 @@ async function buildItinerary(g){
     const dd=new Date(TRIP_BASE);dd.setDate(TRIP_BASE.getDate()+d);
     const label = (d === retDayIdx) ? 'Departure Day'
       : (hasSideTrip && d === niceArrDayIdx) ? `Day ${d+1} \u2013 Travel to Nice`
+      : (hasSideTrip && !isVOnly && d > 3 && d < niceArrDayIdx) ? `Day ${d+1} \u2013 On your own (side trip)`
       : isVOnly ? (valonlyLabels[d-3]||'Day '+(d-2))
       : d===3 ? (()=>{
           if(isBOnly){const dest=g.brugesDepTo||'Home';return g.brugesDepMode==='train'?`Day 4 \u2013 Train to ${dest}`:`Day 4 \u2013 Flight to ${dest}`;}
+          if(isBothTrainSideTrip){const dest=g.bothLeaveTrainTo||'side trip';return `Day 4 \u2013 Train to ${dest}`;}
           if(hasSideTrip)return `Day 4 \u2013 Onward travel`;
           const dest=g.depFlight&&g.depFlight!=='\u2014'?'Nice':"C\u00f4te d'Azur";return `Day 4 \u2013 Travel to ${dest}`;
         })()
@@ -1152,7 +1228,13 @@ async function buildItinerary(g){
     const todayBadge=isToday?'<span style="background:#c9923a;color:#fff;font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em">Today</span>':'';
     const dayHtml='<div class="day-block"><div class="day-header"><span class="'+chipClass+'">'+esc(label)+'</span><span class="day-date">'+esc(dateStr)+'</span>'+todayBadge+'</div><div class="events">'+(()=>{
       const events=byDay[d]||[];
-      if(!events.length)return'<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>';
+      if(!events.length){
+        const isMiddleSideTripDay = hasSideTrip && !isVOnly && d > 3 && d < niceArrDayIdx;
+        if(isMiddleSideTripDay){
+          return '<div class="event"><div class="event-time">—</div><div class="event-icon">🛤️</div><div class="event-body"><div class="event-title">Side trip — enjoy your time off the main itinerary!</div><div class="event-note">You\'ll rejoin the group when you arrive in Nice.</div></div></div>';
+        }
+        return '<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>';
+      }
       return events.map(ev=>{
         // Timing constants (CUSTOMS_MINS, NICE_DRIVE_MINS, isTrain, trainStation, arrAirport,
         // brugesArrival, niceArrival, etc.) are hoisted to buildItinerary scope above.
@@ -1363,9 +1445,17 @@ function prefillForm(g){
   if(currentTripSection==='both') set('bothDepTransport', g.depTransport);
   else set('depTransport', g.depTransport);
   set('niceArrTransport',g.niceArrTransport);set('retTransport',g.retTransport);
+  set('bothLeaveTrainNum', g.bothLeaveTrainNum);
+  set('bothLeaveTrainTo',  g.bothLeaveTrainTo);
+  set('bothLeaveTrainTime',g.bothLeaveTrainTime);
   if(g.hasRental){document.getElementById('hasRental').checked=true;syncRental();}
   if(g.arrMode==='train')setMode('arr','train',document.querySelectorAll('#bruges-arrival-section .mode-btn')[1]||document.querySelectorAll('.mode-btn')[1]);
   if(g.brugesDepMode==='train'){currentBrugesDepMode='train';setMode('bdep','train', document.querySelectorAll('#bruges-dep-section .mode-btn')[1]||null);}else{currentBrugesDepMode='flight';}
+  if(currentTripSection==='both' && g.bothLeaveMode==='train'){
+    setMode('bothLeave','train', document.querySelectorAll('#both-leave-mode-wrapper .mode-btn')[1]||null);
+  } else {
+    currentBothLeaveMode='flight';
+  }
 }
 
 function encodeGuest(g){try{const json=JSON.stringify(g),bytes=new TextEncoder().encode(json);let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary);}catch(e){return null;}}
