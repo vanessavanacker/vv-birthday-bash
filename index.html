@@ -1354,7 +1354,66 @@ function syncAllTag(){if(document.getElementById('tag-all').checked)['valbonne',
 function closeActModal(){document.getElementById('act-modal-overlay').style.display='none';}
 async function saveActivities(){const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES,btn=document.getElementById('save-act-btn');btn.textContent='⏳ Saving…';const ok=await fbSave('activities',acts);if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='✅ Published!';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}else{btn.textContent='❌ Error';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);}}
 function resetActivities(){if(!confirm('Reset to the original default schedule?'))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';renderActivityEditor();}
-async function requestPush(){const btn=document.getElementById('push-optin-btn');btn.textContent='Enabling…';btn.disabled=true;try{const perm=await Notification.requestPermission();if(perm!=='granted'){btn.textContent='Blocked';btn.disabled=false;return;}btn.textContent='✅ Reminders on!';document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}catch(e){btn.textContent='Error';btn.disabled=false;}}
+// Step 5: Enable Alerts button — tries OneSignal first (real push, works when app closed),
+// falls back to local Notification API (in-tab reminders only) if OneSignal isn't available.
+async function requestPush(){
+  const btn = document.getElementById('push-optin-btn');
+  const card = document.getElementById('push-optin-card');
+  if(!btn) return;
+  btn.textContent = 'Enabling…';
+  btn.disabled = true;
+
+  let oneSignalGranted = false;
+  let localGranted = false;
+
+  // (1) OneSignal subscribe — only attempt if init has been kicked off
+  if(_oneSignalInitDone && typeof window !== 'undefined'){
+    oneSignalGranted = await new Promise(resolve => {
+      let done = false;
+      const safeResolve = v => { if(!done){ done = true; resolve(v); } };
+      // Safety timeout in case the SDK never processes our queue (e.g. blocked, unsupported browser)
+      setTimeout(() => safeResolve(false), 8000);
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      window.OneSignalDeferred.push(async function(OneSignal){
+        try{
+          const granted = await OneSignal.Notifications.requestPermission();
+          if(granted){
+            // Tag this subscriber so the dashboard can target them by name/section
+            const guest = lastGeneratedGuest || loadGuestLocally();
+            try{ if(guest?.name)        await OneSignal.User.addTag('name',    guest.name); }catch(e){}
+            try{ if(guest?.email)       await OneSignal.User.addTag('email',   guest.email); }catch(e){}
+            try{ if(guest?.tripSection) await OneSignal.User.addTag('section', guest.tripSection); }catch(e){}
+          }
+          safeResolve(!!granted);
+        }catch(err){
+          console.warn('OneSignal permission/subscribe failed:', err);
+          safeResolve(false);
+        }
+      });
+    });
+  }
+
+  // (2) Always also try the local Notification API. Idempotent — if user already granted, returns instantly.
+  if('Notification' in window){
+    try{ const perm = await Notification.requestPermission(); localGranted = (perm === 'granted'); }
+    catch(e){}
+  }
+
+  // UI feedback
+  if(oneSignalGranted){
+    btn.textContent = '✅ Reminders on (even when app is closed)';
+    if(card) card.style.background = 'linear-gradient(135deg,#065f46,#047857)';
+  } else if(localGranted){
+    btn.textContent = '✅ Reminders on (only while app is open)';
+    if(card) card.style.background = 'linear-gradient(135deg,#854d0e,#a16207)';
+  } else {
+    btn.textContent = 'Permission blocked';
+    btn.disabled = false;
+    return;
+  }
+  // Local in-tab reminders fire instantly without needing OneSignal — useful as a backup
+  scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());
+}
 async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
 async function saveOneSignalConfig(){
   ONESIGNAL_APP_ID = document.getElementById('os-app-id').value.trim();
