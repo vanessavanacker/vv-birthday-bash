@@ -370,6 +370,12 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
         <div class="field"><label>Arrives Nice At</label><input type="time" id="niceArrTime"></div>
       </div>
       <hr class="divider">
+      <div class="field" id="both-dep-transport-field" style="display:none">
+        <label>&#128663; How are you getting to the airport on Jun 22? (optional)</label>
+        <input type="text" id="bothDepTransport" placeholder="e.g. Group taxi &middot; Self-drive &middot; Hotel shuttle" autocorrect="off">
+        <span style="font-size:.72rem;opacity:.5;margin-top:.15rem;display:block">Leave blank if unsure &mdash; organiser can fill this in for you</span>
+      </div>
+      <hr class="divider">
       <div class="toggle-row" onclick="toggleRental(event)">
         <input type="checkbox" id="hasRental" onclick="event.stopPropagation();syncRental()">
         <div><label for="hasRental">I have a rental car in Valbonne &#128663;</label><div class="sub">Your itinerary will show self-drive notes instead of group transfers</div></div>
@@ -711,6 +717,8 @@ function setTripSection(section,btn){
   document.getElementById('nice-section-label').textContent=isVOnly?'Arriving in Nice':'Flying to Nice';
   document.getElementById('dep-from-field').style.display=(isVOnly||section==='both')?'':'none';
   document.getElementById('dep-from-label').textContent=isVOnly?'Flying From (airport)':'Departing From (Belgian airport)';
+  // Both-trip guests need a "transfer to Brussels Airport" field; bruges-only guests use the one in bruges-dep-section
+  document.getElementById('both-dep-transport-field').style.display=section==='both'?'':'none';
 }
 function initFirebase(){
   if(!FIREBASE_CONFIG.apiKey){showFirebaseBar('offline');return;}
@@ -742,7 +750,7 @@ async function fbSave(p,d){if(!firebaseReady)return false;try{await db.ref(p).se
 async function fbPush(p,d){if(!firebaseReady)return false;try{await db.ref(p).push(d);return true;}catch(e){return false;}}
 async function fbGet(p){if(!firebaseReady)return null;try{const s=await db.ref(p).once('value');return s.val();}catch(e){return null;}}
 async function fbUpdate(p,d){if(!firebaseReady)return false;try{await db.ref(p).update(d);return true;}catch(e){return false;}}
-const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrTimeId:'arrTime',fromId:'arrFrom',toId:'arrTo',mode:'flight'},dep:{flightId:'depFlight',dateId:'depDate',depTimeId:'depTime',arrTimeId:'niceArrTime',fromId:null,toId:null,mode:'flight'},ret:{flightId:'retFlight',dateId:'retDate',depTimeId:'retTime',arrTimeId:null,fromId:null,toId:'retTo',mode:'flight'},train:{flightId:'arrTrainNum',dateId:'arrDateTrain',depTimeId:null,arrTimeId:'arrTimeTrain',fromId:'arrTrainFrom',toId:'arrTrainTo',mode:'train'},bdep:{flightId:'bdepFlight',dateId:'bdepDate',depTimeId:'bdepTime',arrTimeId:null,fromId:null,toId:'bdepTo',mode:'flight'},bdeptrain:{flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,fromId:null,toId:'bdepTrainTo',mode:'train'}};
+const LOOKUP_MAP={arr:{flightId:'arrFlight',dateId:'arrDate',depTimeId:null,arrTimeId:'arrTime',fromId:'arrFrom',toId:'arrTo',mode:'flight'},dep:{flightId:'depFlight',dateId:'depDate',depTimeId:'depTime',arrTimeId:'niceArrTime',fromId:'depFrom',toId:null,mode:'flight'},ret:{flightId:'retFlight',dateId:'retDate',depTimeId:'retTime',arrTimeId:null,fromId:null,toId:'retTo',mode:'flight'},train:{flightId:'arrTrainNum',dateId:'arrDateTrain',depTimeId:null,arrTimeId:'arrTimeTrain',fromId:'arrTrainFrom',toId:'arrTrainTo',mode:'train'},bdep:{flightId:'bdepFlight',dateId:'bdepDate',depTimeId:'bdepTime',arrTimeId:null,fromId:null,toId:'bdepTo',mode:'flight'},bdeptrain:{flightId:'bdepTrainNum',dateId:'bdepTrainDate',depTimeId:'bdepTrainTime',arrTimeId:null,fromId:null,toId:'bdepTrainTo',mode:'train'}};
 const lookupTimers={};
 function scheduleFlightLookup(key){const map=LOOKUP_MAP[key];const num=document.getElementById(map.flightId).value.trim();const resEl=document.getElementById(key+'-lookup-result');clearTimeout(lookupTimers[key]);if(num.length<3){if(resEl)resEl.style.display='none';return;}
   if(map.mode==='train'){showLookup(resEl,'🔍 Looking up…',null);lookupTimers[key]=setTimeout(()=>autoLookupTrain(key),1200);return;}
@@ -953,7 +961,7 @@ async function submitAndGenerate(){
   const _existing=loadGuestLocally();
   const g={key:_existing?.key||null,name:document.getElementById('name').value.trim(),email:document.getElementById('email').value.trim(),tripSection:currentTripSection,goingValbonne:currentTripSection!=='bruges',arrMode:currentTripSection==='valbonne'?'none':currentArrMode,arrFlight,arrDate,arrTime,arrFrom,arrTrainTo,arrTo:g_arrTo,brugesDepMode,brugesDepRef,brugesDepTime,brugesDepTo,brugesDepDate,bdepFromAirport:g_bdepFromAirport,hasRental:document.getElementById('hasRental').checked,depFlight:document.getElementById('depFlight').value.trim()||'—',depFrom:document.getElementById('depFrom').value.trim(),depDate:document.getElementById('depDate').value,depTime:document.getElementById('depTime').value,niceArrTime:document.getElementById('niceArrTime').value,rentalCo:document.getElementById('rentalCo').value.trim()||'rental company',rentalPickup:document.getElementById('rentalPickup').value.trim()||'Nice Airport',rentalReturn:document.getElementById('rentalReturn').value,retFlight:document.getElementById('retFlight').value.trim()||'—',retDate:document.getElementById('retDate').value,retTime:document.getElementById('retTime').value,retTo:document.getElementById('retTo').value.trim(),notes:document.getElementById('notes').value.trim(),
     arrTransport:document.getElementById('arrTransport')?.value.trim()||'',
-    depTransport:document.getElementById('depTransport')?.value.trim()||'',
+    depTransport:(currentTripSection==='both'?document.getElementById('bothDepTransport')?.value.trim():document.getElementById('depTransport')?.value.trim())||'',
     niceArrTransport:document.getElementById('niceArrTransport')?.value.trim()||'',
     retTransport:document.getElementById('retTransport')?.value.trim()||'',
     submittedAt:new Date().toISOString()};
@@ -1020,10 +1028,19 @@ async function buildItinerary(g){
   if(g.tripSection !== 'valbonne'){
     xferAdd(0, arrTransferStart || g.arrTime || 'TBC', 'Transfer to hotel', tNote(g.arrTransport, g.transportOrg?.arr));
   }
-  // 2. Departure from Bruges (Day 3) — only for Bruges-only guests (full-trip guests fly from Bruges to Nice, no separate transfer)
-  if(g.tripSection === 'bruges'){
-    const dTime = calcCheckoutTime(g) || g.brugesDepTime || 'TBC';
-    const dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
+  // 2. Departure from Bruges (Day 3) — for Bruges-only AND Both-trip guests
+  //    Bruges-only: getting to Brussels Airport / Bruges Station to go home
+  //    Both-trip:   getting to Brussels Airport for the Bruges → Nice flight
+  if(g.tripSection !== 'valbonne'){
+    const dTime = calcCheckoutTime(g) || g.brugesDepTime || g.depTime || 'TBC';
+    let dTitle;
+    if(g.tripSection === 'bruges'){
+      dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
+    } else {
+      // both: heading to whichever Belgian airport their Nice flight leaves from
+      const dest = g.depFrom || 'Brussels Airport';
+      dTitle = `Transfer to ${dest}`;
+    }
     xferAdd(3, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
   }
   // 3. Arrival in Nice (Day 3) — transfer also starts AFTER customs window
@@ -1037,19 +1054,24 @@ async function buildItinerary(g){
     const xferTime = g.retTime ? addMins(g.retTime, -90) : 'TBC';
     xferAdd(rd, xferTime, 'Transfer to Nice Airport', tNote(g.retTransport, g.transportOrg?.ret));
   }
-  // CHECK_ARR (check-in at hotel) now sorts at brugesArrival so it appears AFTER arrival + transfer.
-  // CHECK_OUT/NICE_ARR/CHECK_DEP keep their existing computed times.
-  const timeSortKey=t=>{
+  // Sort comparator now sees the full event so we can split NICE_ARR into:
+  //   - "Arrive Nice" (type='flight')      → displays at landing time (g.niceArrTime)
+  //   - "Pick up rental" / "Group Transfer" (type='transport') → displays post-customs (niceTransferStart)
+  const eventSortKey = ev => {
+    const t = ev.time;
     if(!t||t==='FREE')return'00:01';
     if(t==='CHECK_ARR'){if(brugesArrival&&brugesArrival.match(/^\d{2}:\d{2}$/))return brugesArrival;return'15:00';}
     if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}return'10:30';}
-    if(t==='NICE_ARR'){const na=g.niceArrTime;if(na&&na.match(/^\d{2}:\d{2}$/))return na;return'15:00';}
+    if(t==='NICE_ARR'){
+      if(ev.type==='flight'){return (g.niceArrTime&&g.niceArrTime.match(/^\d{2}:\d{2}$/))?g.niceArrTime:'15:00';}
+      return (niceTransferStart&&niceTransferStart.match(/^\d{2}:\d{2}$/))?niceTransferStart:'16:00';
+    }
     if(t==='EVENING')return'19:00';
     if(t==='CHECK_DEP'){const dt=g.tripSection==='bruges'?g.brugesDepTime:g.depTime;if(dt&&dt.match(/^\d{2}:\d{2}$/))return dt;return'23:58';}
     if(t==='TBC')return'23:59';
     return t;
   };
-  Object.keys(byDay).forEach(d=>byDay[d].sort((a,b)=>timeSortKey(a.time).localeCompare(timeSortKey(b.time))));
+  Object.keys(byDay).forEach(d=>byDay[d].sort((a,b)=>eventSortKey(a).localeCompare(eventSortKey(b))));
   const tagPills=[];
   if(isVOnly)tagPills.push('<span class="tag-pill tag-valbonne">🇫🇷 Valbonne only</span>');
   else if(isBOnly)tagPills.push('<span class="tag-pill tag-bruges">🇧🇪 Bruges only</span>');
@@ -1057,16 +1079,42 @@ async function buildItinerary(g){
   if(g.hasRental)tagPills.push('<span class="tag-pill tag-rental">🚗 Rental car</span>');
   const arrPill=isVOnly?(g.depFlight&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''): (g.arrMode==='train'?`<span class="flight-pill">🚂 ${esc(g.arrFlight||'Train')}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>`:`<span class="flight-pill">✈️ ${esc(g.arrFlight||'—')}${g.arrFrom?' · '+esc(g.arrFrom):''}</span>`);
   let html=`<div class="traveler-banner"><div><div class="t-meta">Itinerary for</div><div class="t-name">${esc(g.name)}</div>${g.email?`<div style="font-size:.73rem;opacity:.38">${esc(g.email)}</div>`:''}</div><div style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center">${tagPills.join('')}</div><div style="display:flex;flex-wrap:wrap;gap:.35rem">${arrPill}${!isVOnly&&g.goingValbonne&&g.depFlight!=='—'?`<span class="flight-pill">✈️ ${esc(g.depFlight)} → NCE</span>`:''}${g.retFlight&&g.retFlight!=='—'?`<span class="flight-pill">🏠 ${esc(g.retFlight)}${g.retTo?' → '+esc(g.retTo):''}</span>`:''}</div></div>`;
-  const startDay=isVOnly?3:0,lastDay=isBOnly?4:Math.max(...acts.map(a=>a.day))+1;
+  // Return day computed up-front so the main loop can render it (not a separate hardcoded block any more)
+  const retDayIdx = (g.goingValbonne && g.retDate)
+    ? Math.floor((new Date(g.retDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000)
+    : null;
+  if(retDayIdx !== null && g.retFlight && g.retFlight !== '—'){
+    if(!byDay[retDayIdx]) byDay[retDayIdx] = [];
+    byDay[retDayIdx].push({
+      day: retDayIdx,
+      time: g.retTime || 'TBC',
+      title: `Fly home – ${g.retFlight}${g.retTo ? ' to '+g.retTo : ''}`,
+      note: g.hasRental
+        ? `Return rental at ${g.rentalPickup||'Nice Airport'} before check-in.`
+        : 'Allow ~45 min transfer from Valbonne to Nice Airport.',
+      type: 'flight',
+      icon: '✈️',
+      tags: []
+    });
+    // Re-sort the return day after pushing (the main sort happened earlier)
+    byDay[retDayIdx].sort((a,b)=>eventSortKey(a).localeCompare(eventSortKey(b)));
+  }
+  const startDay=isVOnly?3:0;
+  let lastDay=isBOnly?4:Math.max(...acts.map(a=>a.day))+1;
+  if(retDayIdx !== null && retDayIdx >= lastDay) lastDay = retDayIdx + 1;
   const valonlyLabels=['Arrival Day · Valbonne','Day 2 · Valbonne','Day 3 · Valbonne','Day 4 · Valbonne (Zuma)','Day 5 · Valbonne','Day 6 · Valbonne (Medusa)','Last Night · Valbonne'];
   const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
   const todayTripDay=Math.floor((now-new Date('2026-06-19T00:00:00'))/86400000),tripOngoing=todayTripDay>=startDay&&todayTripDay<lastDay;
   let pastDaysHtml='',pastDayCount=0;
   for(let d=startDay;d<lastDay;d++){
     const dd=new Date(TRIP_BASE);dd.setDate(TRIP_BASE.getDate()+d);
-    const label=isVOnly?(valonlyLabels[d-3]||'Day '+(d-2)):d===3?(()=>{
-      if(isBOnly){const dest=g.brugesDepTo||'Home';return g.brugesDepMode==='train'?`Day 4 \u2013 Train to ${dest}`:`Day 4 \u2013 Flight to ${dest}`;}
-      const dest=g.depFlight&&g.depFlight!=='\u2014'?'Nice':"C\u00f4te d'Azur";return `Day 4 \u2013 Travel to ${dest}`;})():(DAY_LABELS[d]||'Day '+(d+1));
+    const label = (d === retDayIdx) ? 'Departure Day'
+      : isVOnly ? (valonlyLabels[d-3]||'Day '+(d-2))
+      : d===3 ? (()=>{
+          if(isBOnly){const dest=g.brugesDepTo||'Home';return g.brugesDepMode==='train'?`Day 4 \u2013 Train to ${dest}`:`Day 4 \u2013 Flight to ${dest}`;}
+          const dest=g.depFlight&&g.depFlight!=='\u2014'?'Nice':"C\u00f4te d'Azur";return `Day 4 \u2013 Travel to ${dest}`;
+        })()
+      : (DAY_LABELS[d]||'Day '+(d+1));
     const dateStr=dd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
     const isNice=d>=3,isToday=tripOngoing&&d===todayTripDay,isPast=tripOngoing&&d<todayTripDay;
     const chipClass=`day-chip${isNice?' nice':''}${isToday?' today':''}${isPast?' past':''}`;
@@ -1078,7 +1126,7 @@ async function buildItinerary(g){
         // Timing constants (CUSTOMS_MINS, NICE_DRIVE_MINS, isTrain, trainStation, arrAirport,
         // brugesArrival, niceArrival, etc.) are hoisted to buildItinerary scope above.
         const checkoutTime=calcCheckoutTime(g)||'11:00';
-        const tl=ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival'):ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC')):ev.time==='CHECK_OUT'?fmt12(checkoutTime):ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival'):ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
+        const tl=ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival'):ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC')):ev.time==='CHECK_OUT'?fmt12(checkoutTime):ev.time==='NICE_ARR'?(ev.type==='flight'?(g.niceArrTime?fmt12(g.niceArrTime):'On arrival'):(niceTransferStart?fmt12(niceTransferStart):'On arrival')):ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
         const evMins=(()=>{if(!isToday)return null;const t=ev.time;if(t==='FREE')return 0;if(t==='CHECK_ARR')return brugesArrival?parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]):0;if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return h*60+m;}return 11*60;}if(t==='EVENING')return 19*60;if(t==='CHECK_DEP'||t==='NICE_ARR')return 23*60;const mt=t&&t.match(/^(\d{2}):(\d{2})$/);return mt?parseInt(mt[1])*60+parseInt(mt[2]):null;})();
         const actPast=isToday&&evMins!==null&&evMins<nowMins-30;
         // Transport comments and arrival details now render as their own personal event cards
@@ -1115,7 +1163,8 @@ async function buildItinerary(g){
     if(isPast){pastDaysHtml+=dayHtml;pastDayCount++;}else{html+=dayHtml;}
   }
   if(pastDayCount>0)html=`<button class="show-past-btn" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">📅 Show ${pastDayCount} past day${pastDayCount>1?'s':''}</button><div style="display:none">${pastDaysHtml}</div>`+html;
-  if(g.goingValbonne&&g.retFlight&&g.retFlight!=='—'){const rd=new Date(g.retDate+'T12:00:00');html+=`<div class="day-block"><div class="day-header"><span class="day-chip nice">Departure Day</span><span class="day-date">${esc(rd.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</span></div><div class="events"><div class="event"><div class="event-time">${g.retTime?fmt12(g.retTime):'TBC'}</div><div class="event-icon">✈️</div><div class="event-body"><div class="event-title">Fly home – ${esc(g.retFlight)}${g.retTo?' to '+esc(g.retTo):''}<span class="badge badge-flight">Flight</span></div><div class="event-note">${g.hasRental?'Return rental at '+esc(g.rentalPickup)+' before check-in.':'Allow ~45 min transfer from Valbonne to Nice Airport.'}</div></div></div></div></div>`;}
+  // Return day is now rendered via the main loop above (with retFlight added to byDay[retDayIdx])
+  // so retTransport and any organiser-assigned events on the return day all show up correctly.
   if(g.notes)html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">📝 Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
   return html;
 }
@@ -1271,7 +1320,9 @@ function prefillForm(g){
   set('rentalCo',g.rentalCo);set('rentalPickup',g.rentalPickup);set('rentalReturn',g.rentalReturn);
   set('retFlight',g.retFlight);set('retTo',g.retTo);set('retDate',g.retDate);set('retTime',g.retTime);
   set('notes',g.notes);set('bdepFromAirport',g.bdepFromAirport);
-  set('arrTransport',g.arrTransport);set('depTransport',g.depTransport);
+  set('arrTransport',g.arrTransport);
+  if(currentTripSection==='both') set('bothDepTransport', g.depTransport);
+  else set('depTransport', g.depTransport);
   set('niceArrTransport',g.niceArrTransport);set('retTransport',g.retTransport);
   if(g.hasRental){document.getElementById('hasRental').checked=true;syncRental();}
   if(g.arrMode==='train')setMode('arr','train',document.querySelectorAll('#bruges-arrival-section .mode-btn')[1]||document.querySelectorAll('.mode-btn')[1]);
