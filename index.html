@@ -365,7 +365,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       <div class="form-grid">
         <div class="field"><label>Flight Number</label><input type="text" id="depFlight" placeholder="e.g. VY 1234" oninput="scheduleFlightLookup('dep')"><div class="lookup-result" id="dep-lookup-result"></div></div>
         <div class="field" id="dep-from-field" style="display:none"><label id="dep-from-label">Flying From (airport)</label><input type="text" id="depFrom" placeholder="e.g. Brussels Airport, Charleroi"></div>
-        <div class="field"><label>Departure Date</label><input type="date" id="depDate" value="2026-06-22"></div>
+        <div class="field"><label>Departure Date</label><input type="date" id="depDate" value="2026-06-22"><span style="font-size:.7rem;opacity:.5;margin-top:.15rem;display:block">Doing a side trip first? Change this to your actual flight-to-Nice date &mdash; itinerary will adjust.</span></div>
         <div class="field"><label>Departs At</label><input type="time" id="depTime"></div>
         <div class="field"><label>Arrives Nice At</label><input type="time" id="niceArrTime"></div>
       </div>
@@ -871,7 +871,16 @@ async function autoLookupTrain(key){
     if(map.depTimeId){document.getElementById(map.depTimeId).value=depTime;document.getElementById(map.depTimeId).dispatchEvent(new Event('change'));}
     showLookup(resEl,`🚂 ${cleanNum}: departs ${fromName} ${depTime} · arrives ${toName} ${arrTime}`,'success');
   }catch(e){
-    showLookup(resEl,'⚠️ Train not found. Belgian trains: use IC537, S12401 etc. Eurostar: use 4-digit number like 9114.','warn');
+    // Detect likely non-Belgian-network train numbers to give a friendlier hint instead of "not found".
+    // iRail covers Belgian SNCB (IC, S, L, EXT…) and Eurostar (9xxx series passing through Belgium).
+    // TGV / SNCF / ICE / Italian / Swiss inter-city are NOT covered.
+    const numClean = cleanNum.replace(/\D/g, '');
+    const looksLikeTGV = /tgv|inoui|ouigo|sncf/i.test(rawNum)
+      || (numClean.length >= 4 && numClean.length <= 5 && !numClean.startsWith('9'));
+    const msg = looksLikeTGV
+      ? `🇫🇷 TGV/SNCF trains aren't auto-looked-up (we only cover Belgian + Eurostar). Please enter times manually below. <a href="https://www.sncf-connect.com/" target="_blank" rel="noopener" style="color:var(--gold)">Check sncf-connect.com ↗</a>`
+      : `Train not found. Auto-lookup covers Belgian SNCB (e.g. IC537, S12401) and Eurostar (4-digit 9xxx). For other operators, enter times manually below.`;
+    showLookup(resEl, '⚠️ ' + msg, 'warn');
   }
 }
 
@@ -981,9 +990,29 @@ async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElem
 <script>
 async function buildItinerary(g){
   const TRIP_BASE=new Date('2026-06-19T12:00:00'),acts=LIVE_ACTIVITIES,isVOnly=g.tripSection==='valbonne',isBOnly=g.tripSection==='bruges';
+  // ── Custom Nice arrival date — guest changes depDate to e.g. Jun 24 for a Paris stop ──
+  // Their flight/arrival/transfer/settle-in events all shift to that day instead of Day 3 (Jun 22).
+  const NICE_ARR_DEFAULT_DAY = 3;
+  const niceArrDayIdx = (g.tripSection !== 'bruges' && g.depDate)
+    ? Math.floor((new Date(g.depDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000)
+    : NICE_ARR_DEFAULT_DAY;
+  const hasSideTrip = (g.tripSection !== 'bruges') && (niceArrDayIdx !== NICE_ARR_DEFAULT_DAY);
   const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'—').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'—').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'—').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
   const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
-  const byDay={};filtered.forEach(a=>{if(!byDay[a.day])byDay[a.day]=[];byDay[a.day].push({...a});});
+  const byDay={};
+  filtered.forEach(a=>{
+    let dayKey = a.day;
+    // For side-trip guests, the Day-3 events tied to "arriving in Nice" shift to their actual arrival day
+    if(hasSideTrip && a.day === NICE_ARR_DEFAULT_DAY){
+      const tags = a.tags || [];
+      const isArrivalEvent = (a.time === 'CHECK_DEP' && tags.includes('valbonne'))
+        || a.time === 'NICE_ARR'
+        || (a.time === 'EVENING' && tags.includes('valbonne'));
+      if(isArrivalEvent) dayKey = niceArrDayIdx;
+    }
+    if(!byDay[dayKey]) byDay[dayKey] = [];
+    byDay[dayKey].push({...a, day: dayKey});
+  });
   if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
   // ── Hoist arrival timing math (used for sort keys, display, and personal events) ──
   const CUSTOMS_MINS = 60;
@@ -1028,24 +1057,24 @@ async function buildItinerary(g){
   if(g.tripSection !== 'valbonne'){
     xferAdd(0, arrTransferStart || g.arrTime || 'TBC', 'Transfer to hotel', tNote(g.arrTransport, g.transportOrg?.arr));
   }
-  // 2. Departure from Bruges (Day 3) — for Bruges-only AND Both-trip guests
-  //    Bruges-only: getting to Brussels Airport / Bruges Station to go home
-  //    Both-trip:   getting to Brussels Airport for the Bruges → Nice flight
-  if(g.tripSection !== 'valbonne'){
-    const dTime = calcCheckoutTime(g) || g.brugesDepTime || g.depTime || 'TBC';
-    let dTitle;
-    if(g.tripSection === 'bruges'){
-      dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
-    } else {
-      // both: heading to whichever Belgian airport their Nice flight leaves from
-      const dest = g.depFrom || 'Brussels Airport';
-      dTitle = `Transfer to ${dest}`;
-    }
+  // 2. Departure from Bruges — for Bruges-only AND Both-trip guests
+  //    Bruges-only: Day 3, getting to Brussels Airport / Bruges Station to go home
+  //    Both-trip:   on the day they fly to Nice (niceArrDayIdx), default Jun 22 / Day 3
+  if(g.tripSection === 'bruges'){
+    const dTime = calcCheckoutTime(g) || g.brugesDepTime || 'TBC';
+    const dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
     xferAdd(3, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
+  } else if(g.tripSection === 'both'){
+    const dest = g.depFrom || 'Brussels Airport';
+    const dTitle = `Transfer to ${dest}`;
+    // Compute transfer time directly from depTime (don't reuse calcCheckoutTime, which may return 11:00 for side-trip guests)
+    const driveMins = airportDriveMins(g.depFrom || 'brussels');
+    const dTime = g.depTime ? addMins(g.depTime, -(driveMins + 150)) : 'TBC';
+    xferAdd(niceArrDayIdx, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
   }
-  // 3. Arrival in Nice (Day 3) — transfer also starts AFTER customs window
+  // 3. Arrival in Nice — transfer starts AFTER customs window, on actual flight day
   if(g.tripSection !== 'bruges'){
-    xferAdd(3, niceTransferStart || g.niceArrTime || 'TBC', 'Transfer Nice → Valbonne', tNote(g.niceArrTransport, g.transportOrg?.nice));
+    xferAdd(niceArrDayIdx, niceTransferStart || g.niceArrTime || 'TBC', 'Transfer Nice → Valbonne', tNote(g.niceArrTransport, g.transportOrg?.nice));
   }
   // 4. Return from Nice — for both-trip and Valbonne-only guests
   if(g.tripSection !== 'bruges' && g.retFlight && g.retFlight !== '—'){
@@ -1109,9 +1138,11 @@ async function buildItinerary(g){
   for(let d=startDay;d<lastDay;d++){
     const dd=new Date(TRIP_BASE);dd.setDate(TRIP_BASE.getDate()+d);
     const label = (d === retDayIdx) ? 'Departure Day'
+      : (hasSideTrip && d === niceArrDayIdx) ? `Day ${d+1} \u2013 Travel to Nice`
       : isVOnly ? (valonlyLabels[d-3]||'Day '+(d-2))
       : d===3 ? (()=>{
           if(isBOnly){const dest=g.brugesDepTo||'Home';return g.brugesDepMode==='train'?`Day 4 \u2013 Train to ${dest}`:`Day 4 \u2013 Flight to ${dest}`;}
+          if(hasSideTrip)return `Day 4 \u2013 Onward travel`;
           const dest=g.depFlight&&g.depFlight!=='\u2014'?'Nice':"C\u00f4te d'Azur";return `Day 4 \u2013 Travel to ${dest}`;
         })()
       : (DAY_LABELS[d]||'Day '+(d+1));
@@ -1134,11 +1165,16 @@ async function buildItinerary(g){
         let evIcon=ev.icon||'📌', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
         const arrivalNote='';
         if(ev.time==='CHECK_OUT' && g.tripSection!=='valbonne'){
-          evType='transport';
-          if(g.tripSection==='both'){const dest=g.depFrom||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
-          else if(g.tripSection==='bruges'){
-            if(g.brugesDepMode==='train'){evIcon='🚂';evTitle='Transfer to Bruges Station';}
-            else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
+          if(hasSideTrip && g.tripSection==='both'){
+            // Side-trip guest checking out of Bruges to head elsewhere first — keep as a normal hotel checkout
+            // (icon, type, title default to the activity's own values: 🏨 Check out – De Tuilerieen)
+          } else {
+            evType='transport';
+            if(g.tripSection==='both'){const dest=g.depFrom||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
+            else if(g.tripSection==='bruges'){
+              if(g.brugesDepMode==='train'){evIcon='🚂';evTitle='Transfer to Bruges Station';}
+              else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
+            }
           }
           evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
         }
@@ -1272,8 +1308,11 @@ const AIRPORT_DRIVE_MINS={'brussels':95,'bru':95,'zaventem':95,'charleroi':130,'
 const STATION_TO_HOTEL_MINS={'bruges':10,'brugge':10,'ghent':40,'gent':40,'brussels':95,'bruxelles':95,'brussel':95,'midi':95,'south':95,'antwerp':80,'anvers':80,'lille':75,'paris':150,'london':0,'amsterdam':185,'rotterdam':130,'cologne':175,'köln':175,'frankfurt':310};
 function stationToHotelMins(station){if(!station)return 10;const s=station.toLowerCase();for(const[key,mins]of Object.entries(STATION_TO_HOTEL_MINS)){if(s.includes(key))return mins;}return 10;}
 function airportDriveMins(airport){if(!airport)return 90;const a=airport.toLowerCase();for(const[key,mins]of Object.entries(AIRPORT_DRIVE_MINS)){if(a.includes(key))return mins;}return 90;}
-function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(g.tripSection==='both'&&g.depTime){const driveMins=airportDriveMins(g.depFrom||'brussels');return addMins(g.depTime,-(driveMins+FLIGHT_BUFFER));}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
-function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='both'&&g.depTime){const dep=g.depFrom||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.depTime)} flight`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
+// "Both"-trip guest with depDate ≠ Jun 22 means they're stopping somewhere (e.g. Paris) before flying to Nice.
+// In that case Day 3 is just a normal hotel checkout — the airport transfer happens on the actual flight day.
+function _hasSideTrip(g){return g.tripSection==='both' && g.depDate && g.depDate !== '2026-06-22';}
+function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(_hasSideTrip(g))return'11:00';if(g.tripSection==='both'&&g.depTime){const driveMins=airportDriveMins(g.depFrom||'brussels');return addMins(g.depTime,-(driveMins+FLIGHT_BUFFER));}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
+function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g))return'Standard hotel checkout — your flight to Nice is on a later date, so onward travel from Bruges is on your own.';if(g.tripSection==='both'&&g.depTime){const dep=g.depFrom||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.depTime)} flight`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
