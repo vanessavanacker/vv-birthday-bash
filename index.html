@@ -767,6 +767,17 @@ function initFirebase(){
         }
       }
     });
+    // Cross-device OneSignal App ID sync — guest devices need this to subscribe to push.
+    // (REST API Key is NOT synced — it's a write key, kept localStorage-only on organiser device.)
+    db.ref('config/onesignal_app_id').on('value', snap => {
+      const k = snap.val();
+      ONESIGNAL_APP_ID = (typeof k === 'string') ? k : '';
+      const inputEl = document.getElementById('os-app-id');
+      const dash = document.getElementById('dashboard-panel');
+      if(inputEl && dash && dash.style.display !== 'none' && ONESIGNAL_APP_ID){
+        inputEl.value = ONESIGNAL_APP_ID;
+      }
+    });
   }catch(e){console.warn('Firebase:',e);showFirebaseBar('offline');}
 }
 function showFirebaseBar(s){const b=document.getElementById('firebase-bar');b.className=s==='connected'?'fb-connected':'fb-offline';b.textContent=s==='connected'?'🔥 Firebase connected — live updates enabled':'⚠️ Running offline';b.style.display='block';if(s==='connected')setTimeout(()=>b.style.display='none',4000);}
@@ -1341,7 +1352,20 @@ async function saveActivities(){const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES,bt
 function resetActivities(){if(!confirm('Reset to the original default schedule?'))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';renderActivityEditor();}
 async function requestPush(){const btn=document.getElementById('push-optin-btn');btn.textContent='Enabling…';btn.disabled=true;try{const perm=await Notification.requestPermission();if(perm!=='granted'){btn.textContent='Blocked';btn.disabled=false;return;}btn.textContent='✅ Reminders on!';document.getElementById('push-optin-card').style.background='linear-gradient(135deg,#065f46,#047857)';scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}catch(e){btn.textContent='Error';btn.disabled=false;}}
 async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
-function saveOneSignalConfig(){ONESIGNAL_APP_ID=document.getElementById('os-app-id').value.trim();ONESIGNAL_API_KEY=document.getElementById('os-api-key').value.trim();localStorage.setItem('os_config',JSON.stringify({appId:ONESIGNAL_APP_ID,apiKey:ONESIGNAL_API_KEY}));alert('Saved.');}
+async function saveOneSignalConfig(){
+  ONESIGNAL_APP_ID = document.getElementById('os-app-id').value.trim();
+  ONESIGNAL_API_KEY = document.getElementById('os-api-key').value.trim();
+  // localStorage holds both — convenient for the organiser
+  localStorage.setItem('os_config', JSON.stringify({appId: ONESIGNAL_APP_ID, apiKey: ONESIGNAL_API_KEY}));
+  // Firebase holds ONLY the App ID — guests need it to subscribe.
+  // The REST API Key is a write-key (anyone with it can send pushes), so it stays local.
+  if(firebaseReady){
+    await fbSave('config/onesignal_app_id', ONESIGNAL_APP_ID || null);
+    alert('Saved. App ID synced to all devices; REST API Key kept private on this device.');
+  } else {
+    alert('Saved locally. Reload to sync App ID to all devices when Firebase reconnects.');
+  }
+}
 async function saveRapidAPIKey(){
   const key = document.getElementById('rapidapi-key').value.trim();
   RAPIDAPI_KEY = key;
