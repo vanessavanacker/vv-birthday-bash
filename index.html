@@ -977,6 +977,37 @@ async function buildItinerary(g){
   const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
   const byDay={};filtered.forEach(a=>{if(!byDay[a.day])byDay[a.day]=[];byDay[a.day].push({...a});});
   if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
+  // ── Hoist arrival timing math (used for sort keys, display, and personal events) ──
+  const CUSTOMS_MINS = 60;
+  const NICE_DRIVE_MINS = 45;
+  const isTrain = g.arrMode === 'train';
+  const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
+  const arrAirport = g.arrTo || g.arrFrom || '';
+  const arrCustomsMins = isTrain ? 0 : CUSTOMS_MINS; // trains have no customs/baggage wait
+  const arrDriveMins = isTrain ? stationToHotelMins(trainStation) : airportDriveMins(arrAirport);
+  const arrTransferStart = g.arrTime ? addMins(g.arrTime, arrCustomsMins) : null;     // when transfer begins (post-customs)
+  const brugesArrival   = g.arrTime ? addMins(g.arrTime, arrCustomsMins + arrDriveMins) : null; // when guest reaches hotel
+  const niceTransferStart = g.niceArrTime ? addMins(g.niceArrTime, CUSTOMS_MINS) : null;
+  const niceArrival     = g.niceArrTime ? addMins(g.niceArrTime, CUSTOMS_MINS + NICE_DRIVE_MINS) : null;
+
+  // ── Personal arrival event — appears at landing/train arrival time ──
+  // Gives guest the chronological sequence: Arrival → Transfer → Check-in
+  if(g.tripSection !== 'valbonne' && g.arrTime){
+    const flightRef = g.arrFlight && g.arrFlight !== '—' && g.arrFlight !== 'Train' ? ` – ${g.arrFlight}` : '';
+    const arrTitle = isTrain
+      ? `Arrive ${trainStation || 'Bruges'}${flightRef}`
+      : `Land at ${arrAirport || 'airport'}${flightRef}`;
+    const arrNote  = isTrain
+      ? `Train arrives at ${fmt12(g.arrTime)}.${arrDriveMins ? ` ~${arrDriveMins} min onward to hotel.` : ''}`
+      : `Lands at ${fmt12(g.arrTime)}. Allow ~${CUSTOMS_MINS} min for luggage & customs, then ~${arrDriveMins} min drive to hotel.`;
+    if(!byDay[0]) byDay[0] = [];
+    byDay[0].push({
+      day: 0, time: g.arrTime, title: arrTitle, note: arrNote,
+      type: isTrain ? 'transport' : 'flight', icon: isTrain ? '🚂' : '✈️',
+      personal: true, personalLabel: 'Your Arrival'
+    });
+  }
+
   // ── Personal transport notes — render each as its own gold-bordered "Your Transfer" event ──
   // Guests' own value wins; organiser override (transportOrg) used only if guest left it blank.
   const tNote = (guest, org) => guest || org || '';
@@ -985,9 +1016,9 @@ async function buildItinerary(g){
     if(!byDay[day]) byDay[day] = [];
     byDay[day].push({day, time: time||'TBC', title, note, type:'transport', icon:'🚗', personal:true, personalLabel:'Your Transfer'});
   };
-  // 1. Arrival in Bruges (Day 0)
+  // 1. Arrival in Bruges (Day 0) — transfer starts AFTER customs/luggage window
   if(g.tripSection !== 'valbonne'){
-    xferAdd(0, g.arrTime || 'TBC', 'Transfer to hotel', tNote(g.arrTransport, g.transportOrg?.arr));
+    xferAdd(0, arrTransferStart || g.arrTime || 'TBC', 'Transfer to hotel', tNote(g.arrTransport, g.transportOrg?.arr));
   }
   // 2. Departure from Bruges (Day 3) — only for Bruges-only guests (full-trip guests fly from Bruges to Nice, no separate transfer)
   if(g.tripSection === 'bruges'){
@@ -995,9 +1026,9 @@ async function buildItinerary(g){
     const dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
     xferAdd(3, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
   }
-  // 3. Arrival in Nice (Day 3) — for both-trip and Valbonne-only guests
+  // 3. Arrival in Nice (Day 3) — transfer also starts AFTER customs window
   if(g.tripSection !== 'bruges'){
-    xferAdd(3, g.niceArrTime || 'TBC', 'Transfer Nice → Valbonne', tNote(g.niceArrTransport, g.transportOrg?.nice));
+    xferAdd(3, niceTransferStart || g.niceArrTime || 'TBC', 'Transfer Nice → Valbonne', tNote(g.niceArrTransport, g.transportOrg?.nice));
   }
   // 4. Return from Nice — for both-trip and Valbonne-only guests
   if(g.tripSection !== 'bruges' && g.retFlight && g.retFlight !== '—'){
@@ -1006,7 +1037,18 @@ async function buildItinerary(g){
     const xferTime = g.retTime ? addMins(g.retTime, -90) : 'TBC';
     xferAdd(rd, xferTime, 'Transfer to Nice Airport', tNote(g.retTransport, g.transportOrg?.ret));
   }
-  const timeSortKey=t=>{if(!t||t==='FREE')return'00:01';if(t==='CHECK_ARR')return'00:02';if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}return'10:30';}if(t==='NICE_ARR'){const na=g.niceArrTime;if(na&&na.match(/^\d{2}:\d{2}$/))return na;return'15:00';}if(t==='EVENING')return'19:00';if(t==='CHECK_DEP'){const dt=g.tripSection==='bruges'?g.brugesDepTime:g.depTime;if(dt&&dt.match(/^\d{2}:\d{2}$/))return dt;return'23:58';}if(t==='TBC')return'23:59';return t;};
+  // CHECK_ARR (check-in at hotel) now sorts at brugesArrival so it appears AFTER arrival + transfer.
+  // CHECK_OUT/NICE_ARR/CHECK_DEP keep their existing computed times.
+  const timeSortKey=t=>{
+    if(!t||t==='FREE')return'00:01';
+    if(t==='CHECK_ARR'){if(brugesArrival&&brugesArrival.match(/^\d{2}:\d{2}$/))return brugesArrival;return'15:00';}
+    if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}return'10:30';}
+    if(t==='NICE_ARR'){const na=g.niceArrTime;if(na&&na.match(/^\d{2}:\d{2}$/))return na;return'15:00';}
+    if(t==='EVENING')return'19:00';
+    if(t==='CHECK_DEP'){const dt=g.tripSection==='bruges'?g.brugesDepTime:g.depTime;if(dt&&dt.match(/^\d{2}:\d{2}$/))return dt;return'23:58';}
+    if(t==='TBC')return'23:59';
+    return t;
+  };
   Object.keys(byDay).forEach(d=>byDay[d].sort((a,b)=>timeSortKey(a.time).localeCompare(timeSortKey(b.time))));
   const tagPills=[];
   if(isVOnly)tagPills.push('<span class="tag-pill tag-valbonne">🇫🇷 Valbonne only</span>');
@@ -1033,17 +1075,16 @@ async function buildItinerary(g){
       const events=byDay[d]||[];
       if(!events.length)return'<div class="event"><div class="event-time">—</div><div class="event-icon">🌅</div><div class="event-body"><div class="event-title">Free day</div></div></div>';
       return events.map(ev=>{
-        const CUSTOMS_MINS=60,NICE_DRIVE_MINS=45,isTrain=g.arrMode==='train',trainStation=g.arrTrainTo||g.arrTrainFrom||'',arrAirport=g.arrTo||g.arrFrom||'';
-        const arrTransfer=isTrain?stationToHotelMins(trainStation):airportDriveMins(arrAirport)+CUSTOMS_MINS;
-        const brugesArrival=g.arrTime?addMins(g.arrTime,arrTransfer):null,niceArrival=g.niceArrTime?addMins(g.niceArrTime,NICE_DRIVE_MINS+CUSTOMS_MINS):null;
+        // Timing constants (CUSTOMS_MINS, NICE_DRIVE_MINS, isTrain, trainStation, arrAirport,
+        // brugesArrival, niceArrival, etc.) are hoisted to buildItinerary scope above.
         const checkoutTime=calcCheckoutTime(g)||'11:00';
         const tl=ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival'):ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC')):ev.time==='CHECK_OUT'?fmt12(checkoutTime):ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival'):ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
         const evMins=(()=>{if(!isToday)return null;const t=ev.time;if(t==='FREE')return 0;if(t==='CHECK_ARR')return brugesArrival?parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]):0;if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return h*60+m;}return 11*60;}if(t==='EVENING')return 19*60;if(t==='CHECK_DEP'||t==='NICE_ARR')return 23*60;const mt=t&&t.match(/^(\d{2}):(\d{2})$/);return mt?parseInt(mt[1])*60+parseInt(mt[2]):null;})();
         const actPast=isToday&&evMins!==null&&evMins<nowMins-30;
-        // Transport comments now render as their own gold-bordered "Your Transfer" event cards
-        // (added to byDay further up). No inline appending required here.
+        // Transport comments and arrival details now render as their own personal event cards
+        // (added to byDay further up). No inline appending or arrivalNote needed here.
         let evIcon=ev.icon||'📌', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
-        const arrivalNote=(ev.time==='CHECK_ARR'&&g.arrTime)?(isTrain?` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`:` · Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`):(ev.time==='NICE_ARR'&&g.niceArrTime)?` · Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`:'';
+        const arrivalNote='';
         if(ev.time==='CHECK_OUT' && g.tripSection!=='valbonne'){
           evType='transport';
           if(g.tripSection==='both'){const dest=g.depFrom||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
