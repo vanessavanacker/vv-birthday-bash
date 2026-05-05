@@ -952,10 +952,34 @@ async function buildItinerary(g){
   const filtered=acts.filter(a=>{const t=a.tags||[];if(!t.length)return true;if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}if(t.includes('valbonne')&&g.tripSection==='bruges')return false;if(t.includes('rental')&&!g.hasRental)return false;if(t.includes('no-rental')&&g.hasRental)return false;return true;});
   const byDay={};filtered.forEach(a=>{if(!byDay[a.day])byDay[a.day]=[];byDay[a.day].push({...a});});
   if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
+  // ── Personal transport notes — render each as its own gold-bordered "Your Transfer" event ──
+  // Guests' own value wins; organiser override (transportOrg) used only if guest left it blank.
   const tNote = (guest, org) => guest || org || '';
+  const xferAdd = (day, time, title, note) => {
+    if(!note) return;
+    if(!byDay[day]) byDay[day] = [];
+    byDay[day].push({day, time: time||'TBC', title, note, type:'transport', icon:'🚗', personal:true, personalLabel:'Your Transfer'});
+  };
+  // 1. Arrival in Bruges (Day 0)
+  if(g.tripSection !== 'valbonne'){
+    xferAdd(0, g.arrTime || 'TBC', 'Transfer to hotel', tNote(g.arrTransport, g.transportOrg?.arr));
+  }
+  // 2. Departure from Bruges (Day 3) — only for Bruges-only guests (full-trip guests fly from Bruges to Nice, no separate transfer)
+  if(g.tripSection === 'bruges'){
+    const dTime = calcCheckoutTime(g) || g.brugesDepTime || 'TBC';
+    const dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
+    xferAdd(3, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
+  }
+  // 3. Arrival in Nice (Day 3) — for both-trip and Valbonne-only guests
+  if(g.tripSection !== 'bruges'){
+    xferAdd(3, g.niceArrTime || 'TBC', 'Transfer Nice → Valbonne', tNote(g.niceArrTransport, g.transportOrg?.nice));
+  }
+  // 4. Return from Nice — for both-trip and Valbonne-only guests
   if(g.tripSection !== 'bruges' && g.retFlight && g.retFlight !== '—'){
-    const note = tNote(g.retTransport, g.transportOrg?.ret);
-    if(note){const rd=g.retDate?Math.floor((new Date(g.retDate+'T12:00:00')-new Date('2026-06-19T00:00:00'))/86400000):9;if(!byDay[rd])byDay[rd]=[];byDay[rd].push({day:rd,time:g.retTime||'TBC',title:'Transfer to Nice Airport',note,type:'transport',icon:'🚗',personal:true,personalLabel:'Your Transfer'});}
+    const rd = g.retDate ? Math.floor((new Date(g.retDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000) : 9;
+    // Time the transfer ~90 min before the flight if we know it, otherwise just at retTime
+    const xferTime = g.retTime ? addMins(g.retTime, -90) : 'TBC';
+    xferAdd(rd, xferTime, 'Transfer to Nice Airport', tNote(g.retTransport, g.transportOrg?.ret));
   }
   const timeSortKey=t=>{if(!t||t==='FREE')return'00:01';if(t==='CHECK_ARR')return'00:02';if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}return'10:30';}if(t==='NICE_ARR'){const na=g.niceArrTime;if(na&&na.match(/^\d{2}:\d{2}$/))return na;return'15:00';}if(t==='EVENING')return'19:00';if(t==='CHECK_DEP'){const dt=g.tripSection==='bruges'?g.brugesDepTime:g.depTime;if(dt&&dt.match(/^\d{2}:\d{2}$/))return dt;return'23:58';}if(t==='TBC')return'23:59';return t;};
   Object.keys(byDay).forEach(d=>byDay[d].sort((a,b)=>timeSortKey(a.time).localeCompare(timeSortKey(b.time))));
@@ -991,16 +1015,9 @@ async function buildItinerary(g){
         const tl=ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival'):ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC')):ev.time==='CHECK_OUT'?fmt12(checkoutTime):ev.time==='NICE_ARR'?(niceArrival?fmt12(niceArrival):'On arrival'):ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
         const evMins=(()=>{if(!isToday)return null;const t=ev.time;if(t==='FREE')return 0;if(t==='CHECK_ARR')return brugesArrival?parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]):0;if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return h*60+m;}return 11*60;}if(t==='EVENING')return 19*60;if(t==='CHECK_DEP'||t==='NICE_ARR')return 23*60;const mt=t&&t.match(/^(\d{2}):(\d{2})$/);return mt?parseInt(mt[1])*60+parseInt(mt[2]):null;})();
         const actPast=isToday&&evMins!==null&&evMins<nowMins-30;
-        // FIX #1 — declare evIcon/evType/evTitle/evNote BEFORE appending transport notes.
-        // (Original code did `evNote +=` BEFORE `let evNote =`, causing TDZ ReferenceError
-        //  for any guest with arrTransport / depTransport / niceArrTransport set.)
+        // Transport comments now render as their own gold-bordered "Your Transfer" event cards
+        // (added to byDay further up). No inline appending required here.
         let evIcon=ev.icon||'📌', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
-        const tNoteArr = g.arrTransport||(g.transportOrg?.arr)||'';
-        const tNoteDep = g.depTransport||(g.transportOrg?.dep)||'';
-        const tNoteNice = g.niceArrTransport||(g.transportOrg?.nice)||'';
-        if(ev.time==='CHECK_ARR'&&tNoteArr) evNote+=(evNote?' · ':'')+tNoteArr;
-        if(ev.time==='CHECK_OUT'&&tNoteDep) evNote+=(evNote?' · ':'')+tNoteDep;
-        if(ev.time==='NICE_ARR'&&tNoteNice) evNote+=(evNote?' · ':'')+tNoteNice;
         const arrivalNote=(ev.time==='CHECK_ARR'&&g.arrTime)?(isTrain?` · Arrives ${trainStation||'Bruges'} at ${fmt12(g.arrTime)}, ~${stationToHotelMins(trainStation)} min drive to hotel`:` · Lands ${fmt12(g.arrTime)}${arrAirport?' at '+arrAirport:''}, ~${airportDriveMins(arrAirport)} min drive + ${CUSTOMS_MINS} min luggage & customs`):(ev.time==='NICE_ARR'&&g.niceArrTime)?` · Lands ${fmt12(g.niceArrTime)} at Nice, ~${NICE_DRIVE_MINS} min drive + ${CUSTOMS_MINS} min luggage & customs`:'';
         if(ev.time==='CHECK_OUT' && g.tripSection!=='valbonne'){
           evType='transport';
