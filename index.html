@@ -13,6 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<!-- OneSignal Web SDK v16 — push notifications. Deferred + onerror swallowed so SDK failures can't break the app. -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer onerror="console.warn('OneSignal SDK failed to load — push notifications disabled this session, app will keep working.')"></script>
 <style>
 :root{--ink:#1a1208;--sand:#f5ede0;--gold:#c9923a;--rust:#b85c38;--sage:#5a7a60;--sky:#4a7fa5;--card:#fffdf8;--border:rgba(201,146,58,.25);--nice:#1a5276;}
 *{margin:0;padding:0;box-sizing:border-box;}
