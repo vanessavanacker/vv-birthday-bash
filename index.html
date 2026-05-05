@@ -1463,7 +1463,7 @@ function showManualInstallInstructions(){document.getElementById('android-auto')
 function dismissAndroidBanner(permanent){document.getElementById('android-banner').style.display='none';if(permanent)sessionStorage.setItem('android_banner_ok','1');}
 function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=sessionStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission==='default')document.getElementById('push-optin-card').style.display='flex';});
+document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission!=='denied')document.getElementById('push-optin-card').style.display='flex';});
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();}
 function showOrgTab(t,btn){document.querySelectorAll('.org-tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.sub-tab').forEach(e=>e.classList.remove('active'));document.getElementById('org-tab-'+t).classList.add('active');btn.classList.add('active');if(t==='activities')renderActivityEditor();if(t==='guests')renderGuestDashboard();}
 function setActFilter(f,btn){activityFilter=f;document.querySelectorAll('.act-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderActivityEditor();}
@@ -1587,7 +1587,7 @@ async function checkOnLoad(){
     document.getElementById('rb-name').textContent=g.name;
     document.getElementById('returning-banner').style.display='flex';
     scheduleActivityReminders(g);
-    if('Notification' in window && Notification.permission==='default'){
+    if('Notification' in window && Notification.permission!=='denied'){
       setTimeout(()=>document.getElementById('push-optin-card').style.display='flex', 1500);
     }
   }else{document.getElementById('returning-lookup-card').style.display='block';}
@@ -1827,7 +1827,7 @@ function triggerInstallFromModal(){
 function onItineraryModalOpen(){
   document.getElementById('install-hint').style.display='none';
   document.getElementById('cal-options').style.display='none';
-  if('Notification' in window && Notification.permission==='default'){
+  if('Notification' in window && Notification.permission!=='denied'){
     document.getElementById('push-optin-card').style.display='flex';
   }
 }
