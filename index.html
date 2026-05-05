@@ -676,6 +676,9 @@ const FIREBASE_CONFIG = {
   appId:"1:1059674504740:web:52a72648449694ec37e2b1"
 };
 let ONESIGNAL_APP_ID="",ONESIGNAL_API_KEY="",RAPIDAPI_KEY="";
+// Step 3: Cloudflare Worker proxy for sending pushes (keeps REST API key server-side)
+const PUSH_PROXY_URL = 'https://vv-birthday-push.vanessa-vanacker.workers.dev/';
+const PUSH_PROXY_SECRET = 'vvbash-K9pR2mLnT7vQ4xZ8wB6yE3hF';
 const ORG_PASSWORD='vvbash2026';
 const DEFAULT_ACTIVITIES=[
   {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
@@ -1414,7 +1417,29 @@ async function requestPush(){
   // Local in-tab reminders fire instantly without needing OneSignal — useful as a backup
   scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());
 }
-async function sendPushNotification(){const title=document.getElementById('push-title').value.trim(),body=document.getElementById('push-body').value.trim(),res=document.getElementById('push-send-result');if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}if(!ONESIGNAL_APP_ID||!ONESIGNAL_API_KEY){res.innerHTML='⚠️ OneSignal not configured yet.';return;}res.textContent='Sending…';try{const r=await fetch('https://onesignal.com/api/v1/notifications',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+ONESIGNAL_API_KEY},body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})});const d=await r.json();res.textContent=d.id?`✅ Sent to ~${d.recipients||'all'} guests!`:'❌ '+JSON.stringify(d.errors||d);}catch(e){res.textContent='❌ '+e.message;}}
+async function sendPushNotification(){
+  const title=document.getElementById('push-title').value.trim();
+  const body =document.getElementById('push-body' ).value.trim();
+  const res  =document.getElementById('push-send-result');
+  if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}
+  if(!ONESIGNAL_APP_ID){res.innerHTML='⚠️ OneSignal App ID not configured yet.';return;}
+  res.textContent='Sending…';
+  try{
+    const r=await fetch(PUSH_PROXY_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Push-Secret':PUSH_PROXY_SECRET},
+      body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})
+    });
+    const d=await r.json();
+    if(d.id){
+      res.textContent=`✅ Sent to ~${d.recipients||'all'} guests!`;
+    }else{
+      res.textContent='❌ '+JSON.stringify(d.errors||d.error||d);
+    }
+  }catch(e){
+    res.textContent='❌ '+e.message;
+  }
+}
 async function saveOneSignalConfig(){
   ONESIGNAL_APP_ID = document.getElementById('os-app-id').value.trim();
   ONESIGNAL_API_KEY = document.getElementById('os-api-key').value.trim();
