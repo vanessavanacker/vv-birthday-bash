@@ -1439,7 +1439,7 @@ async function sendPushNotification(){
     const r=await fetch(PUSH_PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json','X-Push-Secret':PUSH_PROXY_SECRET},
-      body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body}})
+      body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body},url:'https://vanessavanacker.github.io/vv-birthday-bash/'})
     });
     const d=await r.json();
     if(d.id){
