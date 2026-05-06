@@ -276,6 +276,11 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <div class="push-text" style="flex:1"><h4>Get day-of reminders</h4><p>Allow notifications and we'll ping you before dinners, transfers and activities.</p></div>
     <button class="btn-push" id="push-optin-btn" onclick="requestPush()">Enable Alerts</button>
   </div>
+  <div class="push-card" id="ios-install-card" style="display:none">
+    <div style="font-size:2rem">&#128241;</div>
+    <div class="push-text" style="flex:1"><h4>iPhone? Install for reminders</h4><p>iOS only allows push notifications when the app is installed on your home screen. Two-tap install &mdash; we'll show you how.</p></div>
+    <button class="btn-push" onclick="sessionStorage.removeItem('ios_banner_ok');document.getElementById('ios-banner').style.display='block';">Show me</button>
+  </div>
   <div class="section-label"><span class="dot"></span>Your Details</div>
   <div class="form-card">
     <h3>&#128100; About You</h3>
@@ -647,7 +652,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <button onclick="dismissIOSBanner(true)" style="background:none;border:none;font-size:1.5rem;color:#bbb;cursor:pointer;line-height:1;padding:.2rem">&#215;</button>
   </div>
   <div style="background:#f9f9f9;border-radius:12px;padding:.3rem .8rem;">
-    <div class="ios-step"><div class="ios-step-num">1</div><div>Tap the <span class="ios-share-pill">&#11014; Share</span> button at the <strong>top of Safari</strong></div></div>
+    <div class="ios-step"><div class="ios-step-num">1</div><div>Tap the <span class="ios-share-pill">&#11014; Share</span> button (<strong>bottom</strong> of Safari on iPhone, <strong>top</strong> on iPad)</div></div>
     <div class="ios-step"><div class="ios-step-num">2</div><div>Scroll down and tap <strong>"Add to Home Screen"</strong></div></div>
     <div class="ios-step"><div class="ios-step-num">3</div><div>Tap <strong>"Add"</strong> in the top right &mdash; done! &#127881;</div></div>
   </div>
@@ -1599,7 +1604,25 @@ function showManualInstallInstructions(){document.getElementById('android-auto')
 function dismissAndroidBanner(permanent){document.getElementById('android-banner').style.display='none';if(permanent)sessionStorage.setItem('android_banner_ok','1');}
 function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=sessionStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-document.getElementById('name').addEventListener('blur',()=>{if('Notification' in window&&Notification.permission!=='denied')document.getElementById('push-optin-card').style.display='flex';});
+// Decides which push card (if any) to show based on environment:
+// 'enable' -> regular Notifications API works (Android, desktop, iOS PWA installed)
+// 'install' -> iOS Safari, not yet installed as PWA (push needs PWA on iOS)
+// null -> permission already denied or unsupported
+function whichPushCard(){
+  const ios = isIOS();
+  const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  if(ios && !isPWA) return 'install';
+  if('Notification' in window && Notification.permission !== 'denied') return 'enable';
+  return null;
+}
+function showAppropriatePushCard(){
+  const which = whichPushCard();
+  const enableEl = document.getElementById('push-optin-card');
+  const installEl = document.getElementById('ios-install-card');
+  if(enableEl)  enableEl.style.display  = which === 'enable'  ? 'flex' : 'none';
+  if(installEl) installEl.style.display = which === 'install' ? 'flex' : 'none';
+}
+document.getElementById('name').addEventListener('blur', showAppropriatePushCard);
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'&&!window._weatherLoaded){window._weatherLoaded=true;loadWeather();}}
 
 // ── Weather widget for Local Info tab (Open-Meteo, no API key needed) ──
@@ -1778,9 +1801,7 @@ async function checkOnLoad(){
     document.getElementById('rb-name').textContent=g.name;
     document.getElementById('returning-banner').style.display='flex';
     scheduleActivityReminders(g);
-    if('Notification' in window && Notification.permission!=='denied'){
-      setTimeout(()=>document.getElementById('push-optin-card').style.display='flex', 1500);
-    }
+    setTimeout(showAppropriatePushCard, 1500);
   }else{document.getElementById('returning-lookup-card').style.display='block';}
 }
 async function refreshGuestFlightData(g){if(!RAPIDAPI_KEY)return g;if(g.arrMode==='train'||!g.arrFlight||g.arrFlight==='—')return g;try{const num=g.arrFlight.replace(/\s+/g,''),date=g.arrDate||'2026-06-19';const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});if(!resp.ok)return g;const data=await resp.json();if(!data?.length)return g;const flight=data[0],parseTime=t=>{if(!t)return null;const m=t.match(/[\sT](\d{2}:\d{2})/);return m?m[1]:null;};const arrName=flight.arrival?.airport?.name||flight.arrival?.airport?.iata||'';const arrTime=parseTime(flight.arrival?.scheduledTime?.local)||parseTime(flight.arrival?.scheduledTime?.utc);const depName=flight.departure?.airport?.name||flight.departure?.airport?.iata||'';return{...g,arrTo:arrName||g.arrTo,arrFrom:depName||g.arrFrom,arrTime:arrTime||g.arrTime};}catch(e){return g;}}
@@ -2018,9 +2039,7 @@ function triggerInstallFromModal(){
 function onItineraryModalOpen(){
   document.getElementById('install-hint').style.display='none';
   document.getElementById('cal-options').style.display='none';
-  if('Notification' in window && Notification.permission!=='denied'){
-    document.getElementById('push-optin-card').style.display='flex';
-  }
+  showAppropriatePushCard();
 }
 
 // ── OneSignal init (Step 4) ──
