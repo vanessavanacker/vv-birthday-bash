@@ -664,7 +664,7 @@ document.querySelectorAll('img.app-icon-img').forEach(img => img.src = APP_ICON_
 const _atil = document.getElementById('apple-touch-icon-link'); if(_atil) _atil.href = APP_ICON_URL;
 
 // ════════════════════════════════════════════════════════════
-//  CONFIG  (FIX #3: hardcoded RapidAPI key removed) 
+//  CONFIG  (FIX #3: hardcoded RapidAPI key removed)
 // ════════════════════════════════════════════════════════════
 const FIREBASE_CONFIG = {
   apiKey:"AIzaSyDZbzqN5H26wyem0TxljF_smRuAur5tg2o",
@@ -1033,6 +1033,7 @@ async function submitAndGenerate(){
   showNotice(ni,saved?'✅ Details saved! Your itinerary is below.':'ℹ️ Your itinerary is below.',saved?'success':'info');
   document.getElementById('personal-link-card').style.display='block';
   lastGeneratedGuest=g;document.getElementById('update-banner').style.display='none';
+  syncOneSignalTags(g);
   _itineraryGuest=g;
   try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
   catch(e){console.error('buildItinerary error:',e);showNotice(ni,'⚠️ Itinerary error — please try again.','warn');}
@@ -1382,10 +1383,7 @@ async function requestPush(){
           const granted = await OneSignal.Notifications.requestPermission();
           if(granted){
             // Tag this subscriber so the dashboard can target them by name/section
-            const guest = lastGeneratedGuest || loadGuestLocally();
-            try{ if(guest?.name)        await OneSignal.User.addTag('name',    guest.name); }catch(e){}
-            try{ if(guest?.email)       await OneSignal.User.addTag('email',   guest.email); }catch(e){}
-            try{ if(guest?.tripSection) await OneSignal.User.addTag('section', guest.tripSection); }catch(e){}
+            syncOneSignalTags(lastGeneratedGuest || loadGuestLocally());
           }
           safeResolve(!!granted);
         }catch(err){
@@ -1416,6 +1414,19 @@ async function requestPush(){
   }
   // Local in-tab reminders fire instantly without needing OneSignal — useful as a backup
   scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());
+}
+// Sync tags to the OneSignal subscription so segment-based pushes (Bruges phase / Valbonne phase)
+// reach this guest. Idempotent — calling addTag with the same value is harmless.
+// Called from: (1) requestPush() on permission grant, (2) form submit / itinerary gen,
+// (3) lookupReturningGuest() on returning-guest load, (4) page load if profile + subscription exist.
+function syncOneSignalTags(guest){
+  if(!_oneSignalInitDone || !guest) return;
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async function(OneSignal){
+    try{ if(guest.name)        await OneSignal.User.addTag('name',    guest.name); }catch(e){}
+    try{ if(guest.email)       await OneSignal.User.addTag('email',   guest.email); }catch(e){}
+    try{ if(guest.tripSection) await OneSignal.User.addTag('section', guest.tripSection); }catch(e){}
+  });
 }
 async function sendPushNotification(){
   const title=document.getElementById('push-title').value.trim();
@@ -1518,7 +1529,7 @@ async function lookupReturningGuest(){
   try{const allGuests=await fbGet('guests');if(!allGuests)throw new Error('not_found');
     const matches=Object.entries(allGuests).filter(([,v])=>v.name?.toLowerCase().trim()===name.toLowerCase().trim()).sort((a,b)=>new Date(b[1].submittedAt||0)-new Date(a[1].submittedAt||0));
     if(!matches.length)throw new Error('not_found');
-    const g={key:matches[0][0],...matches[0][1]};saveGuestLocally(g);prefillForm(g);
+    const g={key:matches[0][0],...matches[0][1]};saveGuestLocally(g);prefillForm(g);syncOneSignalTags(g);
     statusEl.innerHTML=`✅ Found! Welcome back, <strong style="color:#f0c878">${esc(g.name)}</strong>. Your details are loaded.`;
     setTimeout(()=>{document.getElementById('returning-lookup-card').style.display='none';document.getElementById('rb-name').textContent=g.name;document.getElementById('returning-banner').style.display='flex';},1800);
   }catch(e){if(e.message==='not_found')statusEl.textContent='❓ Name not found — you may not have submitted yet. Fill in the form below.';else statusEl.textContent='❌ Connection error — check your internet and try again.';}
@@ -1911,6 +1922,9 @@ const _rk=localStorage.getItem('rapidapi_key');if(_rk)RAPIDAPI_KEY=_rk;
 // Init OneSignal from localStorage immediately (organiser device); Firebase listener will also init for guests
 const _osCfg=localStorage.getItem('os_config');
 if(_osCfg){try{const c=JSON.parse(_osCfg);if(c.apiKey)ONESIGNAL_API_KEY=c.apiKey;if(c.appId){ONESIGNAL_APP_ID=c.appId;initOneSignal(c.appId);}}catch(e){}}
+// Catch returning users who subscribed in a prior session and now have stored profile data —
+// re-sync tags so they end up correctly segmented even if they don't tap Enable Alerts again.
+const _savedGuest=loadGuestLocally();if(_savedGuest)syncOneSignalTags(_savedGuest);
 setTimeout(checkOnLoad,300);
 </script>
 </body>
