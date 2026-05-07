@@ -784,6 +784,10 @@ let ONESIGNAL_APP_ID="",ONESIGNAL_API_KEY="",RAPIDAPI_KEY="";
 // Step 3: Cloudflare Worker proxy for sending pushes (keeps REST API key server-side)
 const PUSH_PROXY_URL = 'https://vv-birthday-push.vanessa-vanacker.workers.dev/';
 const PUSH_PROXY_SECRET = 'vvbash-K9pR2mLnT7vQ4xZ8wB6yE3hF';
+// ⚠️  This is UI-gating only — the password is visible in the deployed HTML
+//     and Firebase rules don't enforce it. It hides organiser controls from
+//     casual visitors but does not protect data. Real protection is in the
+//     Firebase security rules + Cloudflare Worker secret.
 const ORG_PASSWORD='vvbash2026';
 const DEFAULT_ACTIVITIES=[
   {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
@@ -1377,10 +1381,10 @@ async function buildItinerary(g){
             // (icon, type, title default to the activity's own values: 🏨 Check out – De Tuilerieen)
           } else {
             evType='transport';
-            if(g.tripSection==='both'){const dest=g.depFrom||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
+            if(g.tripSection==='both'){const dest=g.depFrom||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${dest}`;}
             else if(g.tripSection==='bruges'){
               if(g.brugesDepMode==='train'){evIcon='🚂';evTitle='Transfer to Bruges Station';}
-              else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${esc(dest)}`;}
+              else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${dest}`;}
             }
           }
           evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
@@ -1400,7 +1404,7 @@ async function buildItinerary(g){
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
         const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
         const personalBadge=ev.personal?`<span class="personal-label">${ev.personalLabel||'Your Pickup'}</span>`:'';
-        return`<div class="event${ev.personal?' personal':''}${actPast?' past':''}"><div class="event-time">${esc(tl)}</div><div class="event-icon">${evIcon}</div><div class="event-body"><div class="event-title">${evTitle}${personalBadge}<span class="badge ${bc}">${bl}</span></div><div class="event-note">${esc(evNote)}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div></div></div>`;
+        return`<div class="event${ev.personal?' personal':''}${actPast?' past':''}"><div class="event-time">${esc(tl)}</div><div class="event-icon">${esc(evIcon)}</div><div class="event-body"><div class="event-title">${esc(evTitle)}${personalBadge}<span class="badge ${bc}">${bl}</span></div><div class="event-note">${esc(evNote)}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div></div></div>`;
       }).join('');
     })()+`</div></div>`;
     if(isPast){pastDaysHtml+=dayHtml;pastDayCount++;}else{html+=dayHtml;}
@@ -1920,7 +1924,7 @@ async function viewGuestItinerary(key) {
     document.body.style.overflow = 'hidden';
   } catch(e) {
     console.error('viewGuestItinerary:', e);
-    document.getElementById('modal-itinerary').innerHTML = banner + `<p style="color:#c0392b">&#9888; Could not build itinerary: ${e.message}</p>`;
+    document.getElementById('modal-itinerary').innerHTML = banner + `<p style="color:#c0392b">&#9888; Could not build itinerary: ${esc(e.message)}</p>`;
     onItineraryModalOpen();
     document.getElementById('modal-overlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
