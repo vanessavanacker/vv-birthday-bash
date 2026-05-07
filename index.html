@@ -730,8 +730,8 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
 
     <h4>&#127969; Where you&rsquo;re staying</h4>
     <div class="logistics">
-      <p><strong>Private villa in Valbonne</strong></p>
-      <p>&#128205; <em>(address &mdash; edit me)</em></p>
+      <p><strong>La Remondi&egrave;re</strong></p>
+      <p>&#128205; <a href="https://maps.google.com/?q=La+Remondi%C3%A8re+1508+Route+de+Nice+06560+Valbonne" target="_blank" rel="noopener">1508 Route de Nice, 06560 Valbonne, France</a></p>
       <p>&#9742;&#65039; Host: <em>(name + phone &mdash; edit me)</em></p>
       <p>&#127760; Wifi: <em>(network name)</em> / <em>(password)</em></p>
       <p>&#127973; Hospital: <a href="https://maps.google.com/?q=Centre+Hospitalier+d%27Antibes" target="_blank" rel="noopener">Centre Hospitalier d&rsquo;Antibes</a></p>
@@ -857,6 +857,7 @@ function setTripSection(section,btn){
 function initFirebase(){
   if(!FIREBASE_CONFIG.apiKey){showFirebaseBar('offline');return;}
   try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();firebaseReady=true;showFirebaseBar('connected');
+    autoSyncFromFirebase();
     db.ref('activities').on('value',snap=>{const data=snap.val();if(data){LIVE_ACTIVITIES=Array.isArray(data)?data:Object.values(data);if(lastGeneratedGuest)document.getElementById('update-banner').style.display='block';if(document.getElementById('org-tab-activities').classList.contains('active'))renderActivityEditor();
         scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}});
     // Cross-device RapidAPI key sync — organiser saves once, all guest devices get it.
@@ -1714,6 +1715,39 @@ async function lookupReturningGuest(){
 }
 function saveGuestLocally(g){try{localStorage.setItem('vv_my_profile',JSON.stringify(g));}catch(e){}}
 function loadGuestLocally(){try{const s=localStorage.getItem('vv_my_profile');return s?JSON.parse(s):null;}catch(e){return null;}}
+
+// Cross-device auto-sync: on page load, if we have a local profile with a key, fetch the
+// authoritative copy from Firebase and replace local if Firebase is newer.
+// Uses submittedAt timestamps to decide. Firebase always wins for ties (safer). Silently
+// no-ops if Firebase is unavailable, no local profile exists, or no key is stored.
+async function autoSyncFromFirebase(){
+  if(!firebaseReady) return;
+  const local = loadGuestLocally();
+  if(!local || !local.key) return;
+  try {
+    const remote = await fbGet('guests/' + local.key);
+    if(!remote) return; // entry deleted upstream — keep local for safety
+    const localTime  = new Date(local.submittedAt  || 0).getTime();
+    const remoteTime = new Date(remote.submittedAt || 0).getTime();
+    if(remoteTime > localTime){
+      const merged = { key: local.key, ...remote };
+      saveGuestLocally(merged);
+      // If user is currently on the form page, refresh the visible fields
+      const formPage = document.getElementById('page-form');
+      if(formPage && formPage.classList.contains('active')){
+        prefillForm(merged);
+      }
+      // If they have a generated itinerary already showing, flag it as stale
+      if(lastGeneratedGuest){
+        const banner = document.getElementById('update-banner');
+        if(banner) banner.style.display = 'block';
+      }
+      console.log('[sync] pulled fresher profile from Firebase');
+    }
+  } catch(e) {
+    console.warn('[sync] autoSyncFromFirebase failed:', e);
+  }
+}
 
 // FIX #2: train number now read using arrMode (was checking g.arrFlight==='Train' which was always false)
 // FIX #12: gate flight-vs-train field writes on arrMode so toggling modes doesn't leak values
