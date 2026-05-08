@@ -507,6 +507,15 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
         <div id="push-send-result" style="margin-top:.8rem;font-size:.82rem"></div>
       </div>
       <div class="push-org-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.8rem">
+          <h4 style="margin:0">&#128203; Subscription Health</h4>
+          <button class="btn btn-secondary" onclick="loadSubscriptionHealth()" style="width:auto;font-size:.78rem;padding:.45rem .8rem">&#128260; Refresh</button>
+        </div>
+        <p style="font-size:.82rem;opacity:.6;margin-bottom:.9rem">Cross-references guests in your database with OneSignal subscriptions. Use this to find who needs to enable alerts or re-tag.</p>
+        <div id="sub-health-status" style="font-size:.82rem;opacity:.7;margin-bottom:.6rem">Tap Refresh to load.</div>
+        <div id="sub-health-list"></div>
+      </div>
+      <div class="push-org-card">
         <h4>&#9992;&#65039; Auto Flight Lookup</h4>
         <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Guests type their flight number and times fill in automatically. Requires a free <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month). <strong>Save once here</strong> &mdash; the key syncs via Firebase to every guest device automatically.<br>Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com &rarr; AeroDataBox &rarr; Subscribe Free</a></p>
         <div class="field"><label>RapidAPI Key</label><input type="text" id="rapidapi-key" placeholder="Paste your RapidAPI key here" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
@@ -1514,9 +1523,12 @@ async function requestPush(){
   if(oneSignalGranted){
     btn.textContent = '✅ Reminders on (even when app is closed)';
     if(card) card.style.background = 'linear-gradient(135deg,#065f46,#047857)';
+    localStorage.setItem('vv_push_subbed', '1');
   } else if(localGranted){
     btn.textContent = '✅ Reminders on (only while app is open)';
     if(card) card.style.background = 'linear-gradient(135deg,#854d0e,#a16207)';
+    // Local-only counts as "don't bug them again" for UI purposes
+    localStorage.setItem('vv_push_subbed', '1');
   } else {
     btn.textContent = 'Permission blocked';
     btn.disabled = false;
@@ -1561,6 +1573,111 @@ async function sendPushNotification(){
     res.textContent='❌ '+e.message;
   }
 }
+// ──────────────────────────────────────────────────────────────
+//  SUBSCRIPTION HEALTH (Organiser → Push Alerts)
+//  Calls Worker /subscriptions endpoint, joins by 'email' tag with /guests.
+// ──────────────────────────────────────────────────────────────
+async function loadSubscriptionHealth(){
+  const statusEl = document.getElementById('sub-health-status');
+  const listEl   = document.getElementById('sub-health-list');
+  statusEl.textContent = '🔄 Loading…';
+  listEl.innerHTML = '';
+  if(!firebaseReady){ statusEl.textContent = '⚠️ Not connected to Firebase.'; return; }
+  try {
+    const [guestsData, subRes] = await Promise.all([
+      fbGet('guests'),
+      fetch(PUSH_PROXY_URL + 'subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Push-Secret': PUSH_PROXY_SECRET },
+        body: '{}'
+      })
+    ]);
+    if(!subRes.ok){
+      const txt = await subRes.text();
+      statusEl.innerHTML = `❌ Worker error (${subRes.status}). Did you update the Worker code? <span style="opacity:.6;font-size:.75rem">${esc(txt.slice(0,200))}</span>`;
+      return;
+    }
+    const subData = await subRes.json();
+    const players = subData.players || subData.subscriptions || [];
+    const guests  = guestsData ? Object.entries(guestsData).map(([k,v]) => ({key:k, ...v})) : [];
+    renderSubHealth(guests, players);
+    statusEl.innerHTML = `✅ ${players.length} subscription${players.length===1?'':'s'} · ${guests.length} guest${guests.length===1?'':'s'} · updated ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+  } catch(e) {
+    statusEl.textContent = '❌ ' + (e.message || 'Unknown error');
+  }
+}
+
+function renderSubHealth(guests, players){
+  const listEl = document.getElementById('sub-health-list');
+  // Build email → subscription map
+  const subsByEmail = {};
+  const orphans = [];
+  for(const p of players){
+    const tags = p.tags || {};
+    const email = (tags.email || '').toLowerCase().trim();
+    if(email && !subsByEmail[email]) subsByEmail[email] = p;
+    else if(!email) orphans.push(p);
+  }
+  // Render guest rows
+  let rows = guests.map(g => {
+    const email = (g.email||'').toLowerCase().trim();
+    const sub = subsByEmail[email];
+    if(!sub){
+      return `<tr><td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div></td>
+        <td><span class="tag-pill" style="background:#fee2e2;color:#991b1b">❌ Not subscribed</span></td>
+        <td>—</td>
+        <td><span class="sub-text">Ask them to open the app and tap "Enable Alerts"</span></td></tr>`;
+    }
+    const enabled = sub.notification_types !== 0 && sub.notification_types !== -2 && sub.invalid_identifier !== true;
+    const tags = sub.tags || {};
+    const sectionTag = tags.section;
+    const sectionMatches = sectionTag === g.tripSection;
+    let statusBadge, action;
+    if(!enabled){
+      statusBadge = '<span class="tag-pill" style="background:#fef3c7;color:#92400e">⚠️ Subbed but disabled</span>';
+      action = 'Notifications turned off in OS settings or DND on';
+    } else if(!sectionTag){
+      statusBadge = '<span class="tag-pill" style="background:#fed7aa;color:#9a3412">⚠️ Untagged</span>';
+      action = `Will receive "All" pushes only — tag missing. Reload app to auto-tag.`;
+    } else if(!sectionMatches){
+      statusBadge = '<span class="tag-pill" style="background:#fed7aa;color:#9a3412">⚠️ Tag mismatch</span>';
+      action = `Tagged as <code>${esc(sectionTag)}</code> but profile says <code>${esc(g.tripSection||'?')}</code>`;
+    } else {
+      statusBadge = '<span class="tag-pill tag-valbonne">✅ Healthy</span>';
+      action = '<span class="sub-text">All good</span>';
+    }
+    const lastActive = sub.last_active ? new Date(sub.last_active * 1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
+    return `<tr>
+      <td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div></td>
+      <td>${statusBadge}</td>
+      <td><div class="sub-text">Section: <code>${esc(sectionTag||'—')}</code></div><div class="sub-text" style="opacity:.5">Last active: ${esc(lastActive)}</div></td>
+      <td><div class="sub-text">${action}</div></td>
+    </tr>`;
+  }).join('');
+  // Orphan subscriptions (tagged with no email, or email that doesn't match any guest)
+  const guestEmails = new Set(guests.map(g => (g.email||'').toLowerCase().trim()).filter(Boolean));
+  const namedOrphans = players.filter(p => {
+    const e = (p.tags?.email||'').toLowerCase().trim();
+    return e && !guestEmails.has(e);
+  });
+  const allOrphans = [...orphans, ...namedOrphans];
+  let orphansHtml = '';
+  if(allOrphans.length){
+    orphansHtml = `<div style="margin-top:1rem;padding:.8rem;background:#fef9c3;border-radius:8px;font-size:.8rem">
+      <strong>${allOrphans.length} orphan subscription${allOrphans.length===1?'':'s'}</strong>
+      <div class="sub-text" style="margin-top:.3rem">Devices subscribed but no matching guest email. Likely test devices or guests who enabled alerts before submitting form.</div>
+      ${allOrphans.map(p => {
+        const t = p.tags || {};
+        const label = t.name ? esc(t.name) : (t.email ? esc(t.email) : `<em>untagged</em>`);
+        return `<div style="margin-top:.4rem;font-family:monospace;font-size:.72rem;opacity:.7">${label} · ${esc(p.id?.slice(0,8) || '?')}…</div>`;
+      }).join('')}
+    </div>`;
+  }
+  listEl.innerHTML = guests.length
+    ? `<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Guest</th><th>Status</th><th>Tags</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>${orphansHtml}`
+    : `<div class="empty-state">No guests yet.</div>${orphansHtml}`;
+}
+
 async function saveOneSignalConfig(){
   ONESIGNAL_APP_ID = document.getElementById('os-app-id').value.trim();
   ONESIGNAL_API_KEY = document.getElementById('os-api-key').value.trim();
@@ -1611,14 +1728,22 @@ function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAge
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 // Decides which push card (if any) to show based on environment:
 // 'enable' -> regular Notifications API works (Android, desktop, iOS PWA installed)
+// Decides which push card (if any) to show based on environment & subscription state:
+// 'enable'  -> regular Notifications API works AND user has not yet subscribed
 // 'install' -> iOS Safari, not yet installed as PWA (push needs PWA on iOS)
-// null -> permission already denied or unsupported
+// null      -> already subscribed, permission denied, or unsupported
+//
+// Uses both:
+//   • localStorage flag (vv_push_subbed) — fast, set when user successfully grants
+//   • OneSignal SDK subscription state — authoritative, async-checked
 function whichPushCard(){
   const ios = isIOS();
   const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
   if(ios && !isPWA) return 'install';
-  if('Notification' in window && Notification.permission !== 'denied') return 'enable';
-  return null;
+  if(!('Notification' in window)) return null;
+  if(Notification.permission === 'denied') return null;
+  if(Notification.permission === 'granted' && localStorage.getItem('vv_push_subbed') === '1') return null;
+  return 'enable';
 }
 function showAppropriatePushCard(){
   const which = whichPushCard();
@@ -1626,6 +1751,20 @@ function showAppropriatePushCard(){
   const installEl = document.getElementById('ios-install-card');
   if(enableEl)  enableEl.style.display  = which === 'enable'  ? 'flex' : 'none';
   if(installEl) installEl.style.display = which === 'install' ? 'flex' : 'none';
+  // Async: ask OneSignal if this device is actually subscribed, even if our localStorage flag isn't set
+  // (covers users who subscribed on a prior version of the app before we added the flag).
+  if(which === 'enable' && _oneSignalInitDone){
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(function(OneSignal){
+      try {
+        const sub = OneSignal.User?.PushSubscription;
+        if(sub && sub.optedIn === true){
+          localStorage.setItem('vv_push_subbed', '1');
+          if(enableEl) enableEl.style.display = 'none';
+        }
+      } catch(e){}
+    });
+  }
 }
 document.getElementById('name').addEventListener('blur', showAppropriatePushCard);
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'&&!window._weatherLoaded){window._weatherLoaded=true;loadWeather();}}
