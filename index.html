@@ -1609,39 +1609,36 @@ async function loadSubscriptionHealth(){
 
 function renderSubHealth(guests, players){
   const listEl = document.getElementById('sub-health-list');
-  // Build email → best subscription map. Prefer active subs over disabled ones.
-  const subsByEmail = {};
-  const dupesByEmail = {};
-  const orphans = [];
   const isActive = p => {
     if(p.invalid_identifier === true) return false;
-    // Treat missing/null notification_types as active (some API responses omit it).
-    // Only flag as inactive if it's explicitly a non-positive number.
     if(p.notification_types === undefined || p.notification_types === null) return true;
     return p.notification_types > 0;
   };
+  // Build email → array of all subs map
+  const subsByEmail = {};
+  const orphans = [];
   for(const p of players){
     const tags = p.tags || {};
     const email = (tags.email || '').toLowerCase().trim();
     if(!email){ orphans.push(p); continue; }
-    const existing = subsByEmail[email];
-    if(!existing){
-      subsByEmail[email] = p;
-    } else {
-      // Already have one; replace if new candidate is healthier
-      if(isActive(p) && !isActive(existing)){
-        dupesByEmail[email] = (dupesByEmail[email]||0) + 1;
-        subsByEmail[email] = p;
-      } else {
-        dupesByEmail[email] = (dupesByEmail[email]||0) + 1;
-      }
-    }
+    if(!subsByEmail[email]) subsByEmail[email] = [];
+    subsByEmail[email].push(p);
   }
+  // Sort each email's subs: active first, then by last_active desc
+  for(const email in subsByEmail){
+    subsByEmail[email].sort((a, b) => {
+      const aA = isActive(a) ? 1 : 0, bA = isActive(b) ? 1 : 0;
+      if(aA !== bA) return bA - aA;
+      return (b.last_active || 0) - (a.last_active || 0);
+    });
+  }
+  const fmtDate = ts => ts ? new Date(ts * 1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
   // Render guest rows
   let rows = guests.map(g => {
     const email = (g.email||'').toLowerCase().trim();
-    const sub = subsByEmail[email];
-    const dupCount = dupesByEmail[email] || 0;
+    const subs = subsByEmail[email] || [];
+    const sub = subs[0];
+    const dupes = subs.slice(1);
     if(!sub){
       return `<tr><td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div></td>
         <td><span class="tag-pill" style="background:#fee2e2;color:#991b1b">❌ Not subscribed</span></td>
@@ -1665,14 +1662,22 @@ function renderSubHealth(guests, players){
       statusBadge = '<span class="tag-pill tag-valbonne">✅ Healthy</span>';
       action = '<span class="sub-text">All good</span>';
     }
-    const dupNote = dupCount > 0 ? `<div class="sub-text" style="color:#9a3412">+${dupCount} duplicate sub${dupCount>1?'s':''} on this email</div>` : '';
-    const lastActive = sub.last_active ? new Date(sub.last_active * 1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
+    let dupeBlock = '';
+    if(dupes.length){
+      dupeBlock = `<tr><td colspan="4" style="background:#fef3c7;padding:.4rem .8rem"><div style="font-size:.78rem;font-weight:600;margin-bottom:.4rem">${dupes.length} duplicate sub${dupes.length>1?'s':''} for ${esc(g.email)}:</div>${dupes.map(d => `
+          <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-top:1px dashed rgba(0,0,0,.1);font-size:.75rem">
+            <code style="font-family:monospace;flex:1">${esc(d.id?.slice(0,16) || '?')}…</code>
+            <span style="opacity:.7">${isActive(d) ? '✅ active' : '⚠️ disabled'}</span>
+            <span style="opacity:.5">last seen ${fmtDate(d.last_active)}</span>
+            <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${esc(d.id)}','${esc(g.name||g.email||'guest')}')">🗑 Delete</button>
+          </div>`).join('')}</td></tr>`;
+    }
     return `<tr>
-      <td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div>${dupNote}</td>
+      <td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div></td>
       <td>${statusBadge}</td>
-      <td><div class="sub-text">Section: <code>${esc(sectionTag||'—')}</code></div><div class="sub-text" style="opacity:.5">Last active: ${esc(lastActive)}</div></td>
+      <td><div class="sub-text">Section: <code>${esc(sectionTag||'—')}</code></div><div class="sub-text" style="opacity:.5">Last active: ${esc(fmtDate(sub.last_active))}</div></td>
       <td><div class="sub-text">${action}</div></td>
-    </tr>`;
+    </tr>${dupeBlock}`;
   }).join('');
   // Orphan subscriptions (tagged with no email, or email that doesn't match any guest)
   const guestEmails = new Set(guests.map(g => (g.email||'').toLowerCase().trim()).filter(Boolean));
@@ -1685,17 +1690,46 @@ function renderSubHealth(guests, players){
   if(allOrphans.length){
     orphansHtml = `<div style="margin-top:1rem;padding:.8rem;background:#fef9c3;border-radius:8px;font-size:.8rem">
       <strong>${allOrphans.length} orphan subscription${allOrphans.length===1?'':'s'}</strong>
-      <div class="sub-text" style="margin-top:.3rem">Devices subscribed but no matching guest email. Likely test devices or guests who enabled alerts before submitting form.</div>
+      <div class="sub-text" style="margin-top:.3rem;margin-bottom:.5rem">Devices subscribed but no matching guest email. Likely test devices or guests who enabled alerts before submitting form. Safe to delete if last seen long ago.</div>
       ${allOrphans.map(p => {
         const t = p.tags || {};
-        const label = t.name ? esc(t.name) : (t.email ? esc(t.email) : `<em>untagged</em>`);
-        return `<div style="margin-top:.4rem;font-family:monospace;font-size:.72rem;opacity:.7">${label} · ${esc(p.id?.slice(0,8) || '?')}…</div>`;
+        const label = t.name ? esc(t.name) : (t.email ? esc(t.email) : '<em>untagged</em>');
+        const lastSeen = p.last_active ? new Date(p.last_active * 1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
+        return `<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-top:1px dashed rgba(0,0,0,.1);font-size:.75rem">
+          <span style="flex:1">${label}</span>
+          <code style="font-family:monospace;opacity:.5">${esc(p.id?.slice(0,12) || '?')}…</code>
+          <span style="opacity:.6">${esc(lastSeen)}</span>
+          <span>${isActive(p) ? '✅' : '⚠️'}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${esc(p.id)}','${esc(t.name || t.email || 'orphan')}')">🗑</button>
+        </div>`;
       }).join('')}
     </div>`;
   }
   listEl.innerHTML = guests.length
     ? `<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Guest</th><th>Status</th><th>Tags</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>${orphansHtml}`
     : `<div class="empty-state">No guests yet.</div>${orphansHtml}`;
+}
+
+async function deleteSubscription(subId, label){
+  if(!confirm(`Delete subscription for "${label}"?\n\nThe device will stop receiving pushes immediately. If they reload the app, OneSignal will create a fresh subscription.`)) return;
+  const statusEl = document.getElementById('sub-health-status');
+  statusEl.textContent = `🔄 Deleting ${label}…`;
+  try {
+    const r = await fetch(PUSH_PROXY_URL + 'subscriptions/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Push-Secret': PUSH_PROXY_SECRET },
+      body: JSON.stringify({ id: subId })
+    });
+    if(!r.ok){
+      const txt = await r.text();
+      statusEl.innerHTML = `❌ Delete failed (${r.status}). ${esc(txt.slice(0,200))}`;
+      return;
+    }
+    statusEl.textContent = `✅ Deleted. Refreshing…`;
+    setTimeout(loadSubscriptionHealth, 600);
+  } catch(e){
+    statusEl.textContent = '❌ ' + (e.message || 'Unknown error');
+  }
 }
 
 async function saveOneSignalConfig(){
