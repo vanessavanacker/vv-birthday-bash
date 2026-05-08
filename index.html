@@ -1609,33 +1609,46 @@ async function loadSubscriptionHealth(){
 
 function renderSubHealth(guests, players){
   const listEl = document.getElementById('sub-health-list');
-  // Build email → subscription map
+  // Build email → best subscription map. Prefer active subs over disabled ones.
   const subsByEmail = {};
+  const dupesByEmail = {};
   const orphans = [];
+  const isActive = p => (p.notification_types > 0) && p.invalid_identifier !== true;
   for(const p of players){
     const tags = p.tags || {};
     const email = (tags.email || '').toLowerCase().trim();
-    if(email && !subsByEmail[email]) subsByEmail[email] = p;
-    else if(!email) orphans.push(p);
+    if(!email){ orphans.push(p); continue; }
+    const existing = subsByEmail[email];
+    if(!existing){
+      subsByEmail[email] = p;
+    } else {
+      // Already have one; replace if new candidate is healthier
+      if(isActive(p) && !isActive(existing)){
+        dupesByEmail[email] = (dupesByEmail[email]||0) + 1;
+        subsByEmail[email] = p;
+      } else {
+        dupesByEmail[email] = (dupesByEmail[email]||0) + 1;
+      }
+    }
   }
   // Render guest rows
   let rows = guests.map(g => {
     const email = (g.email||'').toLowerCase().trim();
     const sub = subsByEmail[email];
+    const dupCount = dupesByEmail[email] || 0;
     if(!sub){
       return `<tr><td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div></td>
         <td><span class="tag-pill" style="background:#fee2e2;color:#991b1b">❌ Not subscribed</span></td>
         <td>—</td>
         <td><span class="sub-text">Ask them to open the app and tap "Enable Alerts"</span></td></tr>`;
     }
-    const enabled = sub.notification_types !== 0 && sub.notification_types !== -2 && sub.invalid_identifier !== true;
     const tags = sub.tags || {};
     const sectionTag = tags.section;
     const sectionMatches = sectionTag === g.tripSection;
     let statusBadge, action;
-    if(!enabled){
+    if(!isActive(sub)){
       statusBadge = '<span class="tag-pill" style="background:#fef3c7;color:#92400e">⚠️ Subbed but disabled</span>';
-      action = 'Notifications turned off in OS settings or DND on';
+      action = `notification_types = <code>${esc(String(sub.notification_types))}</code>. Permission revoked at OS/browser level, or token expired.`;
     } else if(!sectionTag){
       statusBadge = '<span class="tag-pill" style="background:#fed7aa;color:#9a3412">⚠️ Untagged</span>';
       action = `Will receive "All" pushes only — tag missing. Reload app to auto-tag.`;
@@ -1646,9 +1659,10 @@ function renderSubHealth(guests, players){
       statusBadge = '<span class="tag-pill tag-valbonne">✅ Healthy</span>';
       action = '<span class="sub-text">All good</span>';
     }
+    const dupNote = dupCount > 0 ? `<div class="sub-text" style="color:#9a3412">+${dupCount} duplicate sub${dupCount>1?'s':''} on this email</div>` : '';
     const lastActive = sub.last_active ? new Date(sub.last_active * 1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
     return `<tr>
-      <td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div></td>
+      <td><strong>${esc(g.name||'—')}</strong><div class="sub-text">${esc(g.email||'')}</div>${dupNote}</td>
       <td>${statusBadge}</td>
       <td><div class="sub-text">Section: <code>${esc(sectionTag||'—')}</code></div><div class="sub-text" style="opacity:.5">Last active: ${esc(lastActive)}</div></td>
       <td><div class="sub-text">${action}</div></td>
