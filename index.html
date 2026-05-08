@@ -1613,7 +1613,13 @@ function renderSubHealth(guests, players){
   const subsByEmail = {};
   const dupesByEmail = {};
   const orphans = [];
-  const isActive = p => (p.notification_types > 0) && p.invalid_identifier !== true;
+  const isActive = p => {
+    if(p.invalid_identifier === true) return false;
+    // Treat missing/null notification_types as active (some API responses omit it).
+    // Only flag as inactive if it's explicitly a non-positive number.
+    if(p.notification_types === undefined || p.notification_types === null) return true;
+    return p.notification_types > 0;
+  };
   for(const p of players){
     const tags = p.tags || {};
     const email = (tags.email || '').toLowerCase().trim();
