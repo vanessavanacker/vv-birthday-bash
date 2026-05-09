@@ -516,6 +516,15 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
         <div id="sub-health-list"></div>
       </div>
       <div class="push-org-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.8rem">
+          <h4 style="margin:0">&#128737;&#65039; Push Log</h4>
+          <button class="btn btn-secondary" onclick="loadPushLog()" style="width:auto;font-size:.78rem;padding:.45rem .8rem">&#128260; Refresh</button>
+        </div>
+        <p style="font-size:.82rem;opacity:.6;margin-bottom:.9rem">Failures from the scheduled push cron. Empty list = nothing has failed (or nothing has fired yet).</p>
+        <div id="push-log-status" style="font-size:.82rem;opacity:.7;margin-bottom:.6rem">Tap Refresh to load.</div>
+        <div id="push-log-list"></div>
+      </div>
+      <div class="push-org-card">
         <h4>&#9992;&#65039; Auto Flight Lookup</h4>
         <p style="font-size:.82rem;line-height:1.6;opacity:.7;margin-bottom:.8rem">Guests type their flight number and times fill in automatically. Requires a free <strong>RapidAPI</strong> key with the <strong>AeroDataBox</strong> API subscribed (free, 500 lookups/month). <strong>Save once here</strong> &mdash; the key syncs via Firebase to every guest device automatically.<br>Sign up at <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" style="color:var(--rust)">rapidapi.com &rarr; AeroDataBox &rarr; Subscribe Free</a></p>
         <div class="field"><label>RapidAPI Key</label><input type="text" id="rapidapi-key" placeholder="Paste your RapidAPI key here" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
@@ -1708,6 +1717,36 @@ function renderSubHealth(guests, players){
   listEl.innerHTML = guests.length
     ? `<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Guest</th><th>Status</th><th>Tags</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>${orphansHtml}`
     : `<div class="empty-state">No guests yet.</div>${orphansHtml}`;
+}
+
+async function loadPushLog(){
+  const statusEl = document.getElementById('push-log-status');
+  const listEl   = document.getElementById('push-log-list');
+  statusEl.textContent = '🔄 Loading…';
+  listEl.innerHTML = '';
+  if(!firebaseReady){ statusEl.textContent = '⚠️ Not connected to Firebase.'; return; }
+  try {
+    const snap = await db.ref('pushLog').limitToLast(20).once('value');
+    const data = snap.val() || {};
+    const entries = Object.values(data).sort((a,b) => (b.ts||0) - (a.ts||0));
+    if(!entries.length){
+      statusEl.innerHTML = '✅ No failures logged.';
+      listEl.innerHTML = '';
+      return;
+    }
+    statusEl.innerHTML = `Showing last <strong>${entries.length}</strong> failure${entries.length===1?'':'s'}.`;
+    listEl.innerHTML = entries.map(e => `
+      <div style="background:#fef2f2;border-left:3px solid #dc2626;padding:.6rem .8rem;border-radius:6px;margin-bottom:.5rem;font-size:.82rem">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap">
+          <strong style="font-family:monospace">${esc(e.id||'?')}</strong>
+          <span style="opacity:.6;font-size:.75rem">${esc(new Date(e.ts || 0).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</span>
+        </div>
+        <div style="margin-top:.3rem;color:#7f1d1d;word-break:break-word">${esc(e.error||'')}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    statusEl.textContent = '❌ ' + (e.message || 'Load failed');
+  }
 }
 
 async function deleteSubscription(subId, label){
