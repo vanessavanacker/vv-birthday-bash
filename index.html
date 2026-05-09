@@ -1166,6 +1166,9 @@ async function submitAndGenerate(){
   try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
   catch(e){console.error('buildItinerary error:',e);showNotice(ni,'⚠️ Itinerary error — please try again.','warn');}
   scheduleActivityReminders(g);
+  // Now that they've submitted, the push card becomes eligible to appear.
+  // 1.5 s delay so the success message lands first.
+  setTimeout(showAppropriatePushCard, 1500);
 }
 async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElementById('modal-itinerary').innerHTML=await buildItinerary(lastGeneratedGuest);document.getElementById('update-banner').style.display='none';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
 </script>
@@ -1836,6 +1839,11 @@ function whichPushCard(){
   if(!('Notification' in window)) return null;
   if(Notification.permission === 'denied') return null;
   if(Notification.permission === 'granted' && localStorage.getItem('vv_push_subbed') === '1') return null;
+  // Don't ask people to enable alerts before they've submitted the form — otherwise
+  // their OneSignal subscription has no `section` tag and they miss segmented pushes.
+  // Submission flips this flag in saveProfile() / via lookupReturningGuest().
+  const profile = loadGuestLocally();
+  if(!profile || !profile.tripSection) return null;
   return 'enable';
 }
 function showAppropriatePushCard(){
