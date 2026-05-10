@@ -1208,36 +1208,14 @@ async function buildItinerary(g){
     if(!byDay[dayKey]) byDay[dayKey] = [];
     byDay[dayKey].push({...a, day: dayKey});
   });
-  if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}
+  if(firebaseReady&&g.name){try{const allGuests=allGuestsCache||await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}
     // ── Group van pickup at Brussels Airport for early Jun 19 arrivals ──
-    // Eligible: tripSection bruges|both, arrives Jun 19 by flight, arrTime ≤ 09:00.
-    // Van departs 90 min after the LATEST eligible arrival across all guests.
-    const isEligible = v => {
-      if(!v) return false;
-      if(v.tripSection !== 'bruges' && v.tripSection !== 'both') return false;
-      if(v.arrMode === 'train') return false;
-      if(!v.arrFlight || v.arrFlight === '—') return false;
-      if(v.arrDate && v.arrDate !== '2026-06-19') return false;
-      if(!v.arrTime || !/^\d{1,2}:\d{2}$/.test(v.arrTime)) return false;
-      const [h,m] = v.arrTime.split(':').map(Number);
-      return (h*60 + m) <= (9*60); // 09:00 cutoff
-    };
-    const eligibleGuests = Object.values(allGuests).filter(isEligible);
-    if(eligibleGuests.length && isEligible(g)){
-      let latestMins = 0;
-      for(const v of eligibleGuests){
-        const [h,m] = v.arrTime.split(':').map(Number);
-        const mins = h*60 + m;
-        if(mins > latestMins) latestMins = mins;
-      }
-      const vanMins = latestMins + 90; // 90 min after last landing for bags + customs
-      const vanH = Math.floor(vanMins/60), vanM = vanMins % 60;
-      const vanTime = String(vanH).padStart(2,'0') + ':' + String(vanM).padStart(2,'0');
+    if(groupVanGuestEligible && groupVanTime){
       if(!byDay[0]) byDay[0] = [];
       byDay[0].push({
-        day: 0, time: vanTime,
+        day: 0, time: groupVanTime,
         title: 'Group van to hotel',
-        note: `2 vans depart Brussels Airport at ${vanTime} for the De Tuilerieen hotel — for everyone on early flights. Meet at the arrivals exit (signs say "VV Birthday Bash" or look for the group). Bags first, then to Bruges (~90 min drive).`,
+        note: `2 vans depart Brussels Airport at ${groupVanTime} for the De Tuilerieen hotel — for everyone on early flights. Meet at the arrivals exit (signs say "VV Birthday Bash" or look for the group). Bags first, then to Bruges (~90 min drive).`,
         type:'transport', icon:'🚐', personal:true, personalLabel:'Your Group Van'
       });
     }
@@ -1251,7 +1229,46 @@ async function buildItinerary(g){
   const arrCustomsMins = isTrain ? 0 : CUSTOMS_MINS; // trains have no customs/baggage wait
   const arrDriveMins = isTrain ? stationToHotelMins(trainStation) : airportDriveMins(arrAirport);
   const arrTransferStart = g.arrTime ? addMins(g.arrTime, arrCustomsMins) : null;     // when transfer begins (post-customs)
-  const brugesArrival   = g.arrTime ? addMins(g.arrTime, arrCustomsMins + arrDriveMins) : null; // when guest reaches hotel
+  let   brugesArrival   = g.arrTime ? addMins(g.arrTime, arrCustomsMins + arrDriveMins) : null; // when guest reaches hotel
+
+  // ── Group van eligibility + computed times — also drives CHECK_ARR ──
+  // Eligible: tripSection bruges|both, arrives Jun 19 by flight, arrTime ≤ 09:00.
+  // Van departs 90 min after the LATEST eligible arrival; check-in = van + 90 min.
+  let groupVanTime = null, groupVanGuestEligible = false, allGuestsCache = null;
+  if(firebaseReady && g.name){
+    try {
+      allGuestsCache = await fbGet('guests');
+      if(allGuestsCache){
+        const isVanEligible = v => {
+          if(!v) return false;
+          if(v.tripSection !== 'bruges' && v.tripSection !== 'both') return false;
+          if(v.arrMode === 'train') return false;
+          if(!v.arrFlight || v.arrFlight === '—') return false;
+          if(v.arrDate && v.arrDate !== '2026-06-19') return false;
+          if(!v.arrTime || !/^\d{1,2}:\d{2}$/.test(v.arrTime)) return false;
+          const [h,m] = v.arrTime.split(':').map(Number);
+          return (h*60 + m) <= (9*60);
+        };
+        const eligible = Object.values(allGuestsCache).filter(isVanEligible);
+        if(eligible.length){
+          let latest = 0;
+          for(const v of eligible){
+            const [h,m] = v.arrTime.split(':').map(Number);
+            const mins = h*60 + m;
+            if(mins > latest) latest = mins;
+          }
+          const vanMins = latest + 90;
+          const vH = Math.floor(vanMins/60), vM = vanMins % 60;
+          groupVanTime = String(vH).padStart(2,'0') + ':' + String(vM).padStart(2,'0');
+          groupVanGuestEligible = isVanEligible(g);
+          if(groupVanGuestEligible){
+            // Override hotel-arrival = van departure + 90 min drive
+            brugesArrival = addMins(groupVanTime, 90);
+          }
+        }
+      }
+    } catch(e){}
+  }
   const niceTransferStart = g.niceArrTime ? addMins(g.niceArrTime, CUSTOMS_MINS) : null;
   const niceArrival     = g.niceArrTime ? addMins(g.niceArrTime, CUSTOMS_MINS + NICE_DRIVE_MINS) : null;
 
