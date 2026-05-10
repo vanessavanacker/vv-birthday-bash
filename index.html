@@ -1208,18 +1208,7 @@ async function buildItinerary(g){
     if(!byDay[dayKey]) byDay[dayKey] = [];
     byDay[dayKey].push({...a, day: dayKey});
   });
-  if(firebaseReady&&g.name){try{const allGuests=allGuestsCache||await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}
-    // ── Group van pickup at Brussels Airport for early Jun 19 arrivals ──
-    if(groupVanGuestEligible && groupVanTime){
-      if(!byDay[0]) byDay[0] = [];
-      byDay[0].push({
-        day: 0, time: groupVanTime,
-        title: 'Group van to hotel',
-        note: `2 vans depart Brussels Airport at ${groupVanTime} for the De Tuilerieen hotel — for everyone on early flights. Meet at the arrivals exit (signs say "VV Birthday Bash" or look for the group). Bags first, then to Bruges (~90 min drive).`,
-        type:'transport', icon:'🚐', personal:true, personalLabel:'Your Group Van'
-      });
-    }
-  }}catch(e){}}
+  if(firebaseReady&&g.name){try{const allGuests=allGuestsCache||await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
   // ── Hoist arrival timing math (used for sort keys, display, and personal events) ──
   const CUSTOMS_MINS = 60;
   const NICE_DRIVE_MINS = 45;
@@ -1268,6 +1257,16 @@ async function buildItinerary(g){
         }
       }
     } catch(e){}
+  }
+  // ── Push group van event into byDay (after eligibility/time computed above) ──
+  if(groupVanGuestEligible && groupVanTime){
+    if(!byDay[0]) byDay[0] = [];
+    byDay[0].push({
+      day: 0, time: groupVanTime,
+      title: 'Group van to hotel',
+      note: `2 vans depart Brussels Airport at ${groupVanTime} for the De Tuilerieen hotel — for everyone on early flights. Meet at the arrivals exit (signs say "VV Birthday Bash" or look for the group). Bags first, then to Bruges (~90 min drive).`,
+      type:'transport', icon:'🚐', personal:true, personalLabel:'Your Group Van'
+    });
   }
   const niceTransferStart = g.niceArrTime ? addMins(g.niceArrTime, CUSTOMS_MINS) : null;
   const niceArrival     = g.niceArrTime ? addMins(g.niceArrTime, CUSTOMS_MINS + NICE_DRIVE_MINS) : null;
