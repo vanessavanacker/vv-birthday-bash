@@ -1208,7 +1208,40 @@ async function buildItinerary(g){
     if(!byDay[dayKey]) byDay[dayKey] = [];
     byDay[dayKey].push({...a, day: dayKey});
   });
-  if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
+  if(firebaseReady&&g.name){try{const allGuests=await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}
+    // ── Group van pickup at Brussels Airport for early Jun 19 arrivals ──
+    // Eligible: tripSection bruges|both, arrives Jun 19 by flight, arrTime ≤ 09:00.
+    // Van departs 90 min after the LATEST eligible arrival across all guests.
+    const isEligible = v => {
+      if(!v) return false;
+      if(v.tripSection !== 'bruges' && v.tripSection !== 'both') return false;
+      if(v.arrMode === 'train') return false;
+      if(!v.arrFlight || v.arrFlight === '—') return false;
+      if(v.arrDate && v.arrDate !== '2026-06-19') return false;
+      if(!v.arrTime || !/^\d{1,2}:\d{2}$/.test(v.arrTime)) return false;
+      const [h,m] = v.arrTime.split(':').map(Number);
+      return (h*60 + m) <= (9*60); // 09:00 cutoff
+    };
+    const eligibleGuests = Object.values(allGuests).filter(isEligible);
+    if(eligibleGuests.length && isEligible(g)){
+      let latestMins = 0;
+      for(const v of eligibleGuests){
+        const [h,m] = v.arrTime.split(':').map(Number);
+        const mins = h*60 + m;
+        if(mins > latestMins) latestMins = mins;
+      }
+      const vanMins = latestMins + 90; // 90 min after last landing for bags + customs
+      const vanH = Math.floor(vanMins/60), vanM = vanMins % 60;
+      const vanTime = String(vanH).padStart(2,'0') + ':' + String(vanM).padStart(2,'0');
+      if(!byDay[0]) byDay[0] = [];
+      byDay[0].push({
+        day: 0, time: vanTime,
+        title: 'Group van to hotel',
+        note: `2 vans depart Brussels Airport at ${vanTime} for the De Tuilerieen hotel — for everyone on early flights. Meet at the arrivals exit (signs say "VV Birthday Bash" or look for the group). Bags first, then to Bruges (~90 min drive).`,
+        type:'transport', icon:'🚐', personal:true, personalLabel:'Your Group Van'
+      });
+    }
+  }}catch(e){}}
   // ── Hoist arrival timing math (used for sort keys, display, and personal events) ──
   const CUSTOMS_MINS = 60;
   const NICE_DRIVE_MINS = 45;
