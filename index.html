@@ -1208,7 +1208,6 @@ async function buildItinerary(g){
     if(!byDay[dayKey]) byDay[dayKey] = [];
     byDay[dayKey].push({...a, day: dayKey});
   });
-  if(firebaseReady&&g.name){try{const allGuests=allGuestsCache||await fbGet('guests');if(allGuests){const match=Object.entries(allGuests).find(([,v])=>v.name?.toLowerCase().trim()===g.name.toLowerCase().trim());if(match&&match[1].pickups){const pickups=Array.isArray(match[1].pickups)?match[1].pickups:Object.values(match[1].pickups);pickups.forEach(p=>{if(!byDay[p.day])byDay[p.day]=[];byDay[p.day].push({day:p.day,time:p.time||'TBC',title:'Your Pickup – '+(p.vehicle||'Car'),note:(p.location?'Meet at: '+p.location:'')+(p.note?' · '+p.note:''),type:'transport',icon:'🚗',personal:true});})}}}catch(e){}}
   // ── Hoist arrival timing math (used for sort keys, display, and personal events) ──
   const CUSTOMS_MINS = 60;
   const NICE_DRIVE_MINS = 45;
@@ -1258,7 +1257,29 @@ async function buildItinerary(g){
       }
     } catch(e){}
   }
-  // ── Push group van event into byDay (after eligibility/time computed above) ──
+
+  // ── Personal pickups (organiser-added, e.g. private cars) and group van event ──
+  if(firebaseReady && g.name){
+    try {
+      const allGuests = allGuestsCache || await fbGet('guests');
+      if(allGuests){
+        const match = Object.entries(allGuests).find(([,v]) => v.name?.toLowerCase().trim() === g.name.toLowerCase().trim());
+        if(match && match[1].pickups){
+          const pickups = Array.isArray(match[1].pickups) ? match[1].pickups : Object.values(match[1].pickups);
+          pickups.forEach(p => {
+            if(!byDay[p.day]) byDay[p.day] = [];
+            byDay[p.day].push({
+              day: p.day, time: p.time || 'TBC',
+              title: 'Your Pickup – ' + (p.vehicle || 'Car'),
+              note: (p.location ? 'Meet at: ' + p.location : '') + (p.note ? ' · ' + p.note : ''),
+              type:'transport', icon:'🚗', personal:true
+            });
+          });
+        }
+      }
+    } catch(e){}
+  }
+  // Push group van event to byDay (uses precomputed eligibility/time)
   if(groupVanGuestEligible && groupVanTime){
     if(!byDay[0]) byDay[0] = [];
     byDay[0].push({
@@ -1280,7 +1301,9 @@ async function buildItinerary(g){
       : `Land at ${arrAirport || 'airport'}${flightRef}`;
     const arrNote  = isTrain
       ? `Train arrives at ${fmt12(g.arrTime)}.${arrDriveMins ? ` ~${arrDriveMins} min onward to hotel.` : ''}`
-      : `Lands at ${fmt12(g.arrTime)}. Allow ~${CUSTOMS_MINS} min for luggage & customs, then ~${arrDriveMins} min drive to hotel.`;
+      : groupVanGuestEligible
+        ? `Lands at ${fmt12(g.arrTime)}. Allow ~${CUSTOMS_MINS} min for luggage & customs, then meet the group van at ${fmt12(groupVanTime)} (van leaves once all early arrivals are through).`
+        : `Lands at ${fmt12(g.arrTime)}. Allow ~${CUSTOMS_MINS} min for luggage & customs, then ~${arrDriveMins} min drive to hotel.`;
     if(!byDay[0]) byDay[0] = [];
     byDay[0].push({
       day: 0, time: g.arrTime, title: arrTitle, note: arrNote,
@@ -1297,8 +1320,9 @@ async function buildItinerary(g){
     if(!byDay[day]) byDay[day] = [];
     byDay[day].push({day, time: time||'TBC', title, note, type:'transport', icon:'🚗', personal:true, personalLabel:'Your Transfer'});
   };
-  // 1. Arrival in Bruges (Day 0) — transfer starts AFTER customs/luggage window
-  if(g.tripSection !== 'valbonne'){
+  // 1. Arrival in Bruges (Day 0) — transfer starts AFTER customs/luggage window.
+  //    Skipped if guest is on the group van: the van event already covers the airport→hotel leg.
+  if(g.tripSection !== 'valbonne' && !groupVanGuestEligible){
     xferAdd(0, arrTransferStart || g.arrTime || 'TBC', 'Transfer to hotel', tNote(g.arrTransport, g.transportOrg?.arr));
   }
   // 2. Departure from Bruges — for Bruges-only AND Both-trip guests
@@ -2235,7 +2259,21 @@ function _buildCalEvents(g) {
   const trainStation = g.arrTrainTo || g.arrTrainFrom || '';
   const arrAirport = g.arrTo || g.arrFrom || '';
   const arrTransfer = isTrain ? stationToHotelMins(trainStation) : airportDriveMins(arrAirport) + CUSTOMS;
-  const brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
+  let brugesArrival = g.arrTime ? addMins(g.arrTime, arrTransfer) : null;
+  // If guest is on the group van (early Jun 19 flight ≤ 09:00), check-in is van+90min not landing+drive.
+  // Mirrors logic in buildItinerary. Best-effort — uses guest's own arrTime as proxy for van time
+  // since we don't fetch all guests here. Adds 90min for drive to hotel.
+  if(g.arrMode !== 'train' && g.arrFlight && g.arrFlight !== '—' &&
+     (g.tripSection === 'bruges' || g.tripSection === 'both') &&
+     (!g.arrDate || g.arrDate === '2026-06-19') &&
+     g.arrTime && /^\d{1,2}:\d{2}$/.test(g.arrTime)){
+    const [h,m] = g.arrTime.split(':').map(Number);
+    if(h*60 + m <= 9*60){
+      // Approximate van time as guest's own arrival + 90 min (assume they're the latest)
+      // then add another 90 min for the drive. Worst case the reminder fires slightly early.
+      brugesArrival = addMins(g.arrTime, 180);
+    }
+  }
   const niceArrival = g.niceArrTime ? addMins(g.niceArrTime, NICE_DRIVE + CUSTOMS) : null;
   const fillT = s => String(s||'').replace(/{depFlight}/g, g.depFlight||'').replace(/{depTime}/g, fmt12(g.depTime)).replace(/{niceArrTime}/g, g.niceArrTime ? fmt12(g.niceArrTime) : '').replace(/{rentalCo}/g, g.rentalCo||'').replace(/{rentalPickup}/g, g.rentalPickup||'').replace(/{checkoutNote}/g, checkoutNote(g)).replace(/{brugesDepRef}/g, g.brugesDepRef||'').replace(/{brugesDepTime}/g, fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g, g.brugesDepTo||'');
   const filtered = LIVE_ACTIVITIES.filter(a => {
