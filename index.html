@@ -1762,6 +1762,7 @@ async function sendPushNotification(){
     headings: { en: title },
     contents: { en: body },
     web_url: 'https://vanessavanacker.github.io/vv-birthday-bash/',
+    priority: 10,   // high priority — bypasses Android Doze for time-sensitive pushes
   };
   let audLabel = '';
   if(aud === 'all'){
