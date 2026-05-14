@@ -244,7 +244,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
   <p>Jun 19 &ndash; 29 &middot; 2026 &middot; Your personalised itinerary</p>
   <div class="nav-tabs">
     <button class="tab-btn active" id="tab-form" onclick="showPage('form',this)">&#127881; My Itinerary</button>
-    <button class="tab-btn" id="tab-local" onclick="showPage('local',this)">&#128205; Local Info</button>
+    <button class="tab-btn" id="tab-local" onclick="showPage('local',this)">&#128205; Local Info / Notifications</button>
     <button class="tab-btn" id="tab-org" onclick="showPage('organiser',this)">&#128451; Organiser</button>
   </div>
 </header>
@@ -557,7 +557,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <div class="modal-actions">
       <button class="print-btn" onclick="window.print()">&#128424;&#65039; Print / Save PDF</button>
       <button class="print-btn" onclick="showCalendarOptions()">&#128197; Add to Calendar</button>
-      <button class="print-btn" onclick="closeModal();showPage('local',document.getElementById('tab-local'))">&#128205; Local Info</button>
+      <button class="print-btn" onclick="closeModal();showPage('local',document.getElementById('tab-local'))">&#128205; Local Info / Notifications</button>
       <button class="print-btn" onclick="triggerInstallFromModal()">&#128242; Install App</button>
       <button class="print-btn" onclick="closeModal()">&larr; Edit Details</button>
     </div>
@@ -707,6 +707,14 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
 
 <div class="page" id="page-local">
   <div class="section-label"><span class="dot"></span>Logistics, Weather &amp; Tips</div>
+
+  <!-- ─── NOTIFICATIONS STATUS ─── -->
+  <div class="local-card" id="notif-status-card" style="border-left:4px solid #d4a574">
+    <h3>&#128276; Notifications</h3>
+    <div id="notif-status-body" style="font-size:.95rem;line-height:1.6">
+      <p style="opacity:.7">Checking your subscription status&hellip;</p>
+    </div>
+  </div>
 
   <!-- ─── BRUGES ─── -->
   <div class="local-card">
@@ -1941,7 +1949,90 @@ function showAppropriatePushCard(){
   }
 }
 document.getElementById('name').addEventListener('blur', showAppropriatePushCard);
-function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'&&!window._weatherLoaded){window._weatherLoaded=true;loadWeather();}}
+
+// ── Notifications status card on Local Info — always visible, lets anyone re-trigger ──
+async function renderNotifStatus(){
+  const body = document.getElementById('notif-status-body');
+  if(!body) return;
+  const profile = loadGuestLocally();
+  const supported = ('Notification' in window);
+  const ios = isIOS();
+  const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+  // Build status from most-blocking → most-actionable
+  if(!supported){
+    body.innerHTML = `<p>⚠️ This browser doesn't support web push notifications.</p>
+      <p style="opacity:.7;font-size:.85rem">Try opening this app in Safari (iOS) or Chrome / Firefox / Edge (Android, desktop).</p>`;
+    return;
+  }
+  if(ios && !isPWA){
+    body.innerHTML = `<p>📱 <strong>Add to Home Screen to enable notifications.</strong></p>
+      <p style="opacity:.8;font-size:.88rem">On iPhone/iPad, web push only works for apps installed to the home screen.</p>
+      <ol style="font-size:.88rem;padding-left:1.2rem;margin-top:.5rem;line-height:1.7">
+        <li>Tap the Share button in Safari</li>
+        <li>Tap "Add to Home Screen"</li>
+        <li>Open the app from the new home-screen icon</li>
+        <li>Come back to this page → you'll see an "Enable" button</li>
+      </ol>`;
+    return;
+  }
+  if(Notification.permission === 'denied'){
+    body.innerHTML = `<p>🚫 <strong>Notifications are blocked.</strong></p>
+      <p style="opacity:.85;font-size:.88rem">You (or your browser) previously denied permission. To re-enable:</p>
+      <ul style="font-size:.85rem;padding-left:1.2rem;margin-top:.4rem;line-height:1.7">
+        <li><strong>Chrome / Android:</strong> ⋮ menu → Settings → Site settings → Notifications → find this site → Allow</li>
+        <li><strong>Safari (iOS PWA):</strong> Settings app → Notifications → this app → toggle on</li>
+        <li><strong>Desktop:</strong> Click the lock icon next to the URL → Notifications → Allow</li>
+      </ul>
+      <p style="opacity:.7;font-size:.82rem;margin-top:.6rem">After re-enabling, reload this page.</p>`;
+    return;
+  }
+
+  // Check OneSignal subscription state (authoritative)
+  let osSubbed = null;
+  if(_oneSignalInitDone){
+    try {
+      await new Promise((resolve) => {
+        const timeout = setTimeout(resolve, 1500);
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(function(OneSignal){
+          try { osSubbed = OneSignal.User?.PushSubscription?.optedIn === true; } catch(e){}
+          clearTimeout(timeout); resolve();
+        });
+      });
+    } catch(e){}
+  }
+  const flagSubbed = localStorage.getItem('vv_push_subbed') === '1';
+  const granted = Notification.permission === 'granted';
+  const looksSubbed = osSubbed === true || (granted && flagSubbed && osSubbed !== false);
+
+  if(looksSubbed){
+    body.innerHTML = `<p>✅ <strong>You're subscribed.</strong> You'll get group reminders even when the app is closed.</p>
+      ${!profile?.tripSection ? `<p style="opacity:.85;font-size:.85rem;margin-top:.4rem;color:#9a3412">⚠️ Fill out the form on the home tab so you receive section-specific pushes (Bruges/Valbonne), not just general ones.</p>` : ''}
+      <p style="opacity:.6;font-size:.78rem;margin-top:.6rem">To turn off: use your browser's site-permission settings.</p>`;
+    return;
+  }
+
+  // Not subscribed — show enable button + context about form
+  const formMissing = !profile?.tripSection;
+  body.innerHTML = `
+    <p>${granted ? '🔔 <strong>Notifications allowed, but not subscribed.</strong>' : "🔔 <strong>You're not subscribed yet.</strong>"}</p>
+    <p style="font-size:.88rem;opacity:.85;margin-top:.3rem">Get reminders for group pickups, dinners, and trip updates &mdash; works even when the app is closed.</p>
+    ${formMissing ? `<p style="font-size:.85rem;opacity:.85;margin-top:.5rem;padding:.5rem .7rem;background:#fef3c7;color:#92400e;border-radius:6px"><strong>Tip:</strong> Fill out your trip info first (home tab) so you get the right pushes for your phase.</p>` : ''}
+    <button class="btn btn-gold" onclick="enableNotifsFromCard()" id="notif-enable-btn" style="margin-top:.7rem;width:auto;padding:.6rem 1rem;font-size:.9rem">🔔 Enable notifications</button>
+    <p style="opacity:.55;font-size:.75rem;margin-top:.6rem">Permission: <code>${esc(Notification.permission)}</code> · OneSignal: <code>${osSubbed === null ? 'loading' : osSubbed ? 'subscribed' : 'not subscribed'}</code></p>
+  `;
+}
+
+async function enableNotifsFromCard(){
+  const btn = document.getElementById('notif-enable-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '🔄 Enabling…'; }
+  await requestPush();
+  // Re-render after attempt
+  setTimeout(renderNotifStatus, 800);
+}
+
+function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'){if(!window._weatherLoaded){window._weatherLoaded=true;loadWeather();}renderNotifStatus();}}
 
 // ── Weather widget for Local Info tab (Open-Meteo, no API key needed) ──
 async function loadWeather(){
