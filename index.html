@@ -2006,10 +2006,80 @@ async function renderNotifStatus(){
   const granted = Notification.permission === 'granted';
   const looksSubbed = osSubbed === true || (granted && flagSubbed && osSubbed !== false);
 
+  // Server-side verification: ask Worker /subscriptions endpoint whether OneSignal actually has
+  // a healthy subscription for this device's email/onesignal-id. Catches the "local thinks subscribed
+  // but OneSignal says no" stale state that Android+Chrome hits when FCM rotates tokens.
+  // Best-effort: failures don't downgrade what we already know.
+  let serverSubbed = null;       // true / false / null (couldn't check)
+  let serverSubId  = null;
+  if(looksSubbed && profile?.email){
+    try {
+      // Get our subscription ID from the SDK so we can match precisely
+      let myOsId = null;
+      if(_oneSignalInitDone){
+        await new Promise((resolve) => {
+          const to = setTimeout(resolve, 1000);
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          window.OneSignalDeferred.push(function(OneSignal){
+            try { myOsId = OneSignal.User?.PushSubscription?.id || OneSignal.User?.onesignalId || null; } catch(e){}
+            clearTimeout(to); resolve();
+          });
+        });
+      }
+      const r = await fetch(PUSH_PROXY_URL + 'subscriptions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Push-Secret':PUSH_PROXY_SECRET},
+        body:'{}'
+      });
+      if(r.ok){
+        const data = await r.json();
+        const players = data.players || data.subscriptions || [];
+        const myEmail = profile.email.toLowerCase().trim();
+        // Find the player record for this device. Prefer matching by SDK-reported ID;
+        // fall back to matching the most recent active sub for this email.
+        let mine = myOsId ? players.find(p => p.id === myOsId) : null;
+        if(!mine){
+          const candidates = players.filter(p => (p.tags?.email||'').toLowerCase().trim() === myEmail);
+          // Pick most-recently-active candidate
+          candidates.sort((a,b) => (b.last_active||0) - (a.last_active||0));
+          mine = candidates[0] || null;
+        }
+        if(mine){
+          serverSubId = mine.id;
+          // Active = not flagged invalid, and notification_types is positive (or unspecified)
+          const nt = mine.notification_types;
+          const active = mine.invalid_identifier !== true &&
+                         (nt === undefined || nt === null || nt > 0);
+          serverSubbed = active;
+        } else {
+          serverSubbed = false;  // no matching subscription on server
+        }
+      }
+    } catch(e){ /* network/CORS — leave serverSubbed null */ }
+  }
+
+  // STALE STATE: local thinks subscribed but server confirms not subscribed
+  if(looksSubbed && serverSubbed === false){
+    body.innerHTML = `
+      <p>⚠️ <strong>Your subscription is out of sync.</strong></p>
+      <p style="font-size:.88rem;opacity:.85;margin-top:.4rem">This phone thinks you're subscribed, but our server has no active subscription for it. Pushes won't arrive until you re-subscribe.</p>
+      <p style="font-size:.83rem;opacity:.75;margin-top:.3rem">This can happen after Chrome clears its push token, a browser update, or revoked permissions. It's a one-tap fix:</p>
+      <button class="btn btn-gold" onclick="repairSubscription()" id="notif-repair-btn" style="margin-top:.7rem;width:auto;padding:.65rem 1.1rem;font-size:.92rem">🔧 Fix my subscription</button>
+      <p style="opacity:.55;font-size:.75rem;margin-top:.6rem">Permission: <code>${esc(Notification.permission)}</code> · SDK: <code>subscribed</code> · Server: <code>not subscribed</code></p>
+    `;
+    return;
+  }
+
   if(looksSubbed){
+    const serverNote = serverSubbed === true
+      ? '<p style="opacity:.55;font-size:.75rem;margin-top:.6rem">Server: ✓ confirmed</p>'
+      : serverSubbed === null
+        ? '<p style="opacity:.55;font-size:.75rem;margin-top:.6rem">Server: couldn\'t verify (offline?)</p>'
+        : '';
     body.innerHTML = `<p>✅ <strong>You're subscribed.</strong> You'll get group reminders even when the app is closed.</p>
       ${!profile?.tripSection ? `<p style="opacity:.85;font-size:.85rem;margin-top:.4rem;color:#9a3412">⚠️ Fill out the form on the home tab so you receive section-specific pushes (Bruges/Valbonne), not just general ones.</p>` : ''}
-      <p style="opacity:.6;font-size:.78rem;margin-top:.6rem">To turn off: use your browser's site-permission settings.</p>`;
+      <p style="opacity:.6;font-size:.78rem;margin-top:.6rem">To turn off: use your browser's site-permission settings.</p>
+      ${serverNote}`;
     return;
   }
 
@@ -2030,6 +2100,40 @@ async function enableNotifsFromCard(){
   await requestPush();
   // Re-render after attempt
   setTimeout(renderNotifStatus, 800);
+}
+
+// Fixes the "local says subscribed but server says no" stale state.
+// Clears the local flag, asks OneSignal SDK to opt out fully (forces token refresh on next opt-in),
+// then re-runs the full subscribe flow.
+async function repairSubscription(){
+  const btn = document.getElementById('notif-repair-btn');
+  const body = document.getElementById('notif-status-body');
+  if(btn){ btn.disabled = true; btn.textContent = '🔄 Fixing…'; }
+  try {
+    // 1. Clear local flag so nothing else thinks we're already subscribed
+    localStorage.removeItem('vv_push_subbed');
+    // 2. Ask OneSignal SDK to opt out (clears its internal state)
+    if(_oneSignalInitDone){
+      await new Promise((resolve) => {
+        const to = setTimeout(resolve, 2000);
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async function(OneSignal){
+          try { await OneSignal.User.PushSubscription.optOut(); } catch(e){}
+          clearTimeout(to); resolve();
+        });
+      });
+    }
+    // Small pause to let the SDK settle
+    await new Promise(r => setTimeout(r, 400));
+    // 3. Re-subscribe via the same flow guests use
+    if(body) body.innerHTML = '<p style="opacity:.7">🔄 Re-subscribing…</p>';
+    await requestPush();
+    // 4. Re-render — should now show ✅ Subscribed (and Server: confirmed once it propagates)
+    setTimeout(renderNotifStatus, 1500);
+  } catch(e){
+    if(body) body.innerHTML = `<p>❌ Repair failed: ${esc(e.message || 'unknown error')}</p>
+      <p style="font-size:.85rem;opacity:.8;margin-top:.4rem">Try manually: Chrome → Settings → Site Settings → vanessavanacker.github.io → Clear &amp; reset, then reload the app.</p>`;
+  }
 }
 
 function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'){if(!window._weatherLoaded){window._weatherLoaded=true;loadWeather();}renderNotifStatus();}}
