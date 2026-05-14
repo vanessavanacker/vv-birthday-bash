@@ -510,12 +510,26 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <div class="org-tab" id="org-tab-push">
       <div class="push-org-card">
         <h4>&#128227; Send a Push Notification</h4>
-        <p style="font-size:.82rem;opacity:.6;margin-bottom:1rem">Send a reminder to all guests who have enabled notifications.</p>
+        <p style="font-size:.82rem;opacity:.6;margin-bottom:1rem">Send a reminder to all or a subset of guests who have enabled notifications.</p>
         <div class="form-grid" style="margin-bottom:.9rem">
           <div class="field"><label>Title</label><input type="text" id="push-title" placeholder="e.g. Reminder"></div>
           <div class="field"><label>Message</label><input type="text" id="push-body" placeholder="e.g. Dinner at Zuma at 7pm tonight!"></div>
         </div>
-        <button class="btn btn-gold" onclick="sendPushNotification()" style="width:auto">&#128227; Send to All Guests</button>
+        <div class="field" style="margin-bottom:.7rem">
+          <label>Audience</label>
+          <select id="push-audience" onchange="togglePushIndividualPicker()" style="width:100%;padding:.55rem;border:1px solid rgba(0,0,0,.15);border-radius:8px;background:#fdfcf9;font-family:inherit;font-size:.92rem">
+            <option value="all">Everyone (all subscribers)</option>
+            <option value="bruges">Bruges phase guests</option>
+            <option value="valbonne">Valbonne phase guests</option>
+            <option value="both">Both-trip travelers (going to Bruges + Valbonne)</option>
+            <option value="individuals">Specific individuals…</option>
+          </select>
+        </div>
+        <div id="push-individuals-picker" style="display:none;margin-bottom:.7rem;padding:.7rem;background:#fdfcf9;border:1px solid rgba(0,0,0,.1);border-radius:8px">
+          <div style="font-size:.78rem;opacity:.7;margin-bottom:.5rem">Tap names to select &middot; <a onclick="selectAllPushIndividuals(true)" style="cursor:pointer;text-decoration:underline">all</a> &middot; <a onclick="selectAllPushIndividuals(false)" style="cursor:pointer;text-decoration:underline">none</a></div>
+          <div id="push-individuals-list" style="display:flex;flex-wrap:wrap;gap:.4rem;max-height:200px;overflow-y:auto"></div>
+        </div>
+        <button class="btn btn-gold" onclick="sendPushNotification()" style="width:auto" id="push-send-btn">&#128227; Send</button>
         <div id="push-send-result" style="margin-top:.8rem;font-size:.82rem"></div>
       </div>
       <div class="push-org-card">
@@ -1656,22 +1670,139 @@ function syncOneSignalTags(guest){
     try{ if(guest.tripSection) await OneSignal.User.addTag('section', guest.tripSection); }catch(e){}
   });
 }
+// Track the individual-guests selection state for push targeting
+const _pushIndividualsSelected = new Set();
+
+async function togglePushIndividualPicker(){
+  const aud = document.getElementById('push-audience').value;
+  const picker = document.getElementById('push-individuals-picker');
+  if(aud !== 'individuals'){ picker.style.display = 'none'; return; }
+  picker.style.display = 'block';
+  // Load fresh list of guests with their OneSignal subscriptions
+  const listEl = document.getElementById('push-individuals-list');
+  listEl.innerHTML = '<div style="opacity:.6;font-size:.82rem">Loading…</div>';
+  try {
+    const [guestsData, subRes] = await Promise.all([
+      fbGet('guests'),
+      fetch(PUSH_PROXY_URL + 'subscriptions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Push-Secret':PUSH_PROXY_SECRET},
+        body:'{}'
+      })
+    ]);
+    if(!subRes.ok){ listEl.innerHTML = `<div style="color:#dc2626;font-size:.82rem">Couldn't load subscriptions (${subRes.status})</div>`; return; }
+    const subData = await subRes.json();
+    const players = subData.players || subData.subscriptions || [];
+    const guests = guestsData ? Object.entries(guestsData).map(([k,v]) => ({key:k,...v})) : [];
+    // Match subscriptions by email tag → guest
+    const subsByEmail = {};
+    for(const p of players){
+      const email = (p.tags?.email||'').toLowerCase().trim();
+      if(!email) continue;
+      const nt = p.notification_types;
+      const active = p.invalid_identifier !== true && (nt === undefined || nt === null || nt > 0);
+      if(!active) continue;
+      if(!subsByEmail[email]) subsByEmail[email] = [];
+      subsByEmail[email].push(p.id);
+    }
+    // Only show guests with at least one active subscription
+    const targetable = guests
+      .map(g => ({ ...g, subIds: subsByEmail[(g.email||'').toLowerCase().trim()] || [] }))
+      .filter(g => g.subIds.length)
+      .sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    if(!targetable.length){ listEl.innerHTML = '<div style="opacity:.6;font-size:.82rem">No subscribed guests found.</div>'; return; }
+    listEl.innerHTML = targetable.map(g => {
+      const ids = g.subIds.join(',');
+      const phaseEmoji = g.tripSection === 'bruges' ? '🇧🇪' : g.tripSection === 'valbonne' ? '🇫🇷' : g.tripSection === 'both' ? '🇧🇪🇫🇷' : '';
+      const selected = _pushIndividualsSelected.has(ids);
+      return `<button type="button" data-ids="${esc(ids)}" onclick="togglePushIndividual(this)"
+        style="padding:.4rem .7rem;border-radius:18px;border:1.5px solid ${selected?'#d4a574':'rgba(0,0,0,.15)'};background:${selected?'#fef3c7':'#fff'};font-size:.82rem;cursor:pointer;font-family:inherit">
+        ${phaseEmoji} ${esc(g.name||'Unknown')}</button>`;
+    }).join('');
+  } catch(e){
+    listEl.innerHTML = `<div style="color:#dc2626;font-size:.82rem">${esc(e.message)}</div>`;
+  }
+}
+
+function togglePushIndividual(btn){
+  const ids = btn.dataset.ids;
+  if(_pushIndividualsSelected.has(ids)){
+    _pushIndividualsSelected.delete(ids);
+    btn.style.borderColor = 'rgba(0,0,0,.15)';
+    btn.style.background = '#fff';
+  } else {
+    _pushIndividualsSelected.add(ids);
+    btn.style.borderColor = '#d4a574';
+    btn.style.background = '#fef3c7';
+  }
+}
+
+function selectAllPushIndividuals(selectAll){
+  document.querySelectorAll('#push-individuals-list button').forEach(btn => {
+    const ids = btn.dataset.ids;
+    if(selectAll){
+      if(!_pushIndividualsSelected.has(ids)){ _pushIndividualsSelected.add(ids); btn.style.borderColor = '#d4a574'; btn.style.background = '#fef3c7'; }
+    } else {
+      if(_pushIndividualsSelected.has(ids)){ _pushIndividualsSelected.delete(ids); btn.style.borderColor = 'rgba(0,0,0,.15)'; btn.style.background = '#fff'; }
+    }
+  });
+}
+
 async function sendPushNotification(){
   const title=document.getElementById('push-title').value.trim();
   const body =document.getElementById('push-body' ).value.trim();
+  const aud  =document.getElementById('push-audience').value;
   const res  =document.getElementById('push-send-result');
   if(!title||!body){res.textContent='⚠️ Enter a title and message.';return;}
   if(!ONESIGNAL_APP_ID){res.innerHTML='⚠️ OneSignal App ID not configured yet.';return;}
-  res.textContent='Sending…';
+
+  // Build audience-specific OneSignal API params
+  const payload = {
+    app_id: ONESIGNAL_APP_ID,
+    headings: { en: title },
+    contents: { en: body },
+    url: 'https://vanessavanacker.github.io/vv-birthday-bash/',
+    web_url: 'https://vanessavanacker.github.io/vv-birthday-bash/',
+  };
+  let audLabel = '';
+  if(aud === 'all'){
+    // Same filter the cron uses — only real guests, no orphans
+    payload.filters = [
+      { field:'tag', key:'section', relation:'=', value:'bruges' },
+      { operator:'OR' },
+      { field:'tag', key:'section', relation:'=', value:'valbonne' },
+      { operator:'OR' },
+      { field:'tag', key:'section', relation:'=', value:'both' },
+    ];
+    audLabel = 'all subscribers';
+  } else if(aud === 'bruges'){
+    payload.included_segments = ['Bruges phase'];
+    audLabel = 'Bruges phase';
+  } else if(aud === 'valbonne'){
+    payload.included_segments = ['Valbonne phase'];
+    audLabel = 'Valbonne phase';
+  } else if(aud === 'both'){
+    payload.filters = [{ field:'tag', key:'section', relation:'=', value:'both' }];
+    audLabel = 'both-trip travelers';
+  } else if(aud === 'individuals'){
+    // Flatten all selected subscription IDs
+    const allIds = [];
+    for(const grp of _pushIndividualsSelected) allIds.push(...grp.split(','));
+    if(!allIds.length){ res.textContent = '⚠️ Select at least one person.'; return; }
+    payload.include_subscription_ids = allIds;
+    audLabel = `${_pushIndividualsSelected.size} guest${_pushIndividualsSelected.size===1?'':'s'} (${allIds.length} device${allIds.length===1?'':'s'})`;
+  }
+
+  res.textContent = `Sending to ${audLabel}…`;
   try{
     const r=await fetch(PUSH_PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json','X-Push-Secret':PUSH_PROXY_SECRET},
-      body:JSON.stringify({app_id:ONESIGNAL_APP_ID,included_segments:['All'],headings:{en:title},contents:{en:body},url:'https://vanessavanacker.github.io/vv-birthday-bash/'})
+      body:JSON.stringify(payload)
     });
     const d=await r.json();
     if(d.id){
-      res.textContent=`✅ Sent to ~${d.recipients||'all'} guests!`;
+      res.textContent=`✅ Sent to ${audLabel} (~${d.recipients||'?'} recipients).`;
     }else{
       res.textContent='❌ '+JSON.stringify(d.errors||d.error||d);
     }
