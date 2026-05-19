@@ -220,6 +220,15 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
 </style>
 </head>
 <body>
+<!-- ─── "Who's here?" check-in banner (auto-shown on arrival day for relevant phase) ─── -->
+<div id="checkin-banner" style="display:none;background:linear-gradient(135deg,#e0f2e9,#c4e5d4);color:#0f3d24;padding:.8rem 1rem;margin:0;border-bottom:2px solid #6db58a;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+  <div style="display:flex;align-items:center;gap:.8rem;max-width:760px;margin:0 auto;flex-wrap:wrap">
+    <span style="font-size:1.4rem">📍</span>
+    <div id="checkin-banner-text" style="flex:1;min-width:200px;font-size:.92rem;line-height:1.4"></div>
+    <button id="checkin-banner-btn" onclick="checkInGuest()" style="padding:.5rem 1rem;background:#0f3d24;color:#fff;border:none;border-radius:6px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">I'm here</button>
+  </div>
+</div>
+
 <!-- ─── Recent notification banner (auto-shown when a cron push fired in the last 24h) ─── -->
 <div id="recent-push-banner" style="display:none;background:linear-gradient(135deg,#d4a574,#c9985d);color:#1a1208;padding:.8rem 1rem;margin:0;cursor:pointer;border-bottom:2px solid #b88346;box-shadow:0 2px 8px rgba(0,0,0,.1);position:relative">
   <div style="display:flex;align-items:flex-start;gap:.7rem;max-width:760px;margin:0 auto">
@@ -488,6 +497,14 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
         </div>
       </div>
       <div class="stat-strip" id="stat-strip"></div>
+      <div class="form-card" style="margin-bottom:1rem;padding:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem">
+          <h4 style="margin:0">&#128205; Who&rsquo;s Here</h4>
+          <button class="btn btn-secondary btn-sm" onclick="loadCheckInDashboard()">&#x21BB; Refresh</button>
+        </div>
+        <p style="font-size:.78rem;opacity:.6;margin-bottom:.7rem">Live arrival status. Guests self-check-in via the banner at the top of the app on their arrival day.</p>
+        <div id="checkin-dashboard"><div style="opacity:.6;font-size:.85rem">Tap Refresh to load.</div></div>
+      </div>
       <div class="form-card" style="padding:0;overflow:hidden"><div id="guest-table-wrap"></div></div>
     </div>
     <div class="org-tab" id="org-tab-activities">
@@ -752,6 +769,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       <p>&#128205; <a href="https://maps.google.com/?q=Hotel+De+Tuilerieen+Bruges" target="_blank" rel="noopener">Dijver 7, 8000 Brugge</a></p>
       <p>&#9742;&#65039; +32 50 34 36 91</p>
       <p>&#127760; Wifi: <em>(get from front desk)</em></p>
+      <p>&#129360; Breakfast: full hot &amp; cold buffet, <strong>08:00 &ndash; 10:30</strong> in the hotel dining room</p>
       <p>&#127973; Hospital: <a href="https://maps.google.com/?q=AZ+Sint-Jan+Brugge" target="_blank" rel="noopener">AZ Sint-Jan, Ruddershove 10</a> (~10 min)</p>
       <p>&#128680; EU Emergency: <strong>112</strong></p>
     </div>
@@ -774,6 +792,15 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       <li><strong>Brouwerij De Halve Maan</strong> &mdash; last working brewery in the city centre. Tour + Brugse Zot tasting.
         <a href="https://maps.google.com/?q=De+Halve+Maan+Brewery+Bruges" target="_blank" rel="noopener">Map &rarr;</a></li>
     </ol>
+
+    <h4>&#128181; Money &amp; Tipping</h4>
+    <div class="logistics">
+      <p>&euro; Currency: <strong>Euro</strong>. Cards widely accepted; some smaller places are cash-only.</p>
+      <p>&#127869;&#65039; Restaurants: service is usually included. <strong>Rounding up</strong> is appreciated; for great service at sit-down dinners, <strong>5&ndash;10%</strong> is generous.</p>
+      <p>&#127866; Bars &amp; cafés: not expected &mdash; leave small change or round up.</p>
+      <p>&#128652; Taxis: round up to the nearest euro.</p>
+      <p>&#127976; Hotel porters: &euro;1&ndash;2 per bag.</p>
+    </div>
   </div>
 
   <!-- ─── VALBONNE / CÔTE D&rsquo;AZUR ─── -->
@@ -786,6 +813,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       <p>&#128205; <a href="https://maps.google.com/?q=La+Remondi%C3%A8re+1508+Route+de+Nice+06560+Valbonne" target="_blank" rel="noopener">1508 Route de Nice, 06560 Valbonne, France</a></p>
       <p>&#9742;&#65039; Host: <em>(name + phone &mdash; edit me)</em></p>
       <p>&#127760; Wifi: <em>(network name)</em> / <em>(password)</em></p>
+      <p>&#129360; Breakfast: caterer drops off fresh pastries, fruit, juice &amp; coffee at the house at <strong>09:00</strong> daily</p>
       <p>&#127973; Hospital: <a href="https://maps.google.com/?q=Centre+Hospitalier+d%27Antibes" target="_blank" rel="noopener">Centre Hospitalier d&rsquo;Antibes</a></p>
       <p>&#128680; EU Emergency: <strong>112</strong></p>
       <p>&#128661; Local taxi: <em>(number &mdash; edit me)</em></p>
@@ -809,6 +837,15 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       <li><strong>Antibes &amp; Cap d&rsquo;Antibes</strong> &mdash; Picasso Museum, walled old town, plus the cliff walk along the cap.
         <a href="https://maps.google.com/?q=Antibes+old+town" target="_blank" rel="noopener">Map &rarr;</a></li>
     </ol>
+
+    <h4>&#128181; Money &amp; Tipping</h4>
+    <div class="logistics">
+      <p>&euro; Currency: <strong>Euro</strong>. Cards widely accepted; carry &euro;20&ndash;50 cash for markets, taxis &amp; small cafés.</p>
+      <p>&#127869;&#65039; Restaurants: <em>&laquo;service compris&raquo;</em> &mdash; service is included by law. Tipping isn't expected, but <strong>&euro;1&ndash;2 at cafés</strong> or <strong>5&ndash;10% at nice restaurants</strong> for great service is a kind gesture.</p>
+      <p>&#127866; Bars: not expected &mdash; leave coins if you wish.</p>
+      <p>&#128652; Taxis: round up or up to 5&ndash;10% for good service.</p>
+      <p>&#127969; Hotel porters / housekeeping: &euro;1&ndash;2 per bag, &euro;1&ndash;2 per day for housekeeping.</p>
+    </div>
   </div>
 </div>
 <script>
@@ -843,6 +880,8 @@ const PUSH_PROXY_SECRET = 'vvbash-K9pR2mLnT7vQ4xZ8wB6yE3hF';
 const ORG_PASSWORD='vvbash2026';
 const DEFAULT_ACTIVITIES=[
   {day:0,time:'CHECK_ARR',title:'Arrive & check in – De Tuilerieen',note:'Dijver 7, 8000 Bruges. Welcome!',address:'Dijver 7, 8000 Bruges, Belgium',type:'hotel',icon:'🏨',tags:[]},
+  {day:1,time:'08:00',title:'Breakfast – Hotel De Tuilerieen',note:'Full hot & cold buffet, served 08:00 – 10:30 in the hotel dining room.',type:'food',icon:'🥐',tags:['bruges-only']},
+  {day:2,time:'08:00',title:'Breakfast – Hotel De Tuilerieen',note:'Full hot & cold buffet, served 08:00 – 10:30 in the hotel dining room.',type:'food',icon:'🥐',tags:['bruges-only']},
   {day:0,time:'14:30',title:'Group Pickup',note:'Meet in the hotel lobby at 14:30.',type:'transport',icon:'🚌',tags:[]},
   {day:0,time:'15:30',title:'Shoe Factory Visit',note:'Behind-the-scenes tour. Comfortable shoes advised!',type:'activity',icon:'👟',tags:[]},
   {day:0,time:'16:30',title:'Apéro',note:'Drinks & nibbles after the tour. Cheers! 🍻',type:'food',icon:'🥂',tags:[]},
@@ -864,16 +903,21 @@ const DEFAULT_ACTIVITIES=[
   {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'🚐',tags:['valbonne','no-rental']},
   {day:3,time:'EVENING',title:'Settle in – House in Valbonne',note:"Get settled and relax. ☀️ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'🏡',tags:['valbonne']},
   {day:3,time:'CHECK_DEP',title:'Depart – {brugesDepRef}',note:'Safe travels home! Departing at {brugesDepTime} to {brugesDepTo}.',type:'transport',icon:'🧳',tags:['bruges-only']},
+  {day:4,time:'09:00',title:'Breakfast at the house',note:'Caterer drops off fresh pastries, fruit, juice & coffee at 09:00.',type:'food',icon:'🥐',tags:['valbonne']},
   {day:4,time:'FREE',title:'Free Day – Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'🌴',tags:['valbonne']},
+  {day:5,time:'09:00',title:'Breakfast at the house',note:'Caterer drops off fresh pastries, fruit, juice & coffee at 09:00.',type:'food',icon:'🥐',tags:['valbonne']},
   {day:5,time:'FREE',title:'Free Day',note:'Beach, pool, or explore at your own pace.',type:'free',icon:'🏖️',tags:['valbonne']},
   {day:5,time:'18:30',title:'Drive to Cannes',note:'~25 min. Parking near Palais des Festivals.',type:'transport',icon:'🚗',tags:['rental']},
   {day:5,time:'18:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'🚕',tags:['valbonne','no-rental']},
   {day:5,time:'19:00',title:'Dinner at Zuma, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Modern Japanese. Smart dress.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'🍣',tags:['valbonne']},
+  {day:6,time:'09:00',title:'Breakfast at the house',note:'Caterer drops off fresh pastries, fruit, juice & coffee at 09:00.',type:'food',icon:'🥐',tags:['valbonne']},
   {day:6,time:'FREE',title:'Free Day',note:'Antibes, Nice, Monaco — or stay by the pool.',type:'free',icon:'🌞',tags:['valbonne']},
+  {day:7,time:'09:00',title:'Breakfast at the house',note:'Caterer drops off fresh pastries, fruit, juice & coffee at 09:00.',type:'food',icon:'🥐',tags:['valbonne']},
   {day:7,time:'FREE',title:'Free Day',note:"Last full free day. Soak it all in.",type:'free',icon:'🏊',tags:['valbonne']},
   {day:7,time:'20:30',title:'Drive to Cannes',note:'~25 min. Dinner at 21:00.',type:'transport',icon:'🚗',tags:['rental']},
   {day:7,time:'20:30',title:'Transfer to Cannes',note:'~25 min. Join the group taxi.',type:'transport',icon:'🚕',tags:['valbonne','no-rental']},
   {day:7,time:'21:00',title:'Dinner at Medusa, Cannes',note:'Palm Beach, Place Franklin Roosevelt, 06400 Cannes. Cabaret & dining.',address:'Place Franklin Roosevelt, 06400 Cannes, France',type:'food',icon:'🦑',tags:['valbonne']},
+  {day:8,time:'09:00',title:'Breakfast at the house',note:'Caterer drops off fresh pastries, fruit, juice & coffee at 09:00.',type:'food',icon:'🥐',tags:['valbonne']},
   {day:8,time:'19:00',title:'Private Chef Dinner at the House',note:'A private chef cooks for the whole group tonight. 🎉',type:'food',icon:'👨‍🍳',tags:['valbonne']},
 ];
 const DAY_LABELS=['Day 1 – Arrival · Bruges','Day 2 – Bruges','Day 3 – Ypres',"Day 4 – Travel to Côte d'Azur",'Day 5 – Valbonne','Day 6 – Valbonne','Day 7 – Valbonne','Day 8 – Valbonne','Day 9 – Last Night · Valbonne','Day 10 – Departures'];
@@ -915,6 +959,7 @@ function initFirebase(){
   try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();firebaseReady=true;showFirebaseBar('connected');
     autoSyncFromFirebase();
     loadRecentPushBanner();
+    loadCheckInBanner();
     db.ref('activities').on('value',snap=>{const data=snap.val();if(data){LIVE_ACTIVITIES=Array.isArray(data)?data:Object.values(data);if(lastGeneratedGuest)document.getElementById('update-banner').style.display='block';if(document.getElementById('org-tab-activities').classList.contains('active'))renderActivityEditor();
         scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}});
     // Cross-device RapidAPI key sync — organiser saves once, all guest devices get it.
@@ -1203,7 +1248,7 @@ async function submitAndGenerate(){
   scheduleActivityReminders(g);
   // Now that they've submitted, the push card becomes eligible to appear.
   // 1.5 s delay so the success message lands first.
-  setTimeout(showAppropriatePushCard, 1500);
+  setTimeout(() => { showAppropriatePushCard(); loadCheckInBanner(); }, 1500);
 }
 async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElementById('modal-itinerary').innerHTML=await buildItinerary(lastGeneratedGuest);document.getElementById('update-banner').style.display='none';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
 </script>
@@ -1582,6 +1627,8 @@ async function renderGuestDashboard(){
     return`<tr><td><strong>${esc(g.name||'—')}</strong>${pickupBadge}${g.email?`<div class="sub-text">${esc(g.email)}</div>`:''}<div class="pickup-list">${pickupList}</div><button class="btn btn-gold btn-sm" style="margin-top:.4rem" onclick="openPickupModal('${esc(g.key)}','${esc(g.name)}')">+ Assign Pickup</button> <button class="btn btn-secondary btn-sm" style="margin-top:.3rem" onclick="openTransportModal('${esc(g.key)}','${esc(g.name)}',${transportJSON})">🚗 Transport</button></td><td><div>${arrDisplay} ${g.arrDate?fmtDate(g.arrDate):''}</div><div class="sub-text">${g.arrTime?fmt12(g.arrTime):''} ${g.arrFrom?'from '+esc(g.arrFrom):''}</div></td><td>${g.goingValbonne?`<div>✈️ ${esc(g.depFlight||'—')} ${g.depDate?fmtDate(g.depDate):''}</div><div class="sub-text">${g.depTime?fmt12(g.depTime):''} → NCE ${g.niceArrTime?fmt12(g.niceArrTime):''}</div>`:'<span class="tag-pill tag-bruges" style="font-size:.68rem">Bruges only</span>'}</td><td>${g.goingValbonne?`<div>${esc(g.retFlight||'—')} ${g.retDate?fmtDate(g.retDate):''}</div><div class="sub-text">${g.retTime?fmt12(g.retTime):''} ${g.retTo?'→ '+esc(g.retTo):''}</div>`:'—'}</td><td style="text-align:center">${g.goingValbonne?'<span class="tag-pill tag-valbonne">✓</span>':'—'}</td><td style="text-align:center">${g.hasRental?`<span class="tag-pill tag-rental">🚗 ${esc(g.rentalCo||'')}</span>`:'—'}</td><td><div class="sub-text">${g.notes?esc(g.notes.slice(0,50))+(g.notes.length>50?'…':''):'—'}</div><div class="sub-text">${g.submittedAt?new Date(g.submittedAt).toLocaleDateString('en-GB'):''}</div></td><td><button class="btn btn-secondary btn-sm" title="View itinerary" onclick="viewGuestItinerary('${esc(g.key||'')}')">&#128065; View</button> <button class="btn btn-danger btn-sm" onclick="deleteGuest('${esc(g.key||'')}')">&#10005;</button></td></tr>`;
   }).join('');
   wrap.innerHTML=`<div style="overflow-x:auto"><table class="guest-table"><thead><tr><th>Name & Pickups</th><th>Arrival</th><th>→ Nice</th><th>Return</th><th>Valbonne</th><th>Rental</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  // Auto-refresh the Who's Here card alongside the guest table
+  loadCheckInDashboard();
 }
 async function editPickupInline(guestKey,guestName,idx){const pickups=await getPickups(guestKey);openPickupModal(guestKey,guestName,idx,pickups[idx]);}
 async function clearAllGuests(){if(!confirm('Delete ALL guest entries?'))return;if(firebaseReady){try{await db.ref('guests').remove();}catch(e){}}else localStorage.removeItem('vv_guests');renderGuestDashboard();}
@@ -2419,6 +2466,147 @@ async function loadRecentPushBanner(){
   }
 }
 
+// ── "Who's here?" check-in banner (auto-shows on arrival day) ──
+// Date windows: Bruges Jun 19–22, Valbonne Jun 22–29. Jun 22 prefers Valbonne (the transition day).
+// Shows for guests whose tripSection matches, defaults the location to the current phase.
+// Once checked in for the active phase, banner becomes a "✅ X of Y arrived" status card.
+const _CHECKIN_DATES = {
+  bruges:   { start: '2026-06-19', end: '2026-06-22' },
+  valbonne: { start: '2026-06-22', end: '2026-06-29' },
+};
+
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function _checkInActiveLocation(section){
+  // Returns 'bruges' | 'valbonne' | null based on today's date and guest's tripSection
+  const today = todayISO();
+  const inBrugesWin   = today >= _CHECKIN_DATES.bruges.start   && today <= _CHECKIN_DATES.bruges.end;
+  const inValbonneWin = today >= _CHECKIN_DATES.valbonne.start && today <= _CHECKIN_DATES.valbonne.end;
+  if(section === 'bruges')   return inBrugesWin   ? 'bruges'   : null;
+  if(section === 'valbonne') return inValbonneWin ? 'valbonne' : null;
+  if(section === 'both'){
+    // On Jun 22 (transition day), prefer Valbonne since that's where they're heading
+    if(today >= _CHECKIN_DATES.valbonne.start) return inValbonneWin ? 'valbonne' : null;
+    return inBrugesWin ? 'bruges' : null;
+  }
+  return null;
+}
+
+async function loadCheckInBanner(){
+  if(!firebaseReady) return;
+  const banner = document.getElementById('checkin-banner');
+  if(!banner) return;
+  const profile = loadGuestLocally();
+  if(!profile || !profile.tripSection || !profile.key){ banner.style.display = 'none'; return; }
+  const loc = _checkInActiveLocation(profile.tripSection);
+  if(!loc){ banner.style.display = 'none'; return; }
+  banner.dataset.location = loc;
+  try {
+    const allCheckins = await fbGet('checkins') || {};
+    const myCheckin = allCheckins[profile.key] || null;
+    const alreadyCheckedIn = myCheckin && myCheckin[loc];
+    // Count guests who match this phase and have checked in
+    const allGuests = await fbGet('guests') || {};
+    const eligibleKeys = Object.keys(allGuests).filter(k => {
+      const s = allGuests[k].tripSection;
+      if(loc === 'bruges')   return s === 'bruges' || s === 'both';
+      if(loc === 'valbonne') return s === 'valbonne' || s === 'both';
+      return false;
+    });
+    const arrivedKeys = eligibleKeys.filter(k => allCheckins[k] && allCheckins[k][loc]);
+    const arrived = arrivedKeys.length;
+    const total = eligibleKeys.length;
+    const locLabel = loc === 'bruges' ? '🇧🇪 Bruges' : '🌴 Valbonne';
+    const text = document.getElementById('checkin-banner-text');
+    const btn  = document.getElementById('checkin-banner-btn');
+    if(alreadyCheckedIn){
+      text.innerHTML = `<strong>✅ You're checked in at ${locLabel}.</strong> <span style="opacity:.85">${arrived} of ${total} ${arrived === 1 ? 'has' : 'have'} arrived so far.</span>`;
+      btn.style.display = 'none';
+    } else {
+      text.innerHTML = `<strong>Are you in ${locLabel}?</strong> <span style="opacity:.85">${arrived} of ${total} already checked in.</span>`;
+      btn.style.display = 'inline-block';
+      btn.disabled = false;
+      btn.textContent = "I'm here";
+    }
+    banner.style.display = 'block';
+  } catch(e){
+    console.warn('[checkin] load failed:', e);
+    banner.style.display = 'none';
+  }
+}
+
+async function checkInGuest(){
+  const banner = document.getElementById('checkin-banner');
+  const btn = document.getElementById('checkin-banner-btn');
+  const loc = banner.dataset.location;
+  const profile = loadGuestLocally();
+  if(!profile || !profile.key || !loc) return;
+  btn.disabled = true; btn.textContent = '🔄 Saving…';
+  try {
+    // Merge: keep any existing checkin for the OTHER location
+    const existing = await fbGet('checkins/' + profile.key) || {};
+    const updated = {
+      ...existing,
+      name: profile.name || existing.name || 'Unknown',
+      [loc]: Date.now(),
+    };
+    const ok = await fbSave('checkins/' + profile.key, updated);
+    if(!ok) throw new Error('Save failed');
+    // Re-render banner to show the new count + checked-in state
+    setTimeout(loadCheckInBanner, 400);
+  } catch(e){
+    btn.disabled = false; btn.textContent = "I'm here";
+    alert('Could not save check-in: ' + (e.message || 'unknown'));
+  }
+}
+
+// Organiser view of who has and hasn't checked in for each phase
+async function loadCheckInDashboard(){
+  const el = document.getElementById('checkin-dashboard');
+  if(!el) return;
+  if(!firebaseReady){ el.innerHTML = '<div style="opacity:.6">Firebase not ready.</div>'; return; }
+  el.innerHTML = '<div style="opacity:.6;font-size:.85rem">Loading…</div>';
+  try {
+    const [checkins, guests] = await Promise.all([fbGet('checkins'), fbGet('guests')]);
+    const allCheckins = checkins || {};
+    const allGuests = guests || {};
+    const render = (loc, locLabel, emoji) => {
+      const eligible = Object.entries(allGuests).filter(([,g]) => {
+        const s = g.tripSection;
+        if(loc === 'bruges')   return s === 'bruges' || s === 'both';
+        if(loc === 'valbonne') return s === 'valbonne' || s === 'both';
+        return false;
+      });
+      if(!eligible.length) return `<div style="opacity:.6;font-size:.85rem;padding:.6rem 0">No guests in ${locLabel}.</div>`;
+      const arrived = [];
+      const pending = [];
+      for(const [k, g] of eligible){
+        const ts = allCheckins[k] && allCheckins[k][loc];
+        if(ts){
+          const d = new Date(ts);
+          const time = d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+          const date = d.toLocaleDateString([], {month:'short', day:'numeric'});
+          arrived.push({ name: g.name || 'Unknown', time, date, ts });
+        } else {
+          pending.push(g.name || 'Unknown');
+        }
+      }
+      arrived.sort((a,b) => a.ts - b.ts);
+      return `
+        <div style="font-weight:600;font-size:.88rem;margin-top:.7rem;margin-bottom:.4rem">${emoji} ${locLabel} <span style="opacity:.6;font-weight:400;font-size:.82rem">(${arrived.length} of ${eligible.length})</span></div>
+        ${arrived.length ? `<div style="margin-bottom:.4rem">${arrived.map(a => `<div style="font-size:.82rem;padding:.2rem 0">✅ <strong>${esc(a.name)}</strong> <span style="opacity:.6;font-size:.78rem">— ${esc(a.date)}, ${esc(a.time)}</span></div>`).join('')}</div>` : ''}
+        ${pending.length ? `<div style="margin-bottom:.4rem">${pending.map(n => `<div style="font-size:.82rem;padding:.2rem 0;opacity:.75">⏳ ${esc(n)} <span style="opacity:.6;font-size:.78rem">— not checked in</span></div>`).join('')}</div>` : ''}
+      `;
+    };
+    el.innerHTML = render('bruges', 'Bruges', '🇧🇪') + render('valbonne', 'Valbonne', '🌴');
+  } catch(e){
+    el.innerHTML = `<div style="color:#dc2626;font-size:.85rem">${esc(e.message || 'Failed to load')}</div>`;
+  }
+}
+
 function dismissRecentPushBanner(ev){
   if(ev) ev.stopPropagation();
   const banner = document.getElementById('recent-push-banner');
@@ -2558,7 +2746,7 @@ async function checkOnLoad(){
     document.getElementById('rb-name').textContent=g.name;
     document.getElementById('returning-banner').style.display='flex';
     scheduleActivityReminders(g);
-    setTimeout(showAppropriatePushCard, 1500);
+    setTimeout(() => { showAppropriatePushCard(); loadCheckInBanner(); }, 1500);
   }else{document.getElementById('returning-lookup-card').style.display='block';}
 }
 async function refreshGuestFlightData(g){if(!RAPIDAPI_KEY)return g;if(g.arrMode==='train'||!g.arrFlight||g.arrFlight==='—')return g;try{const num=g.arrFlight.replace(/\s+/g,''),date=g.arrDate||'2026-06-19';const resp=await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(num)}/${date}`,{method:'GET',mode:'cors',credentials:'omit',headers:{'X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'aerodatabox.p.rapidapi.com'}});if(!resp.ok)return g;const data=await resp.json();if(!data?.length)return g;const flight=data[0],parseTime=t=>{if(!t)return null;const m=t.match(/[\sT](\d{2}:\d{2})/);return m?m[1]:null;};const arrName=flight.arrival?.airport?.name||flight.arrival?.airport?.iata||'';const arrTime=parseTime(flight.arrival?.scheduledTime?.local)||parseTime(flight.arrival?.scheduledTime?.utc);const depName=flight.departure?.airport?.name||flight.departure?.airport?.iata||'';return{...g,arrTo:arrName||g.arrTo,arrFrom:depName||g.arrFrom,arrTime:arrTime||g.arrTime};}catch(e){return g;}}
