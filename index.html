@@ -2088,11 +2088,50 @@ async function saveRapidAPIKey(){
 }
 </script>
 <script>
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;if(!sessionStorage.getItem('android_banner_ok')&&!isIOS())setTimeout(()=>{document.getElementById('android-banner').style.display='block';},2500);});
+// ── Install-prompt banner gating ──
+// Permanent dismiss when user installs (appinstalled event) or taps the X.
+// Soft dismiss for 7 days when user taps "Maybe later".
+function _installBannerSuppressed(){
+  try {
+    // Hard suppression — never show again on this device
+    if(localStorage.getItem('vv_install_dismissed') === '1') return true;
+    // Soft suppression — quiet for 7 days
+    const until = parseInt(localStorage.getItem('vv_install_snooze_until') || '0', 10);
+    if(until && Date.now() < until) return true;
+  } catch(e){}
+  return false;
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if(_installBannerSuppressed() || isIOS()) return;
+  setTimeout(()=>{document.getElementById('android-banner').style.display='block';},2500);
+});
+// Once Android successfully installs the PWA, never show our banner again.
+window.addEventListener('appinstalled', () => {
+  try { localStorage.setItem('vv_install_dismissed', '1'); } catch(e){}
+  const b = document.getElementById('android-banner'); if(b) b.style.display = 'none';
+});
 async function installApp(){if(deferredInstallPrompt){try{await deferredInstallPrompt.prompt();const{outcome}=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(outcome==='accepted')dismissAndroidBanner(true);else showManualInstallInstructions();}catch(e){showManualInstallInstructions();}}else showManualInstallInstructions();}
 function showManualInstallInstructions(){document.getElementById('android-auto').style.display='none';const ua=navigator.userAgent,step=document.getElementById('android-step2');if(/SamsungBrowser/i.test(ua))step.innerHTML='Tap the <strong>☰ menu</strong> → <strong>"Add page to"</strong> → <strong>"Home Screen"</strong>';else if(/Firefox/i.test(ua))step.innerHTML='Tap the <strong>⋮ menu</strong> → <strong>"Install"</strong>';else if(/Edg\//i.test(ua))step.innerHTML='Tap the <strong>⋯ menu</strong> → <strong>"Add to phone"</strong>';else if(/OPR\//i.test(ua))step.innerHTML='Tap the <strong>⋮ menu</strong> → <strong>"Home Screen"</strong>';else step.innerHTML='Tap the <strong>⋮ menu</strong> (three dots) → <strong>"Add to Home Screen"</strong>';document.getElementById('android-manual').style.display='block';}
-function dismissAndroidBanner(permanent){document.getElementById('android-banner').style.display='none';if(permanent)sessionStorage.setItem('android_banner_ok','1');}
-function checkAndroidInstall(){const isAndroid=/android/i.test(navigator.userAgent),isInstalled=window.matchMedia('(display-mode: standalone)').matches,dismissed=sessionStorage.getItem('android_banner_ok');if(isAndroid&&!isInstalled&&!dismissed&&!deferredInstallPrompt)setTimeout(()=>{if(!deferredInstallPrompt){showManualInstallInstructions();document.getElementById('android-banner').style.display='block';}},3000);}
+function dismissAndroidBanner(permanent){
+  document.getElementById('android-banner').style.display='none';
+  try {
+    if(permanent) localStorage.setItem('vv_install_dismissed', '1');
+    else localStorage.setItem('vv_install_snooze_until', String(Date.now() + 7*24*60*60*1000));
+  } catch(e){}
+}
+function checkAndroidInstall(){
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
+  if(!isAndroid || isInstalled || _installBannerSuppressed() || deferredInstallPrompt) return;
+  setTimeout(()=>{
+    if(!deferredInstallPrompt && !_installBannerSuppressed()){
+      showManualInstallInstructions();
+      document.getElementById('android-banner').style.display='block';
+    }
+  },3000);
+}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 // Decides which push card (if any) to show based on environment:
 // 'enable' -> regular Notifications API works (Android, desktop, iOS PWA installed)
