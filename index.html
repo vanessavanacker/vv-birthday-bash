@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>VV Birthday Bash · 2026</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1208">
@@ -2131,7 +2134,17 @@ function checkAndroidInstall(){
     }
   },3000);
 }
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+// Service worker is registered automatically by the OneSignal SDK (init in step 4 below).
+// We don't need to register it manually here. The file is at /OneSignalSDKWorker.js and
+// just delegates to the OneSignal CDN — see that file for the one line of code it contains.
+// Best-effort cleanup: remove any stale sw.js registration left behind from a brief test deploy.
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    for(const r of regs){
+      if(r.active && /\/sw\.js(\?|$)/.test(r.active.scriptURL)) r.unregister().catch(()=>{});
+    }
+  }).catch(()=>{});
+}
 // Decides which push card (if any) to show based on environment:
 // 'enable' -> regular Notifications API works (Android, desktop, iOS PWA installed)
 // Decides which push card (if any) to show based on environment & subscription state:
