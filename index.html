@@ -1327,7 +1327,11 @@ async function buildItinerary(g){
             const mins = h*60 + m;
             if(mins > latest) latest = mins;
           }
-          const vanMins = latest + 90;
+          // Buffer between latest eligible landing and van departure.
+          // 60 min covers Altitude meet-at-plane → walk to private terminal → immigration → boarding.
+          // (Was 90 min when using public arrivals exit; private terminal is significantly faster.)
+          const VAN_BUFFER_MINS = 60;
+          const vanMins = latest + VAN_BUFFER_MINS;
           const vH = Math.floor(vanMins/60), vM = vanMins % 60;
           groupVanTime = String(vH).padStart(2,'0') + ':' + String(vM).padStart(2,'0');
           groupVanGuestEligible = isVanEligible(g);
@@ -1367,7 +1371,7 @@ async function buildItinerary(g){
     byDay[0].push({
       day: 0, time: groupVanTime,
       title: 'Group van to hotel',
-      note: `2 vans depart Brussels Airport at ${groupVanTime} for the De Tuilerieen hotel — for everyone on early flights. Meet at the arrivals exit (signs say "VV Birthday Bash" or look for the group). Bags first, then to Bruges (~90 min drive).`,
+      note: `2 vans depart the private terminal at ${groupVanTime} for the De Tuilerieen hotel — for everyone on early flights. Altitude staff will meet you at your plane and walk you through to the private terminal for immigration; the vans leave from there once everyone's cleared. ~90 min drive to Bruges.`,
       type:'transport', icon:'🚐', personal:true, personalLabel:'Your Group Van'
     });
   }
@@ -1384,7 +1388,7 @@ async function buildItinerary(g){
     const arrNote  = isTrain
       ? `Train arrives at ${fmt12(g.arrTime)}.${arrDriveMins ? ` ~${arrDriveMins} min onward to hotel.` : ''}`
       : groupVanGuestEligible
-        ? `Lands at ${fmt12(g.arrTime)}. Allow ~${CUSTOMS_MINS} min for luggage & customs, then meet the group van at ${fmt12(groupVanTime)} (van leaves once all early arrivals are through).`
+        ? `Lands at ${fmt12(g.arrTime)}. Altitude staff will meet you at the plane and walk you to the private terminal for immigration. Group van departs from the private terminal at ${fmt12(groupVanTime)} (once all early arrivals are through).`
         : `Lands at ${fmt12(g.arrTime)}. Allow ~${CUSTOMS_MINS} min for luggage & customs, then ~${arrDriveMins} min drive to hotel.`;
     if(!byDay[0]) byDay[0] = [];
     byDay[0].push({
