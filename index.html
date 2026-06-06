@@ -319,7 +319,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
     <div class="trip-selector">
       <button class="trip-btn active" onclick="setTripSection('both',this)"><span class="trip-icon">&#127881;</span><span class="trip-label">Bruges &amp; Valbonne</span><span class="trip-dates">Jun 19 &ndash; 27</span></button>
       <button class="trip-btn" onclick="setTripSection('bruges',this)"><span class="trip-icon">&#127463;&#127466;</span><span class="trip-label">Bruges Only</span><span class="trip-dates">Jun 19 &ndash; 22</span></button>
-      <button class="trip-btn" onclick="setTripSection('valbonne',this)"><span class="trip-icon">&#127467;&#127479;</span><span class="trip-label">Valbonne Only</span><span class="trip-dates">Jun 22 &ndash; 27</span></button>
+      <button class="trip-btn" onclick="setTripSection('valbonne',this)"><span class="trip-icon">&#127467;&#127479;</span><span class="trip-label">Valbonne Only</span><span class="trip-dates">Jun 22 &ndash; 29</span></button>
     </div>
   </div>
   <div id="bruges-arrival-section">
@@ -523,7 +523,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
       <div class="act-filter-bar">
         <button class="act-filter-btn active" onclick="setActFilter('all',this)">All days</button>
         <button class="act-filter-btn" onclick="setActFilter('bruges',this)">&#127463;&#127466; Bruges (Jun 19&ndash;22)</button>
-        <button class="act-filter-btn" onclick="setActFilter('valbonne',this)">&#127467;&#127479; Valbonne (Jun 22&ndash;27)</button>
+        <button class="act-filter-btn" onclick="setActFilter('valbonne',this)">&#127467;&#127479; Valbonne (Jun 22&ndash;29)</button>
       </div>
       <div id="act-editor-list"></div>
     </div>
@@ -650,6 +650,7 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
         <label><input type="checkbox" id="tag-all" checked onchange="syncAllTag()"> Everyone</label>
         <label><input type="checkbox" id="tag-valbonne"> Valbonne guests only</label>
         <label><input type="checkbox" id="tag-bruges-only"> Bruges-only guests</label>
+        <label><input type="checkbox" id="tag-both"> On Jun 22 group coach</label>
         <label><input type="checkbox" id="tag-rental"> With rental car</label>
         <label><input type="checkbox" id="tag-no-rental"> Without rental car</label>
       </div>
@@ -900,11 +901,12 @@ const DEFAULT_ACTIVITIES=[
   {day:2,time:'17:00',title:'Return to Bruges',note:'Transfer back to De Tuilerieen.',type:'transport',icon:'🚌',tags:[]},
   {day:2,time:'19:30',title:'Dinner at Le Mémoire',note:"Hotel De Tuilerieen's in-house restaurant — no transit needed, just head downstairs.",address:'Dijver 7, 8000 Brugge, Belgium',type:'food',icon:'🍷',tags:[]},
   {day:3,time:'CHECK_OUT',title:'Check out – De Tuilerieen',note:'{checkoutNote}',type:'hotel',icon:'🏨',tags:[]},
-  {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:'Transfer to airport ~3 hrs before your flight ({depTime}).',type:'flight',icon:'✈️',tags:['valbonne']},
+  {day:3,time:'07:30',title:'Group Coach to Brussels Airport',note:'Departs De Tuilerieen at 07:30. Be in the lobby by 07:15 with your luggage. ~90 min to Brussels Airport — coach drops you at departures.',type:'transport',icon:'🚌',tags:['both']},
+  {day:3,time:'CHECK_DEP',title:'Depart – {depFlight}',note:'Flight departs at {depTime}, arrives Nice at {niceArrTime}.',type:'flight',icon:'✈️',tags:['valbonne']},
   {day:3,time:'NICE_ARR',title:'Arrive Nice',note:'Landing at {niceArrTime}. Clear customs and collect bags.',type:'flight',icon:'✈️',tags:['valbonne']},
   {day:3,time:'NICE_ARR',title:'Pick up rental – {rentalCo}',note:'Collect your car at {rentalPickup}. Drive to Valbonne ~45 min via A8.',type:'transport',icon:'🚗',tags:['rental']},
   {day:3,time:'NICE_ARR',title:'Group Transfer to Valbonne',note:'Driver meets you in arrivals. ~45 min to the house.',type:'transport',icon:'🚐',tags:['valbonne','no-rental']},
-  {day:3,time:'EVENING',title:'Settle in – House in Valbonne',note:"Get settled and relax. ☀️ Valbonne: Place des Arcades, 06560.",address:'Place des Arcades, 06560 Valbonne, France',type:'hotel',icon:'🏡',tags:['valbonne']},
+  {day:3,time:'EVENING',title:'Settle in – La Remondière',note:'Get settled and relax. ☀️ 1508 Route de Nice, 06560 Valbonne.',address:'1508 Route de Nice, 06560 Valbonne, France',type:'hotel',icon:'🏡',tags:['valbonne']},
   {day:3,time:'CHECK_DEP',title:'Depart – {brugesDepRef}',note:'Safe travels home! Departing at {brugesDepTime} to {brugesDepTo}.',type:'transport',icon:'🧳',tags:['bruges-only']},
   {day:4,time:'09:00',title:'Breakfast at the house',note:'Caterer drops off fresh pastries, fruit, juice & coffee at 09:00.',type:'food',icon:'🥐',tags:['valbonne']},
   {day:4,time:'FREE',title:'Free Day – Explore Valbonne',note:'Village square, market, or head to the coast.',type:'free',icon:'🌴',tags:['valbonne']},
@@ -1272,6 +1274,7 @@ async function buildItinerary(g){
     const t=a.tags||[];
     if(!t.length)return true;
     if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
+    if(t.includes('both')&&!_isOnJun22Coach(g))return false;
     if(t.includes('valbonne')&&g.tripSection==='bruges')return false;
     if(t.includes('rental')&&!g.hasRental)return false;
     if(t.includes('no-rental')&&g.hasRental)return false;
@@ -1644,10 +1647,10 @@ function renderActivityEditor(){const allActs=EDITED_ACTIVITIES||LIVE_ACTIVITIES
 function markEdited(){if(!EDITED_ACTIVITIES)EDITED_ACTIVITIES=JSON.parse(JSON.stringify(LIVE_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';}
 function addActivity(){openActModal(-1,null);}
 function editActivity(i){openActModal(i,(EDITED_ACTIVITIES||LIVE_ACTIVITIES)[i]);}
-function openActModal(i,a){document.getElementById('act-modal-title').textContent=i===-1?'Add Activity':'Edit Activity';document.getElementById('act-edit-index').value=i;document.getElementById('act-day').value=a?.day??0;document.getElementById('act-time').value=a?.time||'';document.getElementById('act-icon').value=a?.icon||'📌';document.getElementById('act-type').value=a?.type||'activity';document.getElementById('act-title').value=a?.title||'';document.getElementById('act-note').value=a?.note||'';document.getElementById('act-address').value=a?.address||'';const tags=a?.tags||[];document.getElementById('tag-all').checked=!tags.length;['valbonne','bruges-only','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=tags.includes(t));document.getElementById('act-modal-overlay').style.display='block';}
+function openActModal(i,a){document.getElementById('act-modal-title').textContent=i===-1?'Add Activity':'Edit Activity';document.getElementById('act-edit-index').value=i;document.getElementById('act-day').value=a?.day??0;document.getElementById('act-time').value=a?.time||'';document.getElementById('act-icon').value=a?.icon||'📌';document.getElementById('act-type').value=a?.type||'activity';document.getElementById('act-title').value=a?.title||'';document.getElementById('act-note').value=a?.note||'';document.getElementById('act-address').value=a?.address||'';const tags=a?.tags||[];document.getElementById('tag-all').checked=!tags.length;['valbonne','bruges-only','both','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=tags.includes(t));document.getElementById('act-modal-overlay').style.display='block';}
 function deleteActivity(i){if(!confirm('Delete this activity?'))return;markEdited();EDITED_ACTIVITIES.splice(i,1);renderActivityEditor();}
-function saveActivityEdit(){markEdited();const idx=parseInt(document.getElementById('act-edit-index').value);const tags=[];if(!document.getElementById('tag-all').checked)['valbonne','bruges-only','rental','no-rental'].forEach(t=>{if(document.getElementById('tag-'+t).checked)tags.push(t);});const a={day:parseInt(document.getElementById('act-day').value),time:document.getElementById('act-time').value.trim(),icon:document.getElementById('act-icon').value.trim()||'📌',type:document.getElementById('act-type').value,title:document.getElementById('act-title').value.trim(),note:document.getElementById('act-note').value.trim(),address:document.getElementById('act-address').value.trim(),tags};if(!a.title){alert('Title is required.');return;}if(idx===-1)EDITED_ACTIVITIES.push(a);else EDITED_ACTIVITIES[idx]=a;EDITED_ACTIVITIES.sort((x,y)=>x.day!==y.day?x.day-y.day:(x.time||'').localeCompare(y.time||''));closeActModal();renderActivityEditor();}
-function syncAllTag(){if(document.getElementById('tag-all').checked)['valbonne','bruges-only','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=false);}
+function saveActivityEdit(){markEdited();const idx=parseInt(document.getElementById('act-edit-index').value);const tags=[];if(!document.getElementById('tag-all').checked)['valbonne','bruges-only','both','rental','no-rental'].forEach(t=>{if(document.getElementById('tag-'+t).checked)tags.push(t);});const a={day:parseInt(document.getElementById('act-day').value),time:document.getElementById('act-time').value.trim(),icon:document.getElementById('act-icon').value.trim()||'📌',type:document.getElementById('act-type').value,title:document.getElementById('act-title').value.trim(),note:document.getElementById('act-note').value.trim(),address:document.getElementById('act-address').value.trim(),tags};if(!a.title){alert('Title is required.');return;}if(idx===-1)EDITED_ACTIVITIES.push(a);else EDITED_ACTIVITIES[idx]=a;EDITED_ACTIVITIES.sort((x,y)=>x.day!==y.day?x.day-y.day:(x.time||'').localeCompare(y.time||''));closeActModal();renderActivityEditor();}
+function syncAllTag(){if(document.getElementById('tag-all').checked)['valbonne','bruges-only','both','rental','no-rental'].forEach(t=>document.getElementById('tag-'+t).checked=false);}
 function closeActModal(){document.getElementById('act-modal-overlay').style.display='none';}
 async function saveActivities(){const acts=EDITED_ACTIVITIES||LIVE_ACTIVITIES,btn=document.getElementById('save-act-btn');btn.textContent='⏳ Saving…';const ok=await fbSave('activities',acts);if(ok){LIVE_ACTIVITIES=acts;EDITED_ACTIVITIES=null;document.getElementById('unsaved-notice').style.display='none';btn.textContent='✅ Published!';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);scheduleActivityReminders(lastGeneratedGuest||loadGuestLocally());}else{btn.textContent='❌ Error';setTimeout(()=>btn.textContent='💾 Save & Publish',2500);}}
 function resetActivities(){if(!confirm('Reset to the original default schedule?'))return;EDITED_ACTIVITIES=JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';renderActivityEditor();}
@@ -2453,9 +2456,21 @@ function stationToHotelMins(station){if(!station)return 10;const s=station.toLow
 function airportDriveMins(airport){if(!airport)return 90;const a=airport.toLowerCase();for(const[key,mins]of Object.entries(AIRPORT_DRIVE_MINS)){if(a.includes(key))return mins;}return 90;}
 // "Both"-trip guest with depDate ≠ Jun 22 means they're stopping somewhere (e.g. Paris) before flying to Nice.
 // In that case Day 3 is just a normal hotel checkout — the airport transfer happens on the actual flight day.
+// Eligibility for the Jun 22 group coach to Brussels Airport.
+// Both-trip guests (excluding side-trippers with later Nice flights),
+// PLUS bruges-only guests flying out of Brussels Airport on Jun 22.
+function _isOnJun22Coach(g){
+  if(_hasSideTrip(g)) return false;
+  if(g.tripSection === 'both') return true;
+  if(g.tripSection === 'bruges'
+     && g.brugesDepMode === 'flight'
+     && g.brugesDepDate === '2026-06-22'
+     && (g.bdepFromAirport || '').toLowerCase().includes('brussel')) return true;
+  return false;
+}
 function _hasSideTrip(g){return g.tripSection==='both' && g.depDate && g.depDate !== '2026-06-22';}
-function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(_hasSideTrip(g))return'11:00';if(g.tripSection==='both'&&g.depTime){const driveMins=airportDriveMins(g.depFrom||'brussels');return addMins(g.depTime,-(driveMins+FLIGHT_BUFFER));}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
-function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g))return'Standard hotel checkout — your flight to Nice is on a later date, so onward travel from Bruges is on your own.';if(g.tripSection==='both'&&g.depTime){const dep=g.depFrom||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.depTime)} flight`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
+function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(_hasSideTrip(g))return'11:00';if(_isOnJun22Coach(g))return'07:00';if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
+function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g))return'Standard hotel checkout — your travel to Nice is on a later date, so onward travel from Bruges is on your own.';if(_isOnJun22Coach(g)){const flightTime=g.depTime||g.brugesDepTime;const dest=g.tripSection==='both'?'Nice':'home';return`Group coach at 07:30 from the lobby drops you at Brussels Airport — onward to your ${fmt12(flightTime)} flight to ${dest}.`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
