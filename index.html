@@ -127,6 +127,8 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .badge-transport{background:#e0f2fe;color:#075985;}
 .maps-btn{display:inline-block;margin-top:.35rem;font-size:.72rem;padding:.18rem .55rem;background:#e8f4fd;color:#1a6b9e;border-radius:5px;text-decoration:none;font-weight:600;}
 .maps-btn:hover{background:#1a6b9e;color:#fff;}
+.inline-link{display:inline-block;font-size:.72rem;padding:.05rem .4rem;margin:0 .1rem;background:#e8f4fd;color:#1a6b9e;border-radius:4px;text-decoration:none;font-weight:600;vertical-align:baseline;}
+.inline-link:hover{background:#1a6b9e;color:#fff;}
 .print-btn{padding:.6rem 1.8rem;background:transparent;border:1.5px solid var(--ink);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.86rem;cursor:pointer;transition:all .2s;}
 .print-btn:hover{background:var(--ink);color:var(--sand);}
 .sub-tab-bar{display:flex;gap:.4rem;margin-bottom:1.4rem;border-bottom:2px solid var(--border);flex-wrap:wrap;}
@@ -890,7 +892,7 @@ const DEFAULT_ACTIVITIES=[
   {day:0,time:'15:30',title:'Shoe Factory Visit',note:'Behind-the-scenes tour. Comfortable shoes advised!',type:'activity',icon:'👟',tags:[]},
   {day:0,time:'16:30',title:'Apéro',note:'Drinks & nibbles after the tour. Cheers! 🍻',type:'food',icon:'🥂',tags:[]},
   {day:0,time:'19:00',title:'Transfer back to hotel',note:'Transfer departs at 19:00 sharp.',type:'transport',icon:'🚌',tags:[]},
-  {day:0,time:'19:30',title:'Free Evening – Dinner in Bruges',note:"Tonight's free for dinner, drinks, or just wandering. A few local picks within 10 min walk of the hotel:\n\n🍟 Best frituur — Frituur De Gentpoorte, Gentpoortstraat 58. Locals' favourite. Takeaway only, but a lovely ~10 min walk south to eat by Minnewater. Open Thu–Sun till 21:30. (Or the green Markt frietkot in front of the Belfry if Gentpoorte's closed.)\n\n🍲 Sit-down dinner:\n  • Cambrinus — Philipstockstraat 19. Traditional Flemish dishes + 400+ Belgian beers.\n  • Poules Moules — moules-frites in a historic building near the Burg square.\n\n🍻 Beer bars for a nightcap:\n  • 't Brugs Beertje — Kemelstraat 5. The most legendary beer bar in town.\n  • De Garre — Garre 1 (tiny alley off Breidelstraat). Famous for their house tripel, served with cheese cubes.\n\nMost central spots stop serving food by 22:00 — go early if you're hungry. Frituurs and beer bars stay open later.",type:'food',icon:'🍴',tags:[]},
+  {day:0,time:'19:30',title:'Free Evening – Dinner in Bruges',note:"Tonight's free for dinner, drinks, or just wandering. A few local picks within 10 min walk of the hotel:\n\n🍟 Best frituur — Frituur De Gentpoorte [📍](https://maps.google.com/?q=Frituur+De+Gentpoorte+Bruges), Gentpoortstraat 58. Locals' favourite. Takeaway only, but a lovely ~10 min walk south to eat by Minnewater. Open Thu–Sun till 21:30. (Or the green Markt frietkot [📍](https://maps.google.com/?q=Markt+Bruges+frietkot) in front of the Belfry if Gentpoorte's closed.)\n\n🍲 Sit-down dinner:\n  • Cambrinus [📍](https://maps.google.com/?q=Cambrinus+Bruges) — Philipstockstraat 19. Traditional Flemish dishes + 400+ Belgian beers.\n  • Poules Moules [📍](https://maps.google.com/?q=Poules+Moules+Bruges) — moules-frites in a historic building near the Burg square.\n\n🍻 Beer bars for a nightcap:\n  • 't Brugs Beertje [📍](https://maps.google.com/?q='t+Brugs+Beertje+Bruges) — Kemelstraat 5. The most legendary beer bar in town.\n  • De Garre [📍](https://maps.google.com/?q=De+Garre+Bruges) — Garre 1 (tiny alley off Breidelstraat). Famous for their house tripel, served with cheese cubes.\n\nMost central spots stop serving food by 22:00 — go early if you're hungry. Frituurs and beer bars stay open later.",type:'food',icon:'🍴',tags:[]},
   {day:1,time:'13:30',title:'Meet at Bike Rental',note:'Meet the group at the bike rental. Helmets available.',type:'transport',icon:'🚲',tags:[]},
   {day:1,time:'13:45',title:'Bike Ride to Damme',note:'Scenic 7 km ride along the canal. Easy, flat route.',type:'activity',icon:'🌾',tags:[]},
   {day:1,time:'16:00',title:'Brewery Tasting – Bourgogne des Flandres',note:'Sample the famous Bruges blend on the canal. Kartuizerinnenstraat 6, 8000 Bruges.',address:'Kartuizerinnenstraat 6, 8000 Bruges, Belgium',type:'food',icon:'🍺',tags:[]},
@@ -1589,7 +1591,7 @@ async function buildItinerary(g){
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
         const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
         const personalBadge=ev.personal?`<span class="personal-label">${ev.personalLabel||'Your Pickup'}</span>`:'';
-        return`<div class="event${ev.personal?' personal':''}${actPast?' past':''}"><div class="event-time">${esc(tl)}</div><div class="event-icon">${esc(evIcon)}</div><div class="event-body"><div class="event-title">${esc(evTitle)}${personalBadge}<span class="badge ${bc}">${bl}</span></div><div class="event-note">${esc(evNote)}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div></div></div>`;
+        return`<div class="event${ev.personal?' personal':''}${actPast?' past':''}"><div class="event-time">${esc(tl)}</div><div class="event-icon">${esc(evIcon)}</div><div class="event-body"><div class="event-title">${esc(evTitle)}${personalBadge}<span class="badge ${bc}">${bl}</span></div><div class="event-note">${linkifyNote(esc(evNote))}${arrivalNote?`<span style="opacity:.5;font-size:.78rem"> ${arrivalNote}</span>`:''}${mapsBtn}</div></div></div>`;
       }).join('');
     })()+`</div></div>`;
     if(isPast){pastDaysHtml+=dayHtml;pastDayCount++;}else{html+=dayHtml;}
@@ -2474,6 +2476,9 @@ function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=
 function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g))return'Standard hotel checkout — your travel to Nice is on a later date, so onward travel from Bruges is on your own.';if(_isOnJun22Coach(g)){const flightTime=g.depTime||g.brugesDepTime;const dest=g.tripSection==='both'?'Nice':'home';return`Group coach at 07:30 from the lobby drops you at Brussels Airport — onward to your ${fmt12(flightTime)} flight to ${dest}.`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// Convert Markdown [text](url) into clickable links. Run AFTER esc() — esc keeps [ ] ( ) untouched,
+// so this regex still matches. URLs containing & become &amp; in escaped text, still valid in href.
+function linkifyNote(s){return String(s||'').replace(/\[([^\]]+)\]\(((?:https?:|mailto:|tel:)[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener" class="inline-link">$1</a>');}
 
 async function lookupReturningGuest(){
   const name=document.getElementById('lookup-name').value.trim(),statusEl=document.getElementById('lookup-status');
@@ -2860,7 +2865,10 @@ function scheduleActivityReminders(g){
     const timer=setTimeout(()=>{
       try{
         new Notification(`⏰ In 30 min: ${act.title||'Activity'}`,{
-          body:(act.note||'').replace(/\{[^}]+\}/g,'').trim().slice(0,120),
+          body:(act.note||'')
+            .replace(/\{[^}]+\}/g,'')                                         // strip {placeholder}
+            .replace(/\[([^\]]+)\]\((?:https?:|mailto:|tel:)[^)\s]+\)/g,'$1') // strip MD links → keep text
+            .trim().slice(0,120),
           icon:APP_ICON_URL,
           tag:`vv-${todayTripDay}-${act.time}`,
           renotify:false
