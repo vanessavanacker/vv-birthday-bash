@@ -1272,6 +1272,10 @@ async function buildItinerary(g){
   const filtered=acts.filter(a=>{
     // For side-trip "both" guests: hide default activities on the gap days (after Bruges checkout, before Nice arrival)
     if(hasSideTrip && !isVOnly && a.day > NICE_ARR_DEFAULT_DAY && a.day < niceArrDayIdx) return false;
+    // Valbonne-only guests never stayed in Bruges — they shouldn't see the De Tuilerieen checkout event
+    if(a.time === 'CHECK_OUT' && g.tripSection === 'valbonne') return false;
+    // If guest has personal Nice-arrival transport arranged, hide the default "Group Transfer to Valbonne"
+    if(a.title === 'Group Transfer to Valbonne' && (g.niceArrTransport || g.transportOrg?.nice)) return false;
     const t=a.tags||[];
     if(!t.length)return true;
     if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
@@ -1421,7 +1425,16 @@ async function buildItinerary(g){
   //    Both-trip flight mode: Day 3 (or niceArrDayIdx for side trip), transfer to airport for Nice flight
   //    Both-trip train mode:  Day 3 transfer to Bruges Station, then a separate flight to Nice on niceArrDayIdx
   const isBothTrainSideTrip = g.tripSection === 'both' && g.bothLeaveMode === 'train';
-  if(g.tripSection === 'bruges'){
+  // Skip the personal departure xferAdd when the transit info will be conveyed by another event:
+  //   1. Coach passenger → Group Coach event covers the airport leg
+  //   2. Non-coach non-side-trip non-valbonne with personal transport →
+  //      CHECK_OUT will transform to "Transfer to {airport}" and the personal note gets merged in.
+  const hasPersonalDepTransport = !!(g.depTransport || g.transportOrg?.dep);
+  const isCheckOutWillTransform = g.tripSection !== 'valbonne'
+    && !(_hasSideTrip(g) && g.tripSection === 'both')
+    && !_isOnJun22Coach(g);
+  const skipDeparturePersonalXfer = _isOnJun22Coach(g) || (hasPersonalDepTransport && isCheckOutWillTransform);
+  if(g.tripSection === 'bruges' && !skipDeparturePersonalXfer){
     const dTime = calcCheckoutTime(g) || g.brugesDepTime || 'TBC';
     const dTitle = g.brugesDepMode === 'train' ? 'Transfer to Bruges Station' : 'Transfer to airport';
     xferAdd(3, dTime, dTitle, tNote(g.depTransport, g.transportOrg?.dep));
@@ -1452,7 +1465,7 @@ async function buildItinerary(g){
         type: 'transport', icon: '🚗', personal: true, personalLabel: 'Your Transfer'
       });
     }
-  } else if(g.tripSection === 'both'){
+  } else if(g.tripSection === 'both' && !skipDeparturePersonalXfer){
     // Flight mode (default): one transfer to airport on the day they fly to Nice
     const dest = g.depFrom || 'Brussels Airport';
     const dTitle = `Transfer to ${dest}`;
@@ -1561,18 +1574,20 @@ async function buildItinerary(g){
         let evIcon=ev.icon||'📌', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
         const arrivalNote='';
         if(ev.time==='CHECK_OUT' && g.tripSection!=='valbonne'){
-          if(hasSideTrip && g.tripSection==='both'){
-            // Side-trip guest checking out of Bruges to head elsewhere first — keep as a normal hotel checkout
-            // (icon, type, title default to the activity's own values: 🏨 Check out – De Tuilerieen)
-          } else {
+          const keepAsHotel = (hasSideTrip && g.tripSection==='both') || _isOnJun22Coach(g);
+          if(!keepAsHotel){
             evType='transport';
             if(g.tripSection==='both'){const dest=g.depFrom||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${dest}`;}
             else if(g.tripSection==='bruges'){
               if(g.brugesDepMode==='train'){evIcon='🚂';evTitle='Transfer to Bruges Station';}
               else{const dest=g.bdepFromAirport||'Brussels Airport';evIcon='🚗';evTitle=`Transfer to ${dest}`;}
             }
+            // Merge guest's personal transport text into the note (instead of a duplicate xferAdd event).
+            const personalTransport = g.depTransport || g.transportOrg?.dep;
+            if(personalTransport) evNote = evNote + (evNote?' · ':'') + personalTransport;
+            // Suffix needed only when title was transformed away from "Check out" — otherwise redundant
+            evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
           }
-          evNote = evNote + (evNote?' · ':'')+`Check out of De Tuilerieen before you leave.`;
         }
         if(ev.time==='CHECK_DEP' && (ev.tags||[]).includes('bruges-only')){
           if(g.tripSection!=='bruges') return '';
@@ -2458,11 +2473,14 @@ function airportDriveMins(airport){if(!airport)return 90;const a=airport.toLower
 // "Both"-trip guest with depDate ≠ Jun 22 means they're stopping somewhere (e.g. Paris) before flying to Nice.
 // In that case Day 3 is just a normal hotel checkout — the airport transfer happens on the actual flight day.
 // Eligibility for the Jun 22 group coach to Brussels Airport.
-// Both-trip guests (excluding side-trippers with later Nice flights),
+// Both-trip guests flying out of Brussels (excluding side-trippers whose Nice flight is later),
 // PLUS bruges-only guests flying out of Brussels Airport on Jun 22.
 function _isOnJun22Coach(g){
   if(_hasSideTrip(g)) return false;
-  if(g.tripSection === 'both') return true;
+  if(g.tripSection === 'both') {
+    // Coach goes to Brussels Airport. Skip if flying from elsewhere (e.g. CDG, Charleroi).
+    return (g.depFrom || 'Brussels Airport').toLowerCase().includes('brussel');
+  }
   if(g.tripSection === 'bruges'
      && g.brugesDepMode === 'flight'
      && g.brugesDepDate === '2026-06-22'
