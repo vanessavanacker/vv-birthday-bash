@@ -1453,18 +1453,8 @@ async function buildItinerary(g){
         type: 'transport', icon: '🚂', personal: true, personalLabel: 'Your Train'
       });
     }
-    // Day-of-flight: transfer to airport for the eventual Nice flight
-    if(g.depTime){
-      if(!byDay[niceArrDayIdx]) byDay[niceArrDayIdx] = [];
-      const driveMins = airportDriveMins(g.depFrom || 'cdg');
-      const flyTransferTime = addMins(g.depTime, -(driveMins + 150));
-      const dest = g.depFrom || 'airport';
-      byDay[niceArrDayIdx].push({
-        day: niceArrDayIdx, time: flyTransferTime, title: `Transfer to ${dest}`,
-        note: `~${driveMins} min from your stopover + 2h30 check-in before ${fmt12(g.depTime)} flight`,
-        type: 'transport', icon: '🚗', personal: true, personalLabel: 'Your Transfer'
-      });
-    }
+    // Day-of-flight airport transit: side-trippers handle this themselves from their stopover.
+    // CHECK_DEP event already shows their flight — no auto-generated transfer needed.
   } else if(g.tripSection === 'both' && !skipDeparturePersonalXfer){
     // Flight mode (default): one transfer to airport on the day they fly to Nice
     const dest = g.depFrom || 'Brussels Airport';
@@ -2488,8 +2478,8 @@ function _isOnJun22Coach(g){
   return false;
 }
 function _hasSideTrip(g){return g.tripSection==='both' && g.depDate && g.depDate !== '2026-06-22';}
-function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(_hasSideTrip(g))return'11:00';if(_isOnJun22Coach(g))return'07:00';if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
-function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g))return'Standard hotel checkout — your travel to Nice is on a later date, so onward travel from Bruges is on your own.';if(_isOnJun22Coach(g)){const flightTime=g.depTime||g.brugesDepTime;const dest=g.tripSection==='both'?'Nice':'home';return`Group coach at 7:30 AM from the lobby drops you at Brussels Airport — onward to your ${fmt12(flightTime)} flight to ${dest}.`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
+function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(_hasSideTrip(g)){if(g.bothLeaveMode==='train'&&g.bothLeaveTrainTime)return addMins(g.bothLeaveTrainTime,-(TO_STATION+TRAIN_BUFFER));return'11:00';}if(_isOnJun22Coach(g))return'07:00';if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
+function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g)){if(g.bothLeaveMode==='train'&&g.bothLeaveTrainTime){const dest=g.bothLeaveTrainTo||'your next stop';return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.bothLeaveTrainTime)} train to ${dest}.`;}return'Standard hotel checkout — your travel to Nice is on a later date, so onward travel from Bruges is on your own.';}if(_isOnJun22Coach(g)){const flightTime=g.depTime||g.brugesDepTime;const dest=g.tripSection==='both'?'Nice':'home';return`Group coach at 7:30 AM from the lobby drops you at Brussels Airport — onward to your ${fmt12(flightTime)} flight to ${dest}.`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 // Convert Markdown [text](url) into clickable links. Run AFTER esc() — esc keeps [ ] ( ) untouched,
