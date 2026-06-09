@@ -2416,7 +2416,7 @@ async function loadWeather(){
   };
   const fetchW = async (lat,lng,start,end) => {
     const safeEnd = clampDate(end);
-    const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,weather_code&start_date=${start}&end_date=${safeEnd}&timezone=Europe%2FBerlin&temperature_unit=celsius`;
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,weather_code&start_date=${start}&end_date=${safeEnd}&timezone=Europe%2FBerlin&temperature_unit=fahrenheit`;
     const r = await fetch(u);
     if(!r.ok) throw new Error('weather '+r.status);
     const j = await r.json();
