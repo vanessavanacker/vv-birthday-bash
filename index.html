@@ -2392,7 +2392,7 @@ async function repairSubscription(){
   }
 }
 
-function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'){if(!window._weatherLoaded){window._weatherLoaded=true;loadWeather();}renderNotifStatus();}}
+function showPage(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');btn.classList.add('active');if(p==='organiser'&&document.getElementById('dashboard-panel').style.display==='block')renderGuestDashboard();if(p==='local'){loadWeather();renderNotifStatus();}}
 
 // ── Weather widget for Local Info tab (Open-Meteo, no API key needed) ──
 async function loadWeather(){
@@ -2407,25 +2407,51 @@ async function loadWeather(){
     if(c>=95) return '⛈️';
     return '🌡️';
   };
+  // Clamp end_date to today + 15 days (Open-Meteo's reliable forecast horizon)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const maxEnd = new Date(today.getTime() + 15*86400000);
+  const clampDate = d => {
+    const dt = new Date(d+'T00:00:00');
+    return dt > maxEnd ? maxEnd.toISOString().slice(0,10) : d;
+  };
   const fetchW = async (lat,lng,start,end) => {
-    const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,weather_code&start_date=${start}&end_date=${end}&timezone=Europe%2FBerlin&temperature_unit=celsius`;
+    const safeEnd = clampDate(end);
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,weather_code&start_date=${start}&end_date=${safeEnd}&timezone=Europe%2FBerlin&temperature_unit=celsius`;
     const r = await fetch(u);
     if(!r.ok) throw new Error('weather '+r.status);
-    return r.json();
+    const j = await r.json();
+    j._truncated = (safeEnd !== end);  // flag if we clamped
+    j._wantedEnd = end;
+    return j;
   };
   const render = (id,d) => {
     const el = document.querySelector('#'+id+' .weather-content');
     if(!el) return;
     const days = d.daily;
+    if(!days || !days.time || !days.time.length){
+      el.innerHTML = '<div style="opacity:.6;font-size:.88rem">No forecast data returned.</div>';
+      return;
+    }
     const items = days.time.map((date,i) => {
       const dt = new Date(date+'T00:00:00');
       const lbl = dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric'});
-      return `<div class="weather-day"><div class="w-day">${lbl}</div><div class="w-icon">${codeToEmoji(days.weather_code[i])}</div><div class="w-temp">${Math.round(days.temperature_2m_max[i])}°/${Math.round(days.temperature_2m_min[i])}°</div></div>`;
+      const mx = days.temperature_2m_max[i], mn = days.temperature_2m_min[i];
+      const tempLabel = (mx==null||mn==null) ? '—' : `${Math.round(mx)}°/${Math.round(mn)}°`;
+      return `<div class="weather-day"><div class="w-day">${lbl}</div><div class="w-icon">${codeToEmoji(days.weather_code[i])}</div><div class="w-temp">${tempLabel}</div></div>`;
     }).join('');
-    el.innerHTML = `<div class="weather-grid">${items}</div>`;
+    let extra = '';
+    if(d._truncated){
+      const dt = new Date(d._wantedEnd+'T00:00:00');
+      const lastLabel = dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric'});
+      extra = `<div style="opacity:.55;font-size:.72rem;text-align:center;margin-top:.4rem">Forecast for ${lastLabel} available closer to the date.</div>`;
+    }
+    el.innerHTML = `<div class="weather-grid">${items}</div>${extra}`;
   };
-  // Open-Meteo forecast horizon is ~16 days. If trip is further out, show stale-friendly message.
-  const today = new Date(); today.setHours(0,0,0,0);
+  const showErr = (id, msg) => {
+    const el = document.querySelector('#'+id+' .weather-content');
+    if(el) el.innerHTML = `<div style="opacity:.6;font-size:.88rem">${msg}</div>`;
+  };
+  // Trip outside the 16-day horizon entirely? Show friendly placeholder.
   const tripStart = new Date('2026-06-19'); const daysOut = Math.round((tripStart-today)/86400000);
   if(daysOut > 16){
     document.querySelectorAll('#weather-bruges .weather-content, #weather-valbonne .weather-content').forEach(el => {
@@ -2433,20 +2459,15 @@ async function loadWeather(){
     });
     return;
   }
-  try {
-    const [bruges,valbonne] = await Promise.all([
-      fetchW(51.21, 3.22, '2026-06-19', '2026-06-22'),
-      fetchW(43.64, 7.01, '2026-06-22', '2026-06-29'),
-    ]);
-    render('weather-bruges', bruges);
-    render('weather-valbonne', valbonne);
-  } catch(e) {
-    console.warn('Weather fetch failed:', e);
-    document.querySelectorAll('#weather-bruges .weather-content, #weather-valbonne .weather-content').forEach(el => {
-      el.innerHTML = '<div style="opacity:.6;font-size:.88rem">Weather currently unavailable — try again later.</div>';
-    });
-    window._weatherLoaded = false; // allow retry on next tab visit
-  }
+  // Use Promise.allSettled so one failure doesn't kill the other
+  const results = await Promise.allSettled([
+    fetchW(51.21, 3.22, '2026-06-19', '2026-06-22'),
+    fetchW(43.64, 7.01, '2026-06-22', '2026-06-29'),
+  ]);
+  if(results[0].status==='fulfilled') render('weather-bruges', results[0].value);
+  else { console.warn('Bruges weather failed:', results[0].reason); showErr('weather-bruges', 'Forecast unavailable — try again later.'); }
+  if(results[1].status==='fulfilled') render('weather-valbonne', results[1].value);
+  else { console.warn('Valbonne weather failed:', results[1].reason); showErr('weather-valbonne', 'Forecast unavailable — try again later.'); }
 }
 function showOrgTab(t,btn){document.querySelectorAll('.org-tab').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.sub-tab').forEach(e=>e.classList.remove('active'));document.getElementById('org-tab-'+t).classList.add('active');btn.classList.add('active');if(t==='activities')renderActivityEditor();if(t==='guests')renderGuestDashboard();}
 function setActFilter(f,btn){activityFilter=f;document.querySelectorAll('.act-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderActivityEditor();}
