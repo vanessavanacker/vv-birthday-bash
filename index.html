@@ -202,7 +202,7 @@ header p{margin-top:.4rem;font-size:.82rem;opacity:.5;letter-spacing:.06em;text-
 .ios-share-pill{display:inline-flex;align-items:center;gap:3px;background:#007aff;color:#fff;border-radius:5px;padding:2px 7px;font-size:.78rem;font-weight:700;vertical-align:middle;margin:0 2px;}
 .app-icon-img{width:46px;height:46px;border-radius:11px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 @media print{
-#ios-banner,#android-banner,header,.nav-tabs,.form-card,.print-btn,#page-form,.modal-actions,.modal-close,#firebase-bar,#update-banner,.push-card,.show-past-btn,#returning-banner,#returning-lookup-card{display:none!important;}
+#ios-banner,#android-banner,header,.nav-tabs,.form-card,.print-btn,#page-form,.modal-actions,.modal-close,#firebase-bar,#update-banner,.push-card,.show-past-btn,#returning-banner,#returning-lookup-card,#checkin-banner,#recent-push-banner,#push-status-badge{display:none!important;}
 #modal-overlay{position:static!important;background:none!important;padding:0!important;display:block!important;overflow:visible!important;}
 .modal-box{border-radius:0!important;padding:0 1rem!important;max-width:100%!important;box-shadow:none!important;}
 .show-past-btn+div{display:block!important;}
@@ -277,9 +277,10 @@ body{background:#fff!important;font-size:10.5pt;color:#1a1208;}
 <div class="container">
 <div class="page active" id="page-form">
   <div id="returning-banner" style="display:none;background:var(--ink);color:var(--sand);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1.2rem;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
-    <div>
+    <div style="flex:1;min-width:200px">
       <div style="font-size:.75rem;opacity:.5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem">Welcome back</div>
       <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700" id="rb-name"></div>
+      <div id="rb-next" style="display:none;margin-top:.7rem;padding-top:.65rem;border-top:1px solid rgba(255,255,255,.12)"></div>
     </div>
     <div style="display:flex;gap:.6rem;flex-wrap:wrap">
       <button onclick="viewReturningItinerary()" style="background:var(--gold);color:#fff;border:none;padding:.55rem 1.1rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer">View my itinerary &rarr;</button>
@@ -1249,14 +1250,14 @@ async function submitAndGenerate(){
   lastGeneratedGuest=g;document.getElementById('update-banner').style.display='none';
   syncOneSignalTags(g);
   _itineraryGuest=g;
-  try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
-  catch(e){console.error('buildItinerary error:',e);showNotice(ni,'⚠️ Itinerary error — please try again.','warn');}
+  try{const _itinHTML=await buildItinerary(g);cacheItineraryHTML(_itinHTML);document.getElementById('modal-itinerary').innerHTML=_itinHTML;onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  catch(e){console.error('buildItinerary error:',e);const _cached=loadCachedItineraryHTML();if(_cached){document.getElementById('modal-itinerary').innerHTML='<div style="background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:.6rem .8rem;margin-bottom:.8rem;font-size:.82rem;color:#854d0e">📴 Offline — showing your last saved itinerary.</div>'+_cached.html;onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}else{showNotice(ni,'⚠️ Itinerary error — please try again.','warn');}}
   scheduleActivityReminders(g);
   // Now that they've submitted, the push card becomes eligible to appear.
   // 1.5 s delay so the success message lands first.
   setTimeout(() => { showAppropriatePushCard(); loadCheckInBanner(); }, 1500);
 }
-async function refreshItinerary(){if(!lastGeneratedGuest)return;document.getElementById('modal-itinerary').innerHTML=await buildItinerary(lastGeneratedGuest);document.getElementById('update-banner').style.display='none';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+async function refreshItinerary(){if(!lastGeneratedGuest)return;const _h=await buildItinerary(lastGeneratedGuest);cacheItineraryHTML(_h);document.getElementById('modal-itinerary').innerHTML=_h;document.getElementById('update-banner').style.display='none';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
 </script>
 <script>
 async function buildItinerary(g){
@@ -1269,22 +1270,7 @@ async function buildItinerary(g){
     : NICE_ARR_DEFAULT_DAY;
   const hasSideTrip = (g.tripSection !== 'bruges') && (niceArrDayIdx !== NICE_ARR_DEFAULT_DAY);
   const fill=s=>String(s||'').replace(/{depFlight}/g,g.depFlight||'—').replace(/{depTime}/g,fmt12(g.depTime)).replace(/{niceArrTime}/g,g.niceArrTime?fmt12(g.niceArrTime):'TBC').replace(/{rentalCo}/g,g.rentalCo||'rental company').replace(/{rentalPickup}/g,g.rentalPickup||'Nice Airport').replace(/{rentalReturn}/g,g.rentalReturn?fmtDate(g.rentalReturn):'28 Jun').replace(/{retFlight}/g,g.retFlight||'—').replace(/{retTime}/g,fmt12(g.retTime)).replace(/{checkoutNote}/g,checkoutNote(g)).replace(/{brugesDepRef}/g,g.brugesDepRef||'—').replace(/{brugesDepTime}/g,fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g,g.brugesDepTo||'home');
-  const filtered=acts.filter(a=>{
-    // For side-trip "both" guests: hide default activities on the gap days (after Bruges checkout, before Nice arrival)
-    if(hasSideTrip && !isVOnly && a.day > NICE_ARR_DEFAULT_DAY && a.day < niceArrDayIdx) return false;
-    // Valbonne-only guests never stayed in Bruges — they shouldn't see the De Tuilerieen checkout event
-    if(a.time === 'CHECK_OUT' && g.tripSection === 'valbonne') return false;
-    // If guest has personal Nice-arrival transport arranged, hide the default "Group Transfer to Valbonne"
-    if(a.title === 'Group Transfer to Valbonne' && (g.niceArrTransport || g.transportOrg?.nice)) return false;
-    const t=a.tags||[];
-    if(!t.length)return true;
-    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
-    if(t.includes('both')&&!_isOnJun22Coach(g))return false;
-    if(t.includes('valbonne')&&g.tripSection==='bruges')return false;
-    if(t.includes('rental')&&!g.hasRental)return false;
-    if(t.includes('no-rental')&&g.hasRental)return false;
-    return true;
-  });
+  const filtered=acts.filter(a=>activityVisibleFor(a,g)); // shared visibility rules — see activityVisibleFor()
   const byDay={};
   filtered.forEach(a=>{
     let dayKey = a.day;
@@ -1323,6 +1309,7 @@ async function buildItinerary(g){
           if(v.tripSection !== 'bruges' && v.tripSection !== 'both') return false;
           if(v.arrMode === 'train') return false;
           if(!v.arrFlight || v.arrFlight === '—') return false;
+          if(v.arrTo && !v.arrTo.toLowerCase().includes('brussel')) return false; // van picks up at Brussels Airport only
           if(v.arrDate && v.arrDate !== '2026-06-19') return false;
           if(!v.arrTime || !/^\d{1,2}:\d{2}$/.test(v.arrTime)) return false;
           const [h,m] = v.arrTime.split(':').map(Number);
@@ -1526,6 +1513,8 @@ async function buildItinerary(g){
   const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
   const todayTripDay=Math.floor((now-new Date('2026-06-19T00:00:00'))/86400000),tripOngoing=todayTripDay>=startDay&&todayTripDay<lastDay;
   let pastDaysHtml='',pastDayCount=0;
+  // ── "What's Next" accumulator — captures the soonest upcoming event during the render loop ──
+  let _whatsNext=null; // {dayIdx, evMins, timeLabel, title, icon, dateStr, isToday}
   for(let d=startDay;d<lastDay;d++){
     const dd=new Date(TRIP_BASE);dd.setDate(TRIP_BASE.getDate()+d);
     const label = (d === retDayIdx) ? 'Departure Day'
@@ -1559,6 +1548,8 @@ async function buildItinerary(g){
         const tl=ev.time==='CHECK_ARR'?(brugesArrival?fmt12(brugesArrival):'On arrival'):ev.time==='CHECK_DEP'?(g.tripSection==='bruges'?(g.brugesDepTime?fmt12(g.brugesDepTime):'TBC'):(g.depTime?fmt12(g.depTime):'TBC')):ev.time==='CHECK_OUT'?fmt12(checkoutTime):ev.time==='NICE_ARR'?(ev.type==='flight'?(g.niceArrTime?fmt12(g.niceArrTime):'On arrival'):(niceTransferStart?fmt12(niceTransferStart):'On arrival')):ev.time==='FREE'?'Free':ev.time==='EVENING'?'Evening':fmt12(ev.time);
         const evMins=(()=>{if(!isToday)return null;const t=ev.time;if(t==='FREE')return 0;if(t==='CHECK_ARR')return brugesArrival?parseInt(brugesArrival.split(':')[0])*60+parseInt(brugesArrival.split(':')[1]):0;if(t==='CHECK_OUT'){const ct=calcCheckoutTime(g);if(ct){const[h,m]=ct.split(':').map(Number);return h*60+m;}return 11*60;}if(t==='EVENING')return 19*60;if(t==='CHECK_DEP'||t==='NICE_ARR')return 23*60;const mt=t&&t.match(/^(\d{2}):(\d{2})$/);return mt?parseInt(mt[1])*60+parseInt(mt[2]):null;})();
         const actPast=isToday&&evMins!==null&&evMins<nowMins-30;
+        // (What's Next capture happens below, AFTER the CHECK_OUT/CHECK_DEP transforms,
+        //  so the card always matches the title/icon actually rendered.)
         // Transport comments and arrival details now render as their own personal event cards
         // (added to byDay further up). No inline appending or arrivalNote needed here.
         let evIcon=ev.icon||'📌', evType=ev.type||'activity', evTitle=fill(ev.title), evNote=fill(ev.note||'');
@@ -1590,6 +1581,26 @@ async function buildItinerary(g){
           evTitle = isTrainDep ? `Train home${ref}` : `Flight home${ref}`;
           evNote  = `Safe travels home! ${isTrainDep?'Train':'Flight'} departs${dtime}${dest}.`;
         }
+        // ── Capture for "What's Next": today's not-yet-started events, or any event on a future day.
+        //    Runs AFTER the transforms above, so the card shows the same title/icon the guest sees
+        //    (suppressed bruges-only CHECK_DEP has already returned '' before reaching here).
+        //    eventSortKey resolves CHECK_*/FREE/EVENING to real guest times, so the timestamp we
+        //    store for the banner matches the displayed time label.
+        if(tripOngoing){
+          const isFutureDay = d > todayTripDay;
+          const isUpcomingToday = isToday && evMins!==null && evMins >= nowMins-30;
+          if(isFutureDay || isUpcomingToday){
+            let sortMins = evMins;
+            if(sortMins==null){
+              const skm=eventSortKey(ev).match(/^(\d{1,2}):(\d{2})$/);
+              sortMins=skm?parseInt(skm[1])*60+parseInt(skm[2]):12*60;
+            }
+            const cand={dayIdx:d, evMins:sortMins, timeLabel:tl, title:evTitle, icon:evIcon||'📌', dateStr, isToday};
+            if(!_whatsNext || cand.dayIdx<_whatsNext.dayIdx || (cand.dayIdx===_whatsNext.dayIdx && cand.evMins<_whatsNext.evMins)){
+              _whatsNext=cand;
+            }
+          }
+        }
         const bc='badge-'+evType,bl=evType[0].toUpperCase()+evType.slice(1);
         const mapsUrl=ev.address?`https://maps.google.com/?q=${encodeURIComponent(ev.address)}`:null;
         const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" rel="noopener" class="maps-btn">📍 Maps</a>`:'';
@@ -1603,6 +1614,42 @@ async function buildItinerary(g){
   // Return day is now rendered via the main loop above (with retFlight added to byDay[retDayIdx])
   // so retTransport and any organiser-assigned events on the return day all show up correctly.
   if(g.notes)html+=`<div class="form-card" style="margin-top:1.2rem;background:#fefce8;border-color:#fde68a"><h3 style="color:#854d0e">📝 Your Notes</h3><p style="font-size:.84rem;margin-top:.4rem">${esc(g.notes)}</p></div>`;
+  // ── Prepend "What's Next" card if the trip is ongoing and an upcoming event was found ──
+  if(tripOngoing && _whatsNext){
+    const wn=_whatsNext;
+    // Persist for the returning-banner "Next" line. Store the absolute event timestamp so
+    // we can recompute "in X min" accurately the next time the banner is shown.
+    try{
+      const tripStart0=new Date('2026-06-19T00:00:00');
+      const eventDate=new Date(tripStart0.getTime() + wn.dayIdx*86400000);
+      eventDate.setHours(0, wn.evMins||0, 0, 0);
+      localStorage.setItem('vv_next_event', JSON.stringify({
+        title:wn.title, icon:wn.icon, dateStr:wn.dateStr, timeLabel:wn.timeLabel,
+        eventTime:eventDate.getTime(), at:Date.now()
+      }));
+    }catch(e){}
+    let when;
+    if(wn.isToday){
+      const delta=wn.evMins-nowMins;
+      if(delta<=0) when='Happening now';
+      else if(delta<60) when=`in ${delta} min`;
+      else { const h=Math.floor(delta/60),m=delta%60; when=`in ${h}h${m?' '+m+'m':''}`; }
+      when=`Today · ${esc(wn.timeLabel||'')}${when==='Happening now'?' · Now':' · '+when}`;
+    } else {
+      when=`${esc(wn.dateStr)} · ${esc(wn.timeLabel||'')}`;
+    }
+    const wnCard=`<div class="whats-next-card" style="background:linear-gradient(135deg,#c9923a,#a8742a);color:#fff;border-radius:14px;padding:1rem 1.1rem;margin-bottom:1rem;box-shadow:0 4px 14px rgba(168,116,42,.35)">
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;opacity:.85;font-weight:700;margin-bottom:.35rem">⏭️ What's Next</div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div style="font-size:1.6rem;line-height:1">${esc(wn.icon)}</div>
+        <div style="flex:1">
+          <div style="font-size:1.05rem;font-weight:700;line-height:1.2">${esc(wn.title)}</div>
+          <div style="font-size:.82rem;opacity:.9;margin-top:.15rem">${when}</div>
+        </div>
+      </div>
+    </div>`;
+    html=wnCard+html;
+  }
   return html;
 }
 
@@ -1648,7 +1695,7 @@ async function renderGuestDashboard(){
 }
 async function editPickupInline(guestKey,guestName,idx){const pickups=await getPickups(guestKey);openPickupModal(guestKey,guestName,idx,pickups[idx]);}
 async function clearAllGuests(){if(!confirm('Delete ALL guest entries?'))return;if(firebaseReady){try{await db.ref('guests').remove();}catch(e){}}else localStorage.removeItem('vv_guests');renderGuestDashboard();}
-async function exportCSV(){const gs=await loadGuests();if(!gs.length){alert('No guests to export.');return;}const cols=['name','email','arrMode','arrFlight','arrDate','arrTime','arrFrom','goingValbonne','hasRental','depFlight','depDate','depTime','niceArrTime','rentalCo','rentalPickup','retFlight','retDate','retTime','retTo','notes','submittedAt'];const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([cols.join(','),...gs.map(g=>cols.map(c=>'"'+String(g[c]||'').replace(/"/g,'""')+'"').join(','))].join('\n'));a.download='vv-birthday-bash-guests.csv';a.click();}
+async function exportCSV(){const gs=await loadGuests();if(!gs.length){alert('No guests to export.');return;}const cols=['name','email','tripSection','arrMode','arrFlight','arrDate','arrTime','arrFrom','arrTo','arrTrainTo','arrTransport','brugesDepMode','brugesDepRef','brugesDepDate','brugesDepTime','brugesDepTo','bdepFromAirport','goingValbonne','hasRental','depFlight','depFrom','depDate','depTime','niceArrTime','depTransport','niceArrTransport','bothLeaveMode','bothLeaveTrainNum','bothLeaveTrainTo','bothLeaveTrainTime','rentalCo','rentalPickup','rentalReturn','retFlight','retDate','retTime','retTo','retTransport','notes','submittedAt'];const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([cols.join(','),...gs.map(g=>cols.map(c=>'"'+String(g[c]||'').replace(/"/g,'""')+'"').join(','))].join('\n'));a.download='vv-birthday-bash-guests.csv';a.click();}
 function renderActivityEditor(){const allActs=EDITED_ACTIVITIES||LIVE_ACTIVITIES;const acts=allActs.filter(a=>{if(activityFilter==='all')return true;if(activityFilter==='bruges')return a.day<=2||(a.day===3&&(a.tags||[]).includes('bruges-only'));if(activityFilter==='valbonne')return a.day>=3&&!(a.tags||[]).includes('bruges-only');return true;});const groups={};acts.forEach((a,i)=>{if(!groups[a.day])groups[a.day]=[];groups[a.day].push({...a,_i:i});});let html='';Object.keys(groups).sort((a,b)=>+a-+b).forEach(day=>{html+=`<div class="act-day-group"><div class="act-day-label">${esc(DAY_LABELS[+day]||'Day '+(+day+1))} <span>Jun ${19+parseInt(day)}</span></div><div class="act-list">`;groups[day].forEach(a=>{const tc=(a.tags||[]).length?(a.tags||[]).map(t=>`<span class="tag-chip ${t==='valbonne'?'vv':t==='rental'||t==='no-rental'?'rr':t==='bruges-only'?'bb':''}">${esc(t)}</span>`).join(''):'<span class="tag-chip">all</span>';html+=`<div class="act-row"><div class="act-time-chip">${esc(a.time||'')}</div><div class="act-icon-cell">${a.icon||'📌'}</div><div class="act-title-cell">${esc(a.title||'')}${a.address?` <span style="font-size:.7rem;opacity:.5">📍</span>`:''}</div><div class="act-tag-cell">${tc}</div><div class="act-actions"><button class="btn btn-secondary btn-sm" onclick="editActivity(${a._i})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteActivity(${a._i})">🗑</button></div></div>`;});html+=`</div></div>`;});document.getElementById('act-editor-list').innerHTML=html||'<div class="empty-state">No activities. Click + Add to start.</div>';}
 function markEdited(){if(!EDITED_ACTIVITIES)EDITED_ACTIVITIES=JSON.parse(JSON.stringify(LIVE_ACTIVITIES));document.getElementById('unsaved-notice').style.display='block';}
 function addActivity(){openActModal(-1,null);}
@@ -2159,8 +2206,6 @@ if('serviceWorker' in navigator){
     }
   }).catch(()=>{});
 }
-// Decides which push card (if any) to show based on environment:
-// 'enable' -> regular Notifications API works (Android, desktop, iOS PWA installed)
 // Decides which push card (if any) to show based on environment & subscription state:
 // 'enable'  -> regular Notifications API works AND user has not yet subscribed
 // 'install' -> iOS Safari, not yet installed as PWA (push needs PWA on iOS)
@@ -2412,7 +2457,8 @@ async function loadWeather(){
   const maxEnd = new Date(today.getTime() + 15*86400000);
   const clampDate = d => {
     const dt = new Date(d+'T00:00:00');
-    return dt > maxEnd ? maxEnd.toISOString().slice(0,10) : d;
+    if(dt <= maxEnd) return d;
+    return maxEnd.getFullYear()+'-'+String(maxEnd.getMonth()+1).padStart(2,'0')+'-'+String(maxEnd.getDate()).padStart(2,'0');
   };
   const fetchW = async (lat,lng,start,end) => {
     const safeEnd = clampDate(end);
@@ -2499,6 +2545,33 @@ function _isOnJun22Coach(g){
   return false;
 }
 function _hasSideTrip(g){return g.tripSection==='both' && g.depDate && g.depDate !== '2026-06-22';}
+// Day index (0 = Jun 19) on which this guest actually flies to / arrives in Nice.
+function _niceArrDayIdx(g){
+  return (g.tripSection !== 'bruges' && g.depDate)
+    ? Math.floor((new Date(g.depDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000)
+    : 3;
+}
+// ── SINGLE SOURCE OF TRUTH for "does guest g see activity a?" ──
+// Used by buildItinerary, _buildCalEvents (iCal/GCal export), and scheduleActivityReminders.
+// Any new visibility rule goes HERE so the three consumers can never drift apart again.
+function activityVisibleFor(a, g){
+  const niceArrDayIdx = _niceArrDayIdx(g);
+  const sideTrip = (g.tripSection !== 'bruges') && (niceArrDayIdx !== 3);
+  // Side-trip "both" guests: hide default activities on the gap days (after Bruges checkout, before Nice arrival)
+  if(sideTrip && g.tripSection !== 'valbonne' && a.day > 3 && a.day < niceArrDayIdx) return false;
+  // Valbonne-only guests never stayed in Bruges — no De Tuilerieen checkout for them
+  if(a.time === 'CHECK_OUT' && g.tripSection === 'valbonne') return false;
+  // Personal Nice-arrival transport arranged → hide the default "Group Transfer to Valbonne"
+  if(a.title === 'Group Transfer to Valbonne' && (g.niceArrTransport || g.transportOrg?.nice)) return false;
+  const t=a.tags||[];
+  if(!t.length)return true;
+  if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
+  if(t.includes('both')&&!_isOnJun22Coach(g))return false;
+  if(t.includes('valbonne')&&g.tripSection==='bruges')return false;
+  if(t.includes('rental')&&!g.hasRental)return false;
+  if(t.includes('no-rental')&&g.hasRental)return false;
+  return true;
+}
 function calcCheckoutTime(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(g.tripSection==='valbonne')return null;if(_hasSideTrip(g)){if(g.bothLeaveMode==='train'&&g.bothLeaveTrainTime)return addMins(g.bothLeaveTrainTime,-(TO_STATION+TRAIN_BUFFER));return'11:00';}if(_isOnJun22Coach(g))return'07:00';if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return addMins(g.brugesDepTime,-(TO_STATION+TRAIN_BUFFER));if(g.brugesDepMode==='flight'&&g.brugesDepTime){const driveMins=airportDriveMins(g.bdepFromAirport||'brussels');return addMins(g.brugesDepTime,-(driveMins+FLIGHT_BUFFER));}}return'11:00';}
 function checkoutNote(g){const FLIGHT_BUFFER=150,TRAIN_BUFFER=60,TO_STATION=10;if(_hasSideTrip(g)){if(g.bothLeaveMode==='train'&&g.bothLeaveTrainTime){const dest=g.bothLeaveTrainTo||'your next stop';return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.bothLeaveTrainTime)} train to ${dest}.`;}return'Standard hotel checkout — your travel to Nice is on a later date, so onward travel from Bruges is on your own.';}if(_isOnJun22Coach(g)){const flightTime=g.depTime||g.brugesDepTime;const dest=g.tripSection==='both'?'Nice':'home';return`Group coach at 7:30 AM from the lobby drops you at Brussels Airport — onward to your ${fmt12(flightTime)} flight to ${dest}.`;}if(g.tripSection==='bruges'){if(g.brugesDepMode==='train'&&g.brugesDepTime)return`~${TO_STATION} min to Bruges station + 60 min before ${fmt12(g.brugesDepTime)} train`;if(g.brugesDepMode==='flight'&&g.brugesDepTime){const dep=g.bdepFromAirport||'Brussels Airport',drive=airportDriveMins(dep);return`~${drive} min drive to ${dep} + 2h30 check-in before ${fmt12(g.brugesDepTime)} flight`;}}return'Luggage storage available if needed.';}
 function fmtDate(d){if(!d)return'';return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
@@ -2517,11 +2590,46 @@ async function lookupReturningGuest(){
     if(!matches.length)throw new Error('not_found');
     const g={key:matches[0][0],...matches[0][1]};saveGuestLocally(g);prefillForm(g);syncOneSignalTags(g);
     statusEl.innerHTML=`✅ Found! Welcome back, <strong style="color:#f0c878">${esc(g.name)}</strong>. Your details are loaded.`;
-    setTimeout(()=>{document.getElementById('returning-lookup-card').style.display='none';document.getElementById('rb-name').textContent=g.name;document.getElementById('returning-banner').style.display='flex';},1800);
+    setTimeout(()=>{document.getElementById('returning-lookup-card').style.display='none';document.getElementById('rb-name').textContent=g.name;document.getElementById('returning-banner').style.display='flex';populateBannerNextLine();},1800);
   }catch(e){if(e.message==='not_found')statusEl.textContent='❓ Name not found — you may not have submitted yet. Fill in the form below.';else statusEl.textContent='❌ Connection error — check your internet and try again.';}
 }
 function saveGuestLocally(g){try{localStorage.setItem('vv_my_profile',JSON.stringify(g));}catch(e){}}
 function loadGuestLocally(){try{const s=localStorage.getItem('vv_my_profile');return s?JSON.parse(s):null;}catch(e){return null;}}
+// ── Offline itinerary cache: store last successfully-rendered itinerary HTML so a guest
+//    with no signal still sees their schedule. No service worker needed. ──
+function cacheItineraryHTML(html){try{localStorage.setItem('vv_itin_cache',JSON.stringify({html,at:Date.now()}));}catch(e){}}
+function loadCachedItineraryHTML(){try{const s=localStorage.getItem('vv_itin_cache');return s?JSON.parse(s):null;}catch(e){return null;}}
+
+// ── Returning-banner "Next" line: reads the cached next-event (populated by buildItinerary)
+//    and shows a subtle one-liner. Recomputes relative time each call so "in X min" stays fresh. ──
+function populateBannerNextLine(){
+  const el=document.getElementById('rb-next');if(!el)return;
+  const hide=()=>{el.style.display='none';el.innerHTML='';};
+  // Only show during the active trip window
+  const today=new Date();today.setHours(0,0,0,0);
+  const tripStart=new Date('2026-06-19T00:00:00');
+  const tripEnd=new Date('2026-06-29T23:59:59');
+  if(today<tripStart||today>tripEnd){hide();return;}
+  let data;try{const s=localStorage.getItem('vv_next_event');data=s?JSON.parse(s):null;}catch(e){data=null;}
+  if(!data||!data.eventTime){hide();return;}
+  const now=Date.now();const delta=data.eventTime-now;
+  // Hide if event is more than 30 min in the past (it's no longer "next")
+  if(delta<-30*60*1000){hide();return;}
+  // Format relative time
+  const eventDate=new Date(data.eventTime);
+  const isToday=eventDate.toDateString()===new Date().toDateString();
+  let when;
+  if(isToday){
+    if(delta<=0) when='Happening now';
+    else if(delta<3600*1000) when=`in ${Math.round(delta/60000)} min`;
+    else { const h=Math.floor(delta/3600000),m=Math.round((delta%3600000)/60000); when=`in ${h}h${m?' '+m+'m':''}`; }
+    when=`Today · ${esc(data.timeLabel||'')} · ${when}`;
+  } else {
+    when=`${esc(data.dateStr||'')} · ${esc(data.timeLabel||'')}`;
+  }
+  el.innerHTML=`<div style="font-size:.65rem;opacity:.55;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:.25rem">⏭️ Next up</div><div style="display:flex;align-items:center;gap:.5rem"><span style="font-size:1.15rem;line-height:1">${esc(data.icon||'📌')}</span><span style="font-size:.95rem;font-weight:600;color:#f0c878">${esc(data.title||'')}</span></div><div style="font-size:.76rem;opacity:.6;margin-top:.2rem">${when}</div>`;
+  el.style.display='block';
+}
 
 // ── Recent notification banner: shows the most recent cron push that fired in the last 24h ──
 // Pulls from /recentPushes (worker writes there on successful send).
@@ -2819,8 +2927,8 @@ async function viewReturningItinerary(){
   prefillForm(g);
   document.getElementById('returning-banner').style.display='none';
   _itineraryGuest=g;
-  try{document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
-  catch(e){console.error('buildItinerary error:',e);document.getElementById('modal-itinerary').innerHTML='<div style="padding:2rem;color:#c0392b">⚠️ Couldn\'t load itinerary. Please tap "Update details" and re-submit.</div>';onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  try{const _h=await buildItinerary(g);cacheItineraryHTML(_h);document.getElementById('modal-itinerary').innerHTML=_h;onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
+  catch(e){console.error('buildItinerary error:',e);const _cached=loadCachedItineraryHTML();if(_cached){document.getElementById('modal-itinerary').innerHTML='<div style="background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:.6rem .8rem;margin-bottom:.8rem;font-size:.82rem;color:#854d0e">📴 Offline — showing your last saved itinerary.</div>'+_cached.html;}else{document.getElementById('modal-itinerary').innerHTML='<div style="padding:2rem;color:#c0392b">⚠️ Couldn\'t load itinerary. Please tap "Update details" and re-submit.</div>';}onItineraryModalOpen();document.getElementById('modal-overlay').style.display='block';document.body.style.overflow='hidden';}
   scheduleActivityReminders(g);
 }
 function dismissReturning(){document.getElementById('returning-banner').style.display='none';const g=loadGuestLocally();if(g)prefillForm(g);}
@@ -2833,7 +2941,8 @@ async function checkOnLoad(){
     if(g&&g.name){
       saveGuestLocally(g);prefillForm(g);
       try{
-        document.getElementById('modal-itinerary').innerHTML=await buildItinerary(g);
+        const _h=await buildItinerary(g);cacheItineraryHTML(_h);
+        document.getElementById('modal-itinerary').innerHTML=_h;
         onItineraryModalOpen();
         document.getElementById('modal-overlay').style.display='block';
         document.body.style.overflow='hidden';
@@ -2841,6 +2950,7 @@ async function checkOnLoad(){
         console.error('Deep-link itinerary error:',e);
         document.getElementById('rb-name').textContent=g.name;
         document.getElementById('returning-banner').style.display='flex';
+        populateBannerNextLine();
       }
       return;
     }
@@ -2849,6 +2959,7 @@ async function checkOnLoad(){
   if(g&&g.name){
     document.getElementById('rb-name').textContent=g.name;
     document.getElementById('returning-banner').style.display='flex';
+    populateBannerNextLine();
     scheduleActivityReminders(g);
     setTimeout(() => { showAppropriatePushCard(); loadCheckInBanner(); }, 1500);
   }else{document.getElementById('returning-lookup-card').style.display='block';}
@@ -2867,19 +2978,14 @@ function scheduleActivityReminders(g){
   const todayTripDay=Math.floor((now-tripStart)/86400000);
   if(todayTripDay<0||todayTripDay>10) return;
   const nowMins=now.getHours()*60+now.getMinutes();
-  const todayActs=[...LIVE_ACTIVITIES].filter(a=>{
-    if(a.day!==todayTripDay) return false;
-    const t=a.tags||[];
-    if(!t.length) return true;
-    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
-    if(t.includes('valbonne')&&g.tripSection==='bruges') return false;
-    if(t.includes('rental')&&!g.hasRental) return false;
-    if(t.includes('no-rental')&&g.hasRental) return false;
-    return true;
-  });
-  if(todayTripDay===3 && g.tripSection!=='valbonne'){
-    if(g.tripSection==='both'&&g.depTime) todayActs.push({time:g.depTime,title:`Fly to Nice – ${g.depFlight||''}`,icon:'✈️'});
-    else if(g.tripSection==='bruges'&&g.brugesDepTime) todayActs.push({time:g.brugesDepTime,title:`Your departure${g.brugesDepRef&&g.brugesDepRef!=='—'?' – '+g.brugesDepRef:''}`,icon:g.brugesDepMode==='train'?'🚂':'✈️'});
+  // Valbonne-only guests aren't on the trip until Jun 22 (or their later side-trip arrival day)
+  const _vStart = g.tripSection==='valbonne' ? Math.max(3, _niceArrDayIdx(g)) : 0;
+  if(todayTripDay < _vStart) return;
+  const todayActs=[...LIVE_ACTIVITIES].filter(a=>a.day===todayTripDay && activityVisibleFor(a,g)); // shared visibility rules
+  if(g.tripSection!=='valbonne'){
+    if(g.tripSection==='both'&&g.depTime&&todayTripDay===_niceArrDayIdx(g)) todayActs.push({time:g.depTime,title:`Fly to Nice – ${g.depFlight||''}`,icon:'✈️'});
+    if(g.tripSection==='both'&&g.bothLeaveMode==='train'&&g.bothLeaveTrainTime&&todayTripDay===3) todayActs.push({time:g.bothLeaveTrainTime,title:`Train to ${g.bothLeaveTrainTo||'your stopover'}${g.bothLeaveTrainNum?' – '+g.bothLeaveTrainNum:''}`,icon:'🚂'});
+    if(g.tripSection==='bruges'&&g.brugesDepTime&&todayTripDay===3) todayActs.push({time:g.brugesDepTime,title:`Your departure${g.brugesDepRef&&g.brugesDepRef!=='—'?' – '+g.brugesDepRef:''}`,icon:g.brugesDepMode==='train'?'🚂':'✈️'});
   }
   let scheduled=0;
   todayActs.forEach(act=>{
@@ -2966,6 +3072,7 @@ function _buildCalEvents(g) {
   // since we don't fetch all guests here. Adds 90min for drive to hotel.
   if(g.arrMode !== 'train' && g.arrFlight && g.arrFlight !== '—' &&
      (g.tripSection === 'bruges' || g.tripSection === 'both') &&
+     (!g.arrTo || g.arrTo.toLowerCase().includes('brussel')) &&
      (!g.arrDate || g.arrDate === '2026-06-19') &&
      g.arrTime && /^\d{1,2}:\d{2}$/.test(g.arrTime)){
     const [h,m] = g.arrTime.split(':').map(Number);
@@ -2977,15 +3084,24 @@ function _buildCalEvents(g) {
   }
   const niceArrival = g.niceArrTime ? addMins(g.niceArrTime, NICE_DRIVE + CUSTOMS) : null;
   const fillT = s => String(s||'').replace(/{depFlight}/g, g.depFlight||'').replace(/{depTime}/g, fmt12(g.depTime)).replace(/{niceArrTime}/g, g.niceArrTime ? fmt12(g.niceArrTime) : '').replace(/{rentalCo}/g, g.rentalCo||'').replace(/{rentalPickup}/g, g.rentalPickup||'').replace(/{checkoutNote}/g, checkoutNote(g)).replace(/{brugesDepRef}/g, g.brugesDepRef||'').replace(/{brugesDepTime}/g, fmt12(g.brugesDepTime)).replace(/{brugesDepTo}/g, g.brugesDepTo||'');
-  const filtered = LIVE_ACTIVITIES.filter(a => {
-    const t = a.tags||[];
-    if(!t.length) return true;
-    if(t.includes('bruges-only')){if(g.tripSection==='valbonne')return false;if(g.tripSection==='both'&&(a.time==='CHECK_DEP'||a.day===3))return false;return true;}
-    if(t.includes('valbonne')&&g.tripSection==='bruges') return false;
-    if(t.includes('rental')&&!g.hasRental) return false;
-    if(t.includes('no-rental')&&g.hasRental) return false;
-    return true;
-  });
+  // Shared visibility rules + side-trip day shifting + day windowing — mirrors buildItinerary.
+  const niceArrDayIdx = _niceArrDayIdx(g);
+  const calSideTrip = (g.tripSection !== 'bruges') && (niceArrDayIdx !== 3);
+  const calStartDay = g.tripSection==='valbonne' ? (calSideTrip ? niceArrDayIdx : 3) : 0;
+  const calLastDay  = g.tripSection==='bruges' ? 4 : 99;
+  const filtered = LIVE_ACTIVITIES
+    .filter(a => activityVisibleFor(a, g))
+    .map(a => {
+      if(calSideTrip && a.day === 3){
+        const tags = a.tags || [];
+        const isArrivalEvent = (a.time === 'CHECK_DEP' && tags.includes('valbonne'))
+          || a.time === 'NICE_ARR'
+          || (a.time === 'EVENING' && tags.includes('valbonne'));
+        if(isArrivalEvent) return {...a, day: niceArrDayIdx};
+      }
+      return a;
+    })
+    .filter(a => a.day >= calStartDay && a.day < calLastDay);
   const pad = n => String(n).padStart(2,'0');
   const toDate = (day, hhmm) => {
     if(!hhmm||!String(hhmm).includes(':')) return null;
@@ -3020,6 +3136,11 @@ function _buildCalEvents(g) {
   if(g.tripSection!=='valbonne' && g.arrTime) {
     const tNoteArr = g.arrTransport||(g.transportOrg?.arr)||'';
     if(tNoteArr) {const _ds=toDate(0,g.arrTime),_de=toDate(0,addH(g.arrTime,0.5));if(_ds&&_de) events.push({uid:`vvbb-0-arr-xfer`,summary:'Transfer to hotel',description:tNoteArr,location:'',dtstart:_ds,dtend:_de});}
+  }
+  // Side-trippers leaving Bruges by train (e.g. Eurostar to Paris): include the train leg on Jun 22
+  if(g.tripSection==='both' && g.bothLeaveMode==='train' && g.bothLeaveTrainTime){
+    const _ds=toDate(3,g.bothLeaveTrainTime),_de=toDate(3,addH(g.bothLeaveTrainTime,1.5));
+    if(_ds&&_de) events.push({uid:`vvbb-3-bothtrain-${(g.name||'').replace(/\s/g,'')}`,summary:`Train to ${g.bothLeaveTrainTo||'stopover'}${g.bothLeaveTrainNum?' – '+g.bothLeaveTrainNum:''}`,description:`Departs Bruges at ${fmt12(g.bothLeaveTrainTime)}.`,location:'Bruges Station',dtstart:_ds,dtend:_de});
   }
   if(g.tripSection!=='bruges' && g.retFlight && g.retFlight!=='—' && g.retTime && g.retDate) {
     const rd = Math.floor((new Date(g.retDate+'T12:00:00') - new Date('2026-06-19T00:00:00'))/86400000);
